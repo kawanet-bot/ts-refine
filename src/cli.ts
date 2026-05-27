@@ -21,8 +21,8 @@ import {runReportUnusedExports} from "./report/unused-exports.ts"
 // Report registry. The key order here is the execution order when multiple
 // reports are requested. Adding a new report only needs an entry here.
 const REPORTS: Record<string, (project: Project, stream: Writer, opts: {absIncludes: string[]; absExcludes: string[]}) => Promise<void>> = {
-  "unused-exports": runReportUnusedExports,
-  "semicolons": runReportSemicolons,
+    "unused-exports": runReportUnusedExports,
+    semicolons: runReportSemicolons,
 }
 
 const opts = await parseArgs(process.argv.slice(2), {reportNames: Object.keys(REPORTS)})
@@ -32,16 +32,16 @@ const project = new Project({tsConfigFilePath: opts.tsconfigPath})
 const fileOpts = {absIncludes: opts.absIncludes, absExcludes: opts.absExcludes}
 
 if (opts.organizeImports) {
-  await runOrganizeImports(project, {...fileOpts, dryRun: opts.dryRun})
+    await runOrganizeImports(project, {...fileOpts, dryRun: opts.dryRun})
 }
 if (opts.removeSemicolons || opts.insertSemicolons) {
-  const mode: "remove" | "insert" = opts.removeSemicolons ? "remove" : "insert"
-  await runSemicolons(project, {...fileOpts, dryRun: opts.dryRun, mode})
+    const mode: "remove" | "insert" = opts.removeSemicolons ? "remove" : "insert"
+    await runSemicolons(project, {...fileOpts, dryRun: opts.dryRun, mode})
 }
 
 if (opts.reportNames.length > 0) {
-  for (const name of Object.keys(REPORTS)) {
-    if (!opts.reportNames.includes(name)) continue
-    await REPORTS[name](project, process.stdout, fileOpts)
-  }
+    for (const name of Object.keys(REPORTS)) {
+        if (!opts.reportNames.includes(name)) continue
+        await REPORTS[name](project, process.stdout, fileOpts)
+    }
 }

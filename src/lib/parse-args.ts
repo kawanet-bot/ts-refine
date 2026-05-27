@@ -11,150 +11,153 @@ import fs from "node:fs/promises"
 import path from "node:path"
 
 export type ParsedArgs = {
-  organizeImports: boolean;
-  removeSemicolons: boolean;
-  insertSemicolons: boolean;
-  reportNames: string[];
-  tsconfigPath: string;
-  dryRun: boolean;
-  absIncludes: string[];
-  absExcludes: string[];
+    organizeImports: boolean
+    removeSemicolons: boolean
+    insertSemicolons: boolean
+    reportNames: string[]
+    tsconfigPath: string
+    dryRun: boolean
+    absIncludes: string[]
+    absExcludes: string[]
 }
 
 export async function parseArgs(argv: string[], {reportNames}: {reportNames: string[]}): Promise<ParsedArgs> {
-  if (argv.length === 0 || argv.includes("--help") || argv.includes("-h")) {
-    usage(argv.length === 0 ? 1 : 0, {reportNames})
-  }
-
-  let organizeImports = false
-  let removeSemicolons = false
-  let insertSemicolons = false
-  let tsconfigPath: string | null = null
-  let dryRun = false
-  const includeGlobs: string[] = []
-  const excludeGlobs: string[] = []
-  // Report names accumulate in input order with de-duplication. Both
-  // comma-separated values and repeated --report flags are accepted.
-  const requestedReports: string[] = []
-
-  for (let i = 0; i < argv.length; i++) {
-    const a = argv[i]
-    if (a === "--organize-imports") {
-      organizeImports = true
-    } else if (a === "--remove-semicolons") {
-      removeSemicolons = true
-    } else if (a === "--insert-semicolons") {
-      insertSemicolons = true
-    } else if (a === "--report") {
-      const v = argv[++i]
-      if (!v || v.startsWith("-")) {
-        console.error("--report requires a report name (e.g. --report unused-exports)")
-        usage(1, {reportNames})
-      }
-      for (const name of v.split(",").map((s) => s.trim()).filter(Boolean)) {
-        if (!reportNames.includes(name)) {
-          console.error(`unknown report name: ${name} (known: ${reportNames.join(", ")})`)
-          process.exit(1)
-        }
-        if (!requestedReports.includes(name)) requestedReports.push(name)
-      }
-    } else if (a === "--dry-run") {
-      dryRun = true
-    } else if (a === "--include") {
-      includeGlobs.push(takeGlobValue(argv, ++i, "--include", {reportNames}))
-    } else if (a === "--exclude") {
-      excludeGlobs.push(takeGlobValue(argv, ++i, "--exclude", {reportNames}))
-    } else if (a.startsWith("--")) {
-      console.error(`unknown option: ${a}`)
-      usage(1, {reportNames})
-    } else if (!tsconfigPath) {
-      tsconfigPath = a
-    } else {
-      console.error(`extra argument: ${a}`)
-      usage(1, {reportNames})
+    if (argv.length === 0 || argv.includes("--help") || argv.includes("-h")) {
+        usage(argv.length === 0 ? 1 : 0, {reportNames})
     }
-  }
 
-  // Validate flag combinations before checking inputs to give actionable errors.
-  if (removeSemicolons && insertSemicolons) {
-    console.error("--remove-semicolons and --insert-semicolons are mutually exclusive")
-    process.exit(1)
-  }
-  const hasAction = organizeImports || removeSemicolons || insertSemicolons
-  const hasReport = requestedReports.length > 0
-  if (hasAction && hasReport) {
-    console.error("action flags (--organize-imports / --remove-semicolons / --insert-semicolons) cannot be combined with --report")
-    process.exit(1)
-  }
-  if (!hasAction && !hasReport) {
-    console.error("no action specified")
-    usage(1, {reportNames})
-  }
-  if (!tsconfigPath) {
-    console.error("missing tsconfig.json path")
-    usage(1, {reportNames})
-  }
+    let organizeImports = false
+    let removeSemicolons = false
+    let insertSemicolons = false
+    let tsconfigPath: string | null = null
+    let dryRun = false
+    const includeGlobs: string[] = []
+    const excludeGlobs: string[] = []
+    // Report names accumulate in input order with de-duplication. Both
+    // comma-separated values and repeated --report flags are accepted.
+    const requestedReports: string[] = []
 
-  const absTsconfig = path.resolve(tsconfigPath)
-  try {
-    await fs.access(absTsconfig)
-  } catch {
-    console.error(`tsconfig not found: ${absTsconfig}`)
-    process.exit(1)
-  }
+    for (let i = 0; i < argv.length; i++) {
+        const a = argv[i]
+        if (a === "--organize-imports") {
+            organizeImports = true
+        } else if (a === "--remove-semicolons") {
+            removeSemicolons = true
+        } else if (a === "--insert-semicolons") {
+            insertSemicolons = true
+        } else if (a === "--report") {
+            const v = argv[++i]
+            if (!v || v.startsWith("-")) {
+                console.error("--report requires a report name (e.g. --report unused-exports)")
+                usage(1, {reportNames})
+            }
+            for (const name of v
+                .split(",")
+                .map((s) => s.trim())
+                .filter(Boolean)) {
+                if (!reportNames.includes(name)) {
+                    console.error(`unknown report name: ${name} (known: ${reportNames.join(", ")})`)
+                    process.exit(1)
+                }
+                if (!requestedReports.includes(name)) requestedReports.push(name)
+            }
+        } else if (a === "--dry-run") {
+            dryRun = true
+        } else if (a === "--include") {
+            includeGlobs.push(takeGlobValue(argv, ++i, "--include", {reportNames}))
+        } else if (a === "--exclude") {
+            excludeGlobs.push(takeGlobValue(argv, ++i, "--exclude", {reportNames}))
+        } else if (a.startsWith("--")) {
+            console.error(`unknown option: ${a}`)
+            usage(1, {reportNames})
+        } else if (!tsconfigPath) {
+            tsconfigPath = a
+        } else {
+            console.error(`extra argument: ${a}`)
+            usage(1, {reportNames})
+        }
+    }
 
-  // Resolve include/exclude globs against the tsconfig directory so the same
-  // command yields the same target set regardless of cwd.
-  const tsconfigDir = path.dirname(absTsconfig)
-  const absIncludes = includeGlobs.map((g) => resolveGlob(g, tsconfigDir))
-  const absExcludes = excludeGlobs.map((g) => resolveGlob(g, tsconfigDir))
+    // Validate flag combinations before checking inputs to give actionable errors.
+    if (removeSemicolons && insertSemicolons) {
+        console.error("--remove-semicolons and --insert-semicolons are mutually exclusive")
+        process.exit(1)
+    }
+    const hasAction = organizeImports || removeSemicolons || insertSemicolons
+    const hasReport = requestedReports.length > 0
+    if (hasAction && hasReport) {
+        console.error("action flags (--organize-imports / --remove-semicolons / --insert-semicolons) cannot be combined with --report")
+        process.exit(1)
+    }
+    if (!hasAction && !hasReport) {
+        console.error("no action specified")
+        usage(1, {reportNames})
+    }
+    if (!tsconfigPath) {
+        console.error("missing tsconfig.json path")
+        usage(1, {reportNames})
+    }
 
-  return {
-    organizeImports,
-    removeSemicolons,
-    insertSemicolons,
-    reportNames: requestedReports,
-    tsconfigPath: absTsconfig,
-    dryRun,
-    absIncludes,
-    absExcludes,
-  }
+    const absTsconfig = path.resolve(tsconfigPath)
+    try {
+        await fs.access(absTsconfig)
+    } catch {
+        console.error(`tsconfig not found: ${absTsconfig}`)
+        process.exit(1)
+    }
+
+    // Resolve include/exclude globs against the tsconfig directory so the same
+    // command yields the same target set regardless of cwd.
+    const tsconfigDir = path.dirname(absTsconfig)
+    const absIncludes = includeGlobs.map((g) => resolveGlob(g, tsconfigDir))
+    const absExcludes = excludeGlobs.map((g) => resolveGlob(g, tsconfigDir))
+
+    return {
+        organizeImports,
+        removeSemicolons,
+        insertSemicolons,
+        reportNames: requestedReports,
+        tsconfigPath: absTsconfig,
+        dryRun,
+        absIncludes,
+        absExcludes,
+    }
 }
 
 function takeGlobValue(args: string[], idx: number, optName: string, {reportNames}: {reportNames: string[]}): string {
-  const v = args[idx]
-  if (!v || v.startsWith("-")) {
-    console.error(`${optName} requires a glob value`)
-    usage(1, {reportNames})
-  }
-  return v
+    const v = args[idx]
+    if (!v || v.startsWith("-")) {
+        console.error(`${optName} requires a glob value`)
+        usage(1, {reportNames})
+    }
+    return v
 }
 
 function resolveGlob(pattern: string, baseDir: string): string {
-  if (path.isAbsolute(pattern)) return pattern
-  return path.resolve(baseDir, pattern)
+    if (path.isAbsolute(pattern)) return pattern
+    return path.resolve(baseDir, pattern)
 }
 
 function usage(code: number, {reportNames}: {reportNames: string[]}): never {
-  const out = code === 0 ? console.log : console.error
-  out("Usage: ts-survey <action(s)|--report> <tsconfig.json> [options]")
-  out("")
-  out("Actions (write; multiple can be combined, fixed execution order):")
-  out("  --organize-imports          Apply the Language Service organizeImports")
-  out("  --remove-semicolons         Strip trailing `;` from all ASI-eligible statements")
-  out("  --insert-semicolons         Append trailing `;` to all ASI-eligible statements")
-  out("                              (--remove-semicolons and --insert-semicolons are mutually exclusive)")
-  out("")
-  out("Reports (read; exclusive with actions):")
-  out("  --report <names>            Emit Markdown reports (comma-separated or repeat)")
-  out("                              Known reports: " + reportNames.join(", "))
-  out("")
-  out("File scope (applies to both):")
-  out("  --include <glob>            Restrict to files matching the glob")
-  out("  --exclude <glob>            Skip files matching the glob")
-  out("")
-  out("Common:")
-  out("  --dry-run                   Action only: print paths instead of writing")
-  out("  -h, --help                  Show this help")
-  process.exit(code)
+    const out = code === 0 ? console.log : console.error
+    out("Usage: ts-survey <action(s)|--report> <tsconfig.json> [options]")
+    out("")
+    out("Actions (write; multiple can be combined, fixed execution order):")
+    out("  --organize-imports          Apply the Language Service organizeImports")
+    out("  --remove-semicolons         Strip trailing `;` from all ASI-eligible statements")
+    out("  --insert-semicolons         Append trailing `;` to all ASI-eligible statements")
+    out("                              (--remove-semicolons and --insert-semicolons are mutually exclusive)")
+    out("")
+    out("Reports (read; exclusive with actions):")
+    out("  --report <names>            Emit Markdown reports (comma-separated or repeat)")
+    out("                              Known reports: " + reportNames.join(", "))
+    out("")
+    out("File scope (applies to both):")
+    out("  --include <glob>            Restrict to files matching the glob")
+    out("  --exclude <glob>            Skip files matching the glob")
+    out("")
+    out("Common:")
+    out("  --dry-run                   Action only: print paths instead of writing")
+    out("  -h, --help                  Show this help")
+    process.exit(code)
 }
