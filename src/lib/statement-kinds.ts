@@ -5,7 +5,7 @@
 // Excludes interface/class member kinds (PropertySignature etc.) because
 // their `;` vs `,` choice is a separate concern.
 
-import {Node} from "ts-morph";
+import {Node} from "ts-morph"
 
 export function isSemiEligibleStatement(node: Node): boolean {
   return Node.isExpressionStatement(node)
@@ -20,5 +20,5 @@ export function isSemiEligibleStatement(node: Node): boolean {
     || Node.isBreakStatement(node)
     || Node.isContinueStatement(node)
     || Node.isDebuggerStatement(node)
-    || Node.isDoStatement(node);
+    || Node.isDoStatement(node)
 }
