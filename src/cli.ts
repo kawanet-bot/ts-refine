@@ -1,24 +1,20 @@
 #!/usr/bin/env node
 
-// Parses argv, builds a ts-morph Project, then dispatches to action/* and
-// report/* modules in a fixed order.
-//
-// Action order is fixed in this file (not input order):
+// Parses argv, builds a ts-morph Project via initProject(), then dispatches
+// to the action and report functions exported by ./index.ts in a fixed
+// order (not input order):
 //   1. --organize-imports
 //   2. --remove-semicolons / --insert-semicolons
-// Placing semicolons after organize-imports makes combined runs converge on
-// the final shape regardless of how flags were written.
+// Placing semicolons after organize-imports lets combined runs converge on
+// the same final shape regardless of how flags were written.
 
-import {Project} from "ts-morph"
-
-import {runOrganizeImports} from "./action/organize-imports.ts"
-import {runSemicolons} from "./action/semicolons.ts"
+import {initProject, runOrganizeImports, runReports, runSemicolons} from "./index.ts"
 import {parseArgs} from "./lib/parse-args.ts"
-import {reportNames, runReports} from "./report/run-reports.ts"
+import {reportNames} from "./report/run-reports.ts"
 
 const opts = await parseArgs(process.argv.slice(2), {reportNames})
 
-const project = new Project({tsConfigFilePath: opts.tsconfigPath})
+const project = initProject(opts.tsconfigPath)
 
 const fileOpts = {absIncludes: opts.absIncludes, absExcludes: opts.absExcludes}
 
