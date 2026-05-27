@@ -1,12 +1,5 @@
 #!/usr/bin/env node
 
-/**
- * https://github.com/kawanet/ts-survey
- *
- * Executed directly by Node via its built-in TypeScript type-stripping
- * (Node >= 22.18). No bundling step is involved for the CLI entry.
- */
-
 // Parses argv, builds a ts-morph Project, then dispatches to action/* and
 // report/* modules in a fixed order.
 //
