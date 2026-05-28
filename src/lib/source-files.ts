@@ -7,12 +7,9 @@ import {minimatch} from "minimatch"
 import path from "node:path"
 import type {Project, SourceFile} from "ts-morph"
 
-export type FileGlobs = {
-    absIncludes: string[]
-    absExcludes: string[]
-}
+import type {TsSurveyOpts} from "./types.ts"
 
-export function selectSourceFiles(project: Project, {absIncludes, absExcludes}: FileGlobs): SourceFile[] {
+export function selectSourceFiles(project: Project, {absIncludes, absExcludes}: TsSurveyOpts): SourceFile[] {
     let files = absIncludes.length > 0 ? project.getSourceFiles(absIncludes) : project.getSourceFiles()
     if (absExcludes.length > 0) {
         files = files.filter((sf) => {

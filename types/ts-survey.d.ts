@@ -11,9 +11,14 @@ export {}; // external module indicator
 // `write(line)` method as `RunReportsOpts.stream`.
 type Writer = {write: (line: string) => void}
 
-export interface RunOrganizeImportsOpts {
+// Common base for every entry. Not exported — consumers reach the fields
+// through the leaf Opts interfaces below.
+interface TsSurveyOpts {
     absIncludes: string[]
     absExcludes: string[]
+}
+
+export interface RunOrganizeImportsOpts extends TsSurveyOpts {
     dryRun: boolean
 }
 
@@ -25,9 +30,7 @@ export interface RunIndentOpts extends RunOrganizeImportsOpts {
     width: number
 }
 
-export interface RunReportsOpts {
-    absIncludes: string[]
-    absExcludes: string[]
+export interface RunReportsOpts extends TsSurveyOpts {
     stream: Writer
     reportNames: string[]
 }

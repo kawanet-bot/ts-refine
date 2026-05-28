@@ -17,10 +17,9 @@ import type {Project, SourceFile} from "ts-morph"
 import {detectIndent, type IndentCounts, type IndentWidth} from "../lib/detect-indent.ts"
 import {selectSourceFiles} from "../lib/source-files.ts"
 
-export interface RunIndentOpts {
-    dryRun: boolean
-    absIncludes: string[]
-    absExcludes: string[]
+import type {RunOrganizeImportsOpts} from "./organize-imports.ts"
+
+export interface RunIndentOpts extends RunOrganizeImportsOpts {
     width: number
 }
 

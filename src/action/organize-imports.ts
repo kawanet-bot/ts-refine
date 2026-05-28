@@ -6,11 +6,10 @@ import fs from "node:fs/promises"
 import type {Project} from "ts-morph"
 
 import {selectSourceFiles} from "../lib/source-files.ts"
+import type {TsSurveyOpts} from "../lib/types.ts"
 
-export interface RunOrganizeImportsOpts {
+export interface RunOrganizeImportsOpts extends TsSurveyOpts {
     dryRun: boolean
-    absIncludes: string[]
-    absExcludes: string[]
 }
 
 export async function runOrganizeImports(project: Project, {dryRun, absIncludes, absExcludes}: RunOrganizeImportsOpts): Promise<void> {

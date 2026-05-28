@@ -9,7 +9,7 @@ import type {Writer} from "../lib/writable.ts"
 import {runReportIndent} from "./indent.ts"
 import {runReportMemberSeparators} from "./member-separators.ts"
 import {runReportSemicolons} from "./semicolons.ts"
-import type {ReportOpts} from "./unused-exports.ts"
+import type {ReportOpts} from "../lib/types.ts"
 import {runReportUnusedExports} from "./unused-exports.ts"
 
 const REPORTS: Record<string, (project: Project, opts: ReportOpts) => Promise<void>> = {

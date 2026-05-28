@@ -12,7 +12,7 @@ import type {Project} from "ts-morph"
 import {detectIndent, type IndentCounts, type IndentWidth} from "../lib/detect-indent.ts"
 import {writeRecommendation} from "../lib/recommendation.ts"
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
-import type {ReportOpts} from "./unused-exports.ts"
+import type {ReportOpts} from "../lib/types.ts"
 
 type Bucket = {lines: number; files: number; topPath: string; topLines: number}
 

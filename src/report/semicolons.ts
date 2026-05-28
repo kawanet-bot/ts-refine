@@ -7,7 +7,7 @@ import type {Project} from "ts-morph"
 import {writeRecommendation} from "../lib/recommendation.ts"
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
 import {isSemiEligibleStatement} from "../lib/statement-kinds.ts"
-import type {ReportOpts} from "./unused-exports.ts"
+import type {ReportOpts} from "../lib/types.ts"
 
 // Fixed 12-row layout: 0% and 100% match exactly, the middle buckets use a
 // half-open (prev < p <= curr) range, and 91-99% is half-open to exclude 100.

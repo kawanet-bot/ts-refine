@@ -10,10 +10,9 @@ import type {Project} from "ts-morph"
 import {selectSourceFiles} from "../lib/source-files.ts"
 import {isSemiEligibleStatement} from "../lib/statement-kinds.ts"
 
-export interface RunSemicolonsOpts {
-    dryRun: boolean
-    absIncludes: string[]
-    absExcludes: string[]
+import type {RunOrganizeImportsOpts} from "./organize-imports.ts"
+
+export interface RunSemicolonsOpts extends RunOrganizeImportsOpts {
     mode: "remove" | "insert"
 }
 

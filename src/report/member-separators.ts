@@ -16,7 +16,7 @@ import type {Project} from "ts-morph"
 
 import {writeRecommendation} from "../lib/recommendation.ts"
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
-import type {ReportOpts} from "./unused-exports.ts"
+import type {ReportOpts} from "../lib/types.ts"
 
 type Separator = "none" | "," | ";"
 
