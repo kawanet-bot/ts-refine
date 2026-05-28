@@ -12,7 +12,7 @@ import {initProject, runOrganizeImports, runReports, runSemicolons} from "./inde
 import {parseArgs} from "./lib/parse-args.ts"
 import {usage} from "./lib/usage.ts"
 
-const opts = await parseArgs(process.argv.slice(2))
+const opts = parseArgs(process.argv.slice(2))
 
 // parseArgs encodes its outcome in the return value instead of exiting:
 //   - undefined        — error path; a specific message has already been
@@ -28,13 +28,14 @@ if ("help" in opts) {
     process.exit(0)
 }
 
-const project = initProject(opts.tsconfigPath)
-
 const fileOpts = {absIncludes: opts.absIncludes, absExcludes: opts.absExcludes}
 
-// Library-side throws (e.g. unknown report name from runReports) are
-// surfaced as a clean CLI error rather than an unhandled-rejection stack.
+// Library-side throws (missing tsconfig from initProject, unknown report
+// name from runReports, ...) surface as a clean CLI error rather than as
+// an unhandled-rejection stack.
 try {
+    const project = initProject(opts.tsconfigPath)
+
     if (opts.organizeImports) {
         await runOrganizeImports(project, {...fileOpts, dryRun: opts.dryRun})
     }

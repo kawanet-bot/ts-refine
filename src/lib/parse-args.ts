@@ -14,7 +14,6 @@
 //                        error message has already been written to stderr
 // cli.ts maps these onto the right exit code and stream.
 
-import fs from "node:fs/promises"
 import path from "node:path"
 
 export interface ParsedArgs {
@@ -34,7 +33,7 @@ export interface HelpRequested {
 
 export type ParseArgsResult = ParsedArgs | HelpRequested
 
-export async function parseArgs(argv: string[]): Promise<ParseArgsResult | undefined> {
+export function parseArgs(argv: string[]): ParseArgsResult | undefined {
     if (argv.includes("--help") || argv.includes("-h")) return {help: true}
     if (argv.length === 0) return undefined
 
@@ -106,18 +105,11 @@ export async function parseArgs(argv: string[]): Promise<ParseArgsResult | undef
         console.error("no action specified")
         return undefined
     }
-    if (!tsconfigPath) {
-        console.error("missing tsconfig.json path")
-        return undefined
-    }
 
-    const absTsconfig = path.resolve(tsconfigPath)
-    try {
-        await fs.access(absTsconfig)
-    } catch {
-        console.error(`tsconfig not found: ${absTsconfig}`)
-        return undefined
-    }
+    // Default to ./tsconfig.json in the current working directory when the
+    // path is omitted. Existence is not checked here; initProject() surfaces
+    // a missing file as a normal throw caught by the CLI.
+    const absTsconfig = path.resolve(tsconfigPath ?? "tsconfig.json")
 
     // Resolve include/exclude globs against the tsconfig directory so the same
     // command yields the same target set regardless of cwd.
