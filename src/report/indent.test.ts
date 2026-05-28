@@ -2,54 +2,56 @@ import {strict as assert} from "node:assert"
 import path from "node:path"
 import {describe, it} from "node:test"
 import {Project} from "ts-morph"
-import {detectIndent} from "../lib/detect-indent.ts"
-import {runReportIndent} from "./indent.ts"
+import {countLeadingWidths, runReportIndent} from "./indent.ts"
 
 const SAMPLE_TSCONFIG = path.resolve(import.meta.dirname, "../../sample/indents-mixed/tsconfig.json")
 
-describe("detectIndent", () => {
-    it("classifies a tab-indented file as `tab`", () => {
-        const r = detectIndent("function f() {\n\treturn 1\n}\n")
-        assert.equal(r?.unit, "tab")
+describe("countLeadingWidths", () => {
+    it("collects a count for every distinct width in the file", () => {
+        // 2-leading lines: a(), b(), if (x) {, }.    4-leading line: return 1.
+        // Two buckets must be produced, not one (the per-file mixing the
+        // new design supports).
+        const counts = countLeadingWidths(["function f() {", "  a()", "  b()", "  if (x) {", "    return 1", "  }", "}"].join("\n"))
+        assert.equal(counts.get(2), 4)
+        assert.equal(counts.get(4), 1)
+        assert.equal(counts.has("tab"), false)
     })
 
-    it("returns the GCD of leading-space counts for a 2-space file", () => {
-        const r = detectIndent("function f() {\n  if (x) {\n    return 1\n  }\n}\n")
-        assert.equal(r?.unit, 2)
+    it("buckets tab leadings under `tab`", () => {
+        const counts = countLeadingWidths("function f() {\n\treturn 1\n}\n")
+        assert.equal(counts.get("tab"), 1)
     })
 
-    it("returns 4 for a uniformly 4-space file", () => {
-        const r = detectIndent("function f() {\n    if (x) {\n        return 1\n    }\n}\n")
-        assert.equal(r?.unit, 4)
-    })
-
-    it("ignores ` *` block-comment continuation lines", () => {
-        // Without the filter, the ` * ...` lines would pull the GCD down to 1.
-        const text = "/**\n * doc line\n * doc line\n */\nfunction f() {\n    return 1\n}\n"
-        assert.equal(detectIndent(text)?.unit, 4)
-    })
-
-    it("returns null for files with no indented lines", () => {
-        assert.equal(detectIndent("const x = 1\nconst y = 2\n"), null)
+    it("skips JSDoc continuation lines (` * ...`)", () => {
+        const counts = countLeadingWidths("/**\n * note\n */\nfunction f() {\n    return 1\n}\n")
+        // The 4-leading return survives; the 1-leading ` *` lines are filtered.
+        assert.equal(counts.get(4), 1)
+        assert.equal(counts.has(1), false)
     })
 })
 
 describe("runReportIndent (sample/indents-mixed)", () => {
-    it("buckets files by unit and emits a recommendation for the majority", async () => {
+    it("counts each leading width across the project and recommends the file majority", async () => {
         const project = new Project({tsConfigFilePath: SAMPLE_TSCONFIG})
         const lines: string[] = []
         await runReportIndent(project, {stream: {write: (l) => lines.push(l)}, absIncludes: [], absExcludes: []})
 
         const out = lines.join("")
         assert.match(out, /^### indent\n/)
-        // Two 4-space files vs one 2-space vs one tab; no-indent.ts is
-        // excluded from totals.
-        assert.match(out, /\| 2 \| 1 \| /)
-        assert.match(out, /\| 4 \| 2 \| /)
-        assert.match(out, /\| tab \| 1 \| /)
-        assert.match(out, /\| total \| 4 \| \|/)
-        // The 4-space bucket is strictly the largest, so recommendation
-        // should be the indent-4 flag in grep-able form.
+        // two-space.ts has 4 lines at 2 and 1 line at 4.
+        // four-space-a.ts and four-space-b.ts each have 4 lines at 4 and 1 at 8.
+        // tab.ts has 5 tab-leading lines; no-indent.ts is excluded.
+        // Bucket 2:  lines=4 files=1
+        assert.match(out, /\| 2 \| 4 \| 1 \| sample\/indents-mixed\/src\/two-space\.ts \|/)
+        // Bucket 4:  lines=1+4+4=9 files=3 (every space-leading file)
+        assert.match(out, /\| 4 \| 9 \| 3 \| /)
+        // Bucket 8:  lines=2 files=2
+        assert.match(out, /\| 8 \| 2 \| 2 \| /)
+        // Bucket tab: lines=5 files=1
+        assert.match(out, /\| tab \| 5 \| 1 \| sample\/indents-mixed\/src\/tab\.ts \|/)
+        assert.match(out, /\| total \| 20 \| 4 \| \|/)
+        // The 4-bucket has the most files (3 / 4), so the recommendation is
+        // --indent 4 in the grep-able form.
         assert.match(out, /recommendation:\n {4}--indent 4\n/)
         assert.equal(/no-indent\.ts/.test(out), false)
     })
