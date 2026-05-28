@@ -17,12 +17,12 @@ function quiet<T>(fn: () => T): T {
 }
 
 describe("parseArgs", () => {
-    it("recognises --organize-imports as a write action", () => {
-        const r = parseArgs(["--organize-imports", "-p", SAMPLE_TSCONFIG])
+    it("recognises --fix as a write-mode trigger", () => {
+        const r = parseArgs(["--fix", "-p", SAMPLE_TSCONFIG])
         assert.ok(r && !("help" in r))
-        assert.equal(r.organizeImports, true)
-        assert.equal(r.semicolons, null)
-        assert.equal(r.reportNames.length, 0)
+        assert.equal(r.fix, true)
+        assert.deepEqual(r.fixOverrides, {})
+        assert.deepEqual(r.reportNames, [])
     })
 
     it("accepts comma-separated --report names with de-duplication", () => {
@@ -50,7 +50,7 @@ describe("parseArgs", () => {
     })
 
     it("resolves include/exclude globs against the tsconfig directory", () => {
-        const r = parseArgs(["--organize-imports", "-p", SAMPLE_TSCONFIG, "--include", "src/**", "--exclude", "**/*.cli.ts"])
+        const r = parseArgs(["--fix", "-p", SAMPLE_TSCONFIG, "--include", "src/**", "--exclude", "**/*.cli.ts"])
         assert.ok(r && !("help" in r))
         const dir = path.dirname(SAMPLE_TSCONFIG)
         assert.equal(r.absIncludes[0], path.join(dir, "src/**"))
@@ -58,7 +58,7 @@ describe("parseArgs", () => {
     })
 
     it("defaults tsconfigPath to ./tsconfig.json when none is given", () => {
-        const r = parseArgs(["--organize-imports"])
+        const r = parseArgs(["--fix"])
         assert.ok(r && !("help" in r))
         assert.equal(r.tsconfigPath, path.resolve("tsconfig.json"))
     })
@@ -100,10 +100,11 @@ describe("parseArgs", () => {
         assert.ok(r.reportNames.includes("unused-exports"))
         assert.ok(r.reportNames.includes("semicolons"))
         assert.equal(r.surveyDefault, true)
+        assert.equal(r.fix, false)
     })
 
-    it("does not auto-populate reports when an action is specified", () => {
-        const r = parseArgs(["--organize-imports"])
+    it("does not auto-populate reports when --fix is specified", () => {
+        const r = parseArgs(["--fix"])
         assert.ok(r && !("help" in r))
         assert.deepEqual(r.reportNames, [])
         assert.equal(r.surveyDefault, false)
@@ -133,25 +134,76 @@ describe("parseArgs", () => {
         assert.equal(r, undefined)
     })
 
-    it("accepts --semicolons on", () => {
+    it("accepts --semicolons on (implies --fix)", () => {
         const r = parseArgs(["--semicolons", "on", "-p", SAMPLE_TSCONFIG])
         assert.ok(r && !("help" in r))
-        assert.equal(r.semicolons, "on")
+        assert.equal(r.fix, true)
+        assert.equal(r.fixOverrides.semicolons, "on")
     })
 
-    it("accepts --semicolons off", () => {
+    it("accepts --semicolons off (implies --fix)", () => {
         const r = parseArgs(["--semicolons", "off", "-p", SAMPLE_TSCONFIG])
         assert.ok(r && !("help" in r))
-        assert.equal(r.semicolons, "off")
+        assert.equal(r.fix, true)
+        assert.equal(r.fixOverrides.semicolons, "off")
     })
 
-    it("returns undefined when action and --report are mixed", () => {
-        const r = quiet(() => parseArgs(["--organize-imports", "--report", "unused-exports", "-p", SAMPLE_TSCONFIG]))
+    it("accepts --indent N as a fix-mode override (implies --fix)", () => {
+        const r = parseArgs(["--indent", "4", "-p", SAMPLE_TSCONFIG])
+        assert.ok(r && !("help" in r))
+        assert.equal(r.fix, true)
+        assert.equal(r.fixOverrides.indent, 4)
+    })
+
+    it("rejects --indent with a non-positive integer", () => {
+        const r = quiet(() => parseArgs(["--indent", "0", "-p", SAMPLE_TSCONFIG]))
         assert.equal(r, undefined)
     })
 
-    it("returns undefined when action and --format are mixed", () => {
-        const r = quiet(() => parseArgs(["--organize-imports", "--format", "prettier", "-p", SAMPLE_TSCONFIG]))
+    it("accepts --new-line lf and --new-line crlf", () => {
+        const r1 = parseArgs(["--new-line", "lf", "-p", SAMPLE_TSCONFIG])
+        assert.ok(r1 && !("help" in r1))
+        assert.equal(r1.fixOverrides.newLine, "lf")
+        const r2 = parseArgs(["--new-line", "crlf", "-p", SAMPLE_TSCONFIG])
+        assert.ok(r2 && !("help" in r2))
+        assert.equal(r2.fixOverrides.newLine, "crlf")
+    })
+
+    it("rejects --new-line cr (LS formatter cannot emit CR-only)", () => {
+        const r = quiet(() => parseArgs(["--new-line", "cr", "-p", SAMPLE_TSCONFIG]))
+        assert.equal(r, undefined)
+    })
+
+    it("accepts --bracket-spacing on|off", () => {
+        const r = parseArgs(["--bracket-spacing", "off", "-p", SAMPLE_TSCONFIG])
+        assert.ok(r && !("help" in r))
+        assert.equal(r.fixOverrides.bracketSpacing, "off")
+    })
+
+    it("accepts --organize-imports on|off as a fix-mode override (implies --fix)", () => {
+        const r = parseArgs(["--organize-imports", "off", "-p", SAMPLE_TSCONFIG])
+        assert.ok(r && !("help" in r))
+        assert.equal(r.fix, true)
+        assert.equal(r.fixOverrides.organizeImports, "off")
+    })
+
+    it("rejects bare --organize-imports without an on|off argument", () => {
+        const r = quiet(() => parseArgs(["--organize-imports", "-p", SAMPLE_TSCONFIG]))
+        assert.equal(r, undefined)
+    })
+
+    it("returns undefined when fix overrides and --report are mixed", () => {
+        const r = quiet(() => parseArgs(["--indent", "4", "--report", "unused-exports", "-p", SAMPLE_TSCONFIG]))
+        assert.equal(r, undefined)
+    })
+
+    it("returns undefined when --fix and --format are mixed", () => {
+        const r = quiet(() => parseArgs(["--fix", "--format", "prettier", "-p", SAMPLE_TSCONFIG]))
+        assert.equal(r, undefined)
+    })
+
+    it("returns undefined when --semicolons (implicit fix) and --format are mixed", () => {
+        const r = quiet(() => parseArgs(["--semicolons", "on", "--format", "prettier", "-p", SAMPLE_TSCONFIG]))
         assert.equal(r, undefined)
     })
 })

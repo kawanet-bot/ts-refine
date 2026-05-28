@@ -1,16 +1,24 @@
 // CLI argument parsing. The entry point is the only place that reads
 // process.argv; this module receives the slice as input.
 //
-// Action categories (mirroring the action/ and report/ directories):
-//   action (write): --organize-imports / --indent N / --semicolons on|off
-//   report (read) : --report <names>
-// Multiple actions can run in one invocation. Actions are exclusive
-// with --report / --format (write vs read).
+// Two operating modes:
+//   report (read):  the default. Walk the project, emit Markdown.
+//                   Switches: --report <names>, --format <name>.
+//   fix (write):    apply the report's recommendations to disk via the
+//                   Language Service formatter and organizeImports.
+//                   Switch: --fix, plus per-field overrides such as
+//                   --indent N, --semicolons on|off, --new-line lf|crlf,
+//                   --bracket-spacing on|off, --organize-imports on|off.
+//
+// Implicit-mode rules mirror how an explicit --format implies report
+// mode: passing any fix-side flag (override or --fix itself) puts the
+// CLI in fix mode even if --fix is omitted. Mixing the two sides is an
+// error; the conflict check covers both explicit and implicit triggers.
 //
 // Defaults reflect the "survey" in the package name: when the user
-// supplies neither an action nor an explicit --report, every known
-// report runs. The tsconfig path defaults to ./tsconfig.json (i.e.
-// equivalent to `-p .`).
+// supplies neither a report flag nor a fix flag, every known report
+// runs. The tsconfig path defaults to ./tsconfig.json (i.e. equivalent
+// to `-p .`).
 //
 // Project path resolution mirrors `tsc -p`: the value is either a
 // `.json` file or a directory containing one. A non-`.json` value is
@@ -28,15 +36,29 @@ import path from "node:path"
 
 import {reportNames as knownReportNames} from "../report/report-names.ts"
 
+// Fix-mode overrides. Each field is independent; an absent field means
+// "follow the report's recommendation"; a set field overrides the
+// matching slot. `newLine` is narrowed to lf|crlf because the LS
+// formatter cannot emit CR-only newlines.
+export interface FixOverrides {
+    organizeImports?: "on" | "off"
+    indent?: number
+    semicolons?: "on" | "off"
+    newLine?: "lf" | "crlf"
+    bracketSpacing?: "on" | "off"
+}
+
 export interface ParsedArgs {
-    organizeImports: boolean
-    semicolons: "on" | "off" | null
-    indentWidth: number | null
+    // True when fix mode is active. Set by --fix or by any per-field
+    // override (the implicit-fix rule).
+    fix: boolean
+    fixOverrides: FixOverrides
     reportNames: string[]
     format: string | null
-    // True when neither an action nor an explicit --report / --format was
-    // given. The default-survey path uses this to decide whether to append
-    // the `.prettierrc` summary block under the per-report tables.
+    // True when neither a report flag nor a fix flag was given. The
+    // default-survey path uses this to decide whether to append the
+    // recommendation / `.prettierrc` summary blocks under the per-report
+    // tables.
     surveyDefault: boolean
     tsconfigPath: string
     dryRun: boolean
@@ -53,9 +75,8 @@ export type ParseArgsResult = ParsedArgs | HelpRequested
 export function parseArgs(argv: string[]): ParseArgsResult | undefined {
     if (argv.includes("--help") || argv.includes("-h")) return {help: true}
 
-    let organizeImports = false
-    let semicolons: "on" | "off" | null = null
-    let indentWidth: number | null = null
+    let fixExplicit = false
+    const overrides: FixOverrides = {}
     let format: string | null = null
     let tsconfigPath: string | null = null
     let dryRun = false
@@ -68,15 +89,22 @@ export function parseArgs(argv: string[]): ParseArgsResult | undefined {
 
     for (let i = 0; i < argv.length; i++) {
         const a = argv[i]
-        if (a === "--organize-imports") {
-            organizeImports = true
+        if (a === "--fix") {
+            fixExplicit = true
+        } else if (a === "--organize-imports") {
+            const v = argv[++i]
+            if (v !== "on" && v !== "off") {
+                console.error(`--organize-imports expects 'on' or 'off'; got: ${v ?? "(missing)"}`)
+                return undefined
+            }
+            overrides.organizeImports = v
         } else if (a === "--semicolons") {
             const v = argv[++i]
             if (v !== "on" && v !== "off") {
                 console.error(`--semicolons expects 'on' or 'off'; got: ${v ?? "(missing)"}`)
                 return undefined
             }
-            semicolons = v
+            overrides.semicolons = v
         } else if (a === "--indent") {
             const v = argv[++i]
             if (!v || v.startsWith("-")) {
@@ -88,7 +116,24 @@ export function parseArgs(argv: string[]): ParseArgsResult | undefined {
                 console.error(`--indent expects a positive integer; got: ${v}`)
                 return undefined
             }
-            indentWidth = n
+            overrides.indent = n
+        } else if (a === "--new-line") {
+            // CR-only is reportable but not applicable: the TS LS formatter
+            // accepts \n and \r\n only. We reject `cr` here so the user sees
+            // a clear error instead of a silent fallback.
+            const v = argv[++i]
+            if (v !== "lf" && v !== "crlf") {
+                console.error(`--new-line expects 'lf' or 'crlf'; got: ${v ?? "(missing)"}`)
+                return undefined
+            }
+            overrides.newLine = v
+        } else if (a === "--bracket-spacing") {
+            const v = argv[++i]
+            if (v !== "on" && v !== "off") {
+                console.error(`--bracket-spacing expects 'on' or 'off'; got: ${v ?? "(missing)"}`)
+                return undefined
+            }
+            overrides.bracketSpacing = v
         } else if (a === "--report") {
             const v = argv[++i]
             if (!v || v.startsWith("-")) {
@@ -144,24 +189,25 @@ export function parseArgs(argv: string[]): ParseArgsResult | undefined {
     }
 
     // Validate flag combinations before checking inputs to give actionable errors.
-    const hasAction = organizeImports || semicolons !== null || indentWidth !== null
+    const hasOverride = Object.keys(overrides).length > 0
+    const fix = fixExplicit || hasOverride
     const hasReport = requestedReports.length > 0
-    if (hasAction && hasReport) {
-        console.error("action flags cannot be combined with --report")
+    const hasFormat = format !== null
+    if (fix && hasReport) {
+        console.error("fix flags (--fix and per-field overrides) cannot be combined with --report")
         return undefined
     }
-    if (hasAction && format !== null) {
-        console.error("action flags cannot be combined with --format")
+    if (fix && hasFormat) {
+        console.error("fix flags (--fix and per-field overrides) cannot be combined with --format")
         return undefined
     }
 
-    // Default: when neither an action nor an explicit --report was given,
-    // run every registered report. This is the "survey" baseline behavior.
-    // surveyDefault is true only in the full hands-off state (no action,
-    // no --report, no --format); cli.ts reads it to decide whether to
-    // append the recommendation / .prettierrc summary blocks.
-    const surveyDefault = !hasAction && !hasReport && format === null
-    const effectiveReports = !hasAction && !hasReport ? [...knownReportNames] : requestedReports
+    // Default: when no fix flag, no --report, and no --format was given,
+    // run every registered report. This is the "survey" baseline. The
+    // surveyDefault flag tells cli.ts whether to append the recommendation
+    // / `.prettierrc` summary blocks.
+    const surveyDefault = !fix && !hasReport && !hasFormat
+    const effectiveReports = surveyDefault ? [...knownReportNames] : requestedReports
 
     // Path resolution mirrors `tsc -p`: a non-`.json` value is read as a
     // directory and `tsconfig.json` is appended. The omitted-path default
@@ -176,9 +222,8 @@ export function parseArgs(argv: string[]): ParseArgsResult | undefined {
     const absExcludes = excludeGlobs.map((g) => resolveGlob(g, tsconfigDir))
 
     return {
-        organizeImports,
-        semicolons,
-        indentWidth,
+        fix,
+        fixOverrides: overrides,
         reportNames: effectiveReports,
         format,
         surveyDefault,

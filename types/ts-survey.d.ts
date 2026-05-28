@@ -18,38 +18,29 @@ interface TsSurveyOpts {
     absExcludes: string[]
 }
 
-export interface RunOrganizeImportsOpts extends TsSurveyOpts {
-    dryRun: boolean
-}
+// The four interfaces below describe the *shape* of a recommendation. They
+// are not runtime function inputs anymore — the dedicated `run<X>` exports
+// were retired in favor of the unified `runFix`. They survive as the value
+// type of the matching `TsSurveyReport` slot, so that a recommendation
+// always carries the same field that an old-style action would have taken.
 
-export interface RunSemicolonsOpts extends RunOrganizeImportsOpts {
+export interface RunSemicolonsOpts {
     semicolons: "on" | "off"
 }
 
-export interface RunIndentOpts extends RunOrganizeImportsOpts {
+export interface RunIndentOpts {
     width: number
 }
 
-// `runMemberSeparators` isn't implemented yet; the Opts interface exists
-// so the matching report can return its recommendation in the same
-// Partial<RunXxxOpts> shape every other report uses, and so the
-// formatters (`--format prettier`, `--format ts-survey`) can already
-// translate the recommendation into output.
-export interface RunMemberSeparatorsOpts extends RunOrganizeImportsOpts {
+export interface RunMemberSeparatorsOpts {
     separator: "semi" | "comma" | "none"
 }
 
-// `runNewLine` action isn't implemented yet — same arrangement as
-// RunMemberSeparatorsOpts: the report returns this shape so the
-// formatters can already render `--new-line <value>` and `endOfLine`.
-export interface RunNewLineOpts extends RunOrganizeImportsOpts {
+export interface RunNewLineOpts {
     newLine: "lf" | "crlf" | "cr"
 }
 
-// `runBracketSpacing` action isn't implemented yet. The report returns
-// the Partial so the formatters can render `--bracket-spacing on|off`
-// and Prettier's `bracketSpacing`.
-export interface RunBracketSpacingOpts extends RunOrganizeImportsOpts {
+export interface RunBracketSpacingOpts {
     bracketSpacing: "on" | "off"
 }
 
@@ -81,12 +72,29 @@ export interface TsSurveyReport {
     bracketSpacing?: Partial<RunBracketSpacingOpts>
 }
 
+// Input to the unified `runFix` action. `report` carries the recommended
+// defaults; any field set on `RunFixOpts` itself overrides the matching
+// slot of the report. An omitted override means "follow the report"; a
+// report slot that is itself empty means "leave that aspect alone".
+//
+// `organizeImports` defaults to "on" when omitted — `--fix` always
+// organizes imports unless the user opts out with `--organize-imports off`.
+export interface RunFixOpts extends TsSurveyOpts {
+    dryRun: boolean
+    report: TsSurveyReport
+    organizeImports?: "on" | "off"
+    indent?: number
+    semicolons?: "on" | "off"
+    // CR-only line endings are not representable in the TS Language Service's
+    // formatter (`newLineCharacter` accepts `\n` and `\r\n` only). `runFix`
+    // therefore narrows the override surface to those two values; a `cr`
+    // recommendation from the report is reported on stderr but not applied.
+    newLine?: "lf" | "crlf"
+    bracketSpacing?: "on" | "off"
+}
+
 export declare function initProject(tsconfigPath: string): Project
 
-export declare function runOrganizeImports(project: Project, opts: RunOrganizeImportsOpts): Promise<void>
-
-export declare function runSemicolons(project: Project, opts: RunSemicolonsOpts): Promise<void>
-
-export declare function runIndent(project: Project, opts: RunIndentOpts): Promise<void>
-
 export declare function runReports(project: Project, opts: RunReportsOpts): Promise<TsSurveyReport>
+
+export declare function runFix(project: Project, opts: RunFixOpts): Promise<void>
