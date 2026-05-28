@@ -1,8 +1,8 @@
 // --report member-separators: classify each interface / class member by
 // its trailing punctuation (`;`, `,`, or none / newline-only), then bucket
 // files by the primary style they use. Body-bearing members (methods,
-// accessors, constructors) end with `}` and are skipped because the choice
-// isn't theirs to make.
+// accessors, constructors) are skipped because the separator choice isn't
+// theirs to make.
 //
 // Prettier mapping (for context):
 //   - `semi: true`                              → `;`
@@ -12,7 +12,7 @@
 // `semi: false`.
 
 import {Node} from "ts-morph"
-import type {Project} from "ts-morph"
+import type {ClassMemberTypes, Project, TypeElementTypes} from "ts-morph"
 
 import {writeRecommendation} from "../lib/recommendation.ts"
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
@@ -49,7 +49,7 @@ export async function runReportMemberSeparators(project: Project, {stream, absIn
         sf.forEachDescendant((node) => {
             if (!Node.isInterfaceDeclaration(node) && !Node.isClassDeclaration(node)) return
             for (const member of node.getMembers()) {
-                const kind = classify(member.getText())
+                const kind = classify(member)
                 if (kind === null) continue
                 counts.set(kind, (counts.get(kind) ?? 0) + 1)
             }
@@ -107,15 +107,21 @@ export async function runReportMemberSeparators(project: Project, {stream, absIn
     console.error(`report member-separators: ${perFile.length} files counted / ${sourceFiles.length} files total`)
 }
 
-// Reads the member's source text and returns the trailing separator, or
-// null when the member ends with `}` (a method body, accessor, or
-// constructor — no separator choice to record).
-function classify(memberText: string): Separator | null {
-    const last = memberText.trimEnd().slice(-1)
+// Reads the member AST and returns the trailing separator. Only members with
+// their own executable body are skipped; properties whose initializer ends in
+// `}` still have a trailing punctuation style to count.
+function classify(member: ClassMemberTypes | TypeElementTypes): Separator | null {
+    if (Node.isClassStaticBlockDeclaration(member) || memberBody(member) !== undefined) {
+        return null
+    }
+    const last = member.getText().trimEnd().slice(-1)
     if (last === ";") return ";"
     if (last === ",") return ","
-    if (last === "}") return null
     return "none"
+}
+
+function memberBody(member: ClassMemberTypes | TypeElementTypes): unknown {
+    return "getBody" in member ? member.getBody() : undefined
 }
 
 // Primary = bucket with the highest count in this file. Ties follow the

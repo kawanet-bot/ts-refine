@@ -54,4 +54,15 @@ describe("runReportMemberSeparators (sample/members-mixed)", () => {
         // not be counted.
         assert.match(out, /\| total \| 0 \| 0 \| \|/)
     })
+
+    it("counts class properties whose initializer ends with an object literal", async () => {
+        const project = new Project({useInMemoryFileSystem: true})
+        project.createSourceFile("props.ts", "export class Props {\n    config = {}\n    fn = function () {}\n    semi = {};\n}\n")
+        const lines: string[] = []
+        await runReportMemberSeparators(project, {stream: {write: (l) => lines.push(l)}, absIncludes: [], absExcludes: []})
+        const out = lines.join("")
+
+        assert.match(out, /\| `\\n` \| 2 \| 1 \| props\.ts \|/)
+        assert.match(out, /\| total \| 2 \| 1 \| \|/)
+    })
 })
