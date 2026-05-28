@@ -1,0 +1,4 @@
+# Test fixtures intentionally carry mixed styles (with and without `;`,
+# unsorted imports, unused exports). Formatting them would defeat the
+# semicolons report / unused-exports report inputs they exist to feed.
+sample/

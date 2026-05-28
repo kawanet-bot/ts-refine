@@ -1,0 +1,40 @@
+// Format router. Owns the format-name registry and decides what
+// post-processing each format performs over a TsSurveyReport. Mirrors
+// the runReports router (which owns report-name validation): the CLI
+// hands off a raw string and the dispatcher validates + dispatches, so a
+// new format slots in by extending `formatNames` and adding a branch.
+//
+// A null name means "no format selected"; the Markdown report stream is
+// untouched and `finalize` is a no-op. A selecting format ("prettier")
+// swaps the report stream for a sink so the Markdown body doesn't mix
+// into the formatted output.
+
+import {writePrettierConfig} from "../lib/format-prettier.ts"
+import type {Writer} from "../lib/writable.ts"
+import type {TsSurveyReport} from "../report/run-reports.ts"
+
+export const formatNames = ["prettier"] as const
+
+export interface FormatDispatch {
+    reportStream: Writer
+    finalize: (report: TsSurveyReport) => void
+}
+
+const NULL_SINK: Writer = {write: () => {}}
+
+export function selectFormat(name: string | null, stdout: Writer): FormatDispatch {
+    if (name === null) {
+        return {reportStream: stdout, finalize: () => {}}
+    }
+    if (!(formatNames as readonly string[]).includes(name)) {
+        throw new Error(`unknown format: ${name} (known: ${formatNames.join(", ")})`)
+    }
+    if (name === "prettier") {
+        return {
+            reportStream: NULL_SINK,
+            finalize: (report) => writePrettierConfig(report, stdout),
+        }
+    }
+    // formatNames is exhaustive — this guards future entries that forget to add a branch.
+    throw new Error(`unhandled format: ${name}`)
+}
