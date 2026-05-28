@@ -34,7 +34,18 @@ describe("runReportNewLine (sample/newlines-mixed)", () => {
         assert.deepEqual(ret, {newLine: "crlf"})
     })
 
-    it("returns an empty partial when the file-count majority ties", async () => {
+    it("breaks a file-count tie by the higher terminator count and emits a recommendation", async () => {
+        const project = new Project({useInMemoryFileSystem: true})
+        // 1 LF file with 5 LFs vs 1 CRLF file with 1 CRLF — tied on files,
+        // LF wins on terminator count.
+        project.createSourceFile("lf.ts", "a\nb\nc\nd\ne\n")
+        project.createSourceFile("crlf.ts", "x\r\n")
+        const lines: string[] = []
+        const ret = await runReportNewLine(project, {stream: {write: (l) => lines.push(l)}, absIncludes: [], absExcludes: []})
+        assert.deepEqual(ret, {newLine: "lf"})
+    })
+
+    it("returns an empty partial when files AND terminator counts both tie", async () => {
         const project = new Project({useInMemoryFileSystem: true})
         project.createSourceFile("lf.ts", "const a = 1\n")
         project.createSourceFile("crlf.ts", "const b = 1\r\n")

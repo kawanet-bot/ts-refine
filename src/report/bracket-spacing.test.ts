@@ -52,6 +52,26 @@ describe("runReportBracketSpacing (sample/braces-mixed)", () => {
         assert.deepEqual(ret, {})
     })
 
+    it("breaks a file-count tie by the higher node count and emits a recommendation", async () => {
+        const project = new Project({useInMemoryFileSystem: true})
+        // tight.ts (1 file, 1 tight node) vs spaced.ts (1 file, 3 spaced nodes).
+        project.createSourceFile("tight.ts", "export const a = {x: 1}\n")
+        project.createSourceFile("spaced.ts", "export const a = { x: 1 }\nexport const b = { y: 2 }\nexport const c = { z: 3 }\n")
+        const lines: string[] = []
+        const ret = await runReportBracketSpacing(project, {stream: {write: (l) => lines.push(l)}, absIncludes: [], absExcludes: []})
+        assert.deepEqual(ret, {bracketSpacing: "on"})
+        assert.match(lines.join(""), /\| total \| 4 \| 2 \| \|/)
+    })
+
+    it("returns no recommendation when files AND nodes tie", async () => {
+        const project = new Project({useInMemoryFileSystem: true})
+        project.createSourceFile("tight.ts", "export const a = {x: 1}\n")
+        project.createSourceFile("spaced.ts", "export const a = { x: 1 }\n")
+        const lines: string[] = []
+        const ret = await runReportBracketSpacing(project, {stream: {write: (l) => lines.push(l)}, absIncludes: [], absExcludes: []})
+        assert.deepEqual(ret, {})
+    })
+
     it("counts ObjectBindingPattern (destructure) alongside ObjectLiteralExpression", async () => {
         const project = new Project({useInMemoryFileSystem: true})
         project.createSourceFile("d.ts", "export const f = ({ a, b }: {a: 1; b: 2}) => a + b\n")

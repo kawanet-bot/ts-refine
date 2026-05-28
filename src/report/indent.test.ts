@@ -34,4 +34,35 @@ describe("runReportIndent (sample/indents-mixed)", () => {
         assert.deepEqual(ret, {width: 4})
         assert.equal(/no-indent\.ts/.test(out), false)
     })
+
+    it("breaks a file-count tie by the higher indent-transition count and emits a recommendation", async () => {
+        // detectIndent counts transitions (entry / exit), not absolute lines.
+        // four-step file has more nested blocks → more transitions at width 4.
+        const project = new Project({useInMemoryFileSystem: true})
+        project.createSourceFile("/sample/two.ts", "function f() {\n  return 1\n}\n")
+        project.createSourceFile(
+            "/sample/four.ts",
+            "function g() {\n    if (a) {\n        b()\n    }\n}\n",
+        )
+        const lines: string[] = []
+        const ret = await runReportIndent(project, {
+            stream: {write: (l) => lines.push(l)},
+            absIncludes: ["/sample/*.ts"],
+            absExcludes: [],
+        })
+        assert.deepEqual(ret, {width: 4})
+    })
+
+    it("returns an empty partial when files AND transition counts tie", async () => {
+        const project = new Project({useInMemoryFileSystem: true})
+        project.createSourceFile("/sample/two.ts", "function f() {\n  return 1\n}\n")
+        project.createSourceFile("/sample/four.ts", "function g() {\n    return 1\n}\n")
+        const lines: string[] = []
+        const ret = await runReportIndent(project, {
+            stream: {write: (l) => lines.push(l)},
+            absIncludes: ["/sample/*.ts"],
+            absExcludes: [],
+        })
+        assert.deepEqual(ret, {})
+    })
 })

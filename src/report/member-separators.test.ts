@@ -47,6 +47,25 @@ describe("runReportMemberSeparators (sample/members-mixed)", () => {
         assert.deepEqual(ret, {separator: "semi"})
     })
 
+    it("breaks a file-count tie by the higher member count and emits a recommendation", async () => {
+        const project = new Project({useInMemoryFileSystem: true})
+        // 1 file with 5 `;` members vs 1 file with 1 `,` member.
+        project.createSourceFile("a.ts", "export interface A {\n    a: number;\n    b: number;\n    c: number;\n    d: number;\n    e: number;\n}\n")
+        project.createSourceFile("b.ts", "export interface B {\n    a: number,\n}\n")
+        const lines: string[] = []
+        const ret = await runReportMemberSeparators(project, {stream: {write: (l) => lines.push(l)}, absIncludes: [], absExcludes: []})
+        assert.deepEqual(ret, {separator: "semi"})
+    })
+
+    it("returns an empty partial when files AND member counts both tie", async () => {
+        const project = new Project({useInMemoryFileSystem: true})
+        project.createSourceFile("a.ts", "export interface A {\n    a: number;\n    b: number;\n}\n")
+        project.createSourceFile("b.ts", "export interface B {\n    a: number,\n    b: number,\n}\n")
+        const lines: string[] = []
+        const ret = await runReportMemberSeparators(project, {stream: {write: (l) => lines.push(l)}, absIncludes: [], absExcludes: []})
+        assert.deepEqual(ret, {})
+    })
+
     it("skips method bodies (members ending in `}`) so they do not inflate the `\\n` bucket", async () => {
         const project = new Project({useInMemoryFileSystem: true})
         project.createSourceFile("m.ts", "export class M {\n    x() { return 1 }\n    y() { return 2 }\n}\n")

@@ -11,6 +11,7 @@ import type {RunIndentOpts} from "@kawanet/ts-survey"
 import type {Project} from "ts-morph"
 
 import {detectIndent, type IndentCounts, type IndentWidth, primaryIndentWidth} from "../lib/detect-indent.ts"
+import {pickRecommendByFiles} from "../lib/pick-recommend.ts"
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
 import type {ReportOpts} from "./types.ts"
 
@@ -56,19 +57,8 @@ export async function runReportIndent(project: Project, {stream, absIncludes, ab
     const widths: IndentWidth[] = [...numerics]
     if (buckets.has("tab")) widths.push("tab")
 
-    // Recommendation: primary used by the most files. Strict ties produce
-    // no recommendation (the choice would be arbitrary).
-    let recommendWidth: IndentWidth | undefined
-    let maxFiles = 0
-    for (const w of widths) {
-        const fc = buckets.get(w)!.files
-        if (fc > maxFiles) {
-            maxFiles = fc
-            recommendWidth = w
-        } else if (fc === maxFiles && w !== recommendWidth) {
-            recommendWidth = undefined
-        }
-    }
+    // Recommendation: file-count majority, with line count breaking ties.
+    const recommendWidth = pickRecommendByFiles(widths, (w) => buckets.get(w))
 
     const totalLines = [...buckets.values()].reduce((s, b) => s + b.lines, 0)
 

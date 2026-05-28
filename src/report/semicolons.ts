@@ -43,29 +43,47 @@ export async function runReportSemicolons(project: Project, {stream, absIncludes
         bucketFiles[idx].push(f)
     }
 
-    // Recommend based on file counts strictly below vs strictly above 50%,
-    // so the minority-style files are the ones that get rewritten. Files at
-    // exactly 50% are ambiguous and excluded from the comparison.
-    const below = perFile.filter((f) => f.withSemi * 2 < f.total).length
-    const above = perFile.filter((f) => f.withSemi * 2 > f.total).length
-    const recommend: "on" | "off" | undefined = below > above ? "off" : above > below ? "on" : undefined
+    // Recommend by counting strictly-below vs strictly-above 50%. File count
+    // is the primary signal; when they tie, the total statement count on each
+    // side breaks the tie. Files at exactly 50% sit out — they have no lean.
+    const below = perFile.filter((f) => f.withSemi * 2 < f.total)
+    const above = perFile.filter((f) => f.withSemi * 2 > f.total)
+    const belowFiles = below.length
+    const aboveFiles = above.length
+    const belowStmts = below.reduce((s, f) => s + f.total, 0)
+    const aboveStmts = above.reduce((s, f) => s + f.total, 0)
+    const recommend: "on" | "off" | undefined =
+        belowFiles > aboveFiles
+            ? "off"
+            : aboveFiles > belowFiles
+              ? "on"
+              : belowStmts > aboveStmts
+                ? "off"
+                : aboveStmts > belowStmts
+                  ? "on"
+                  : undefined
 
     stream.write("### semicolons\n")
     stream.write("\n")
-    stream.write("| trailing `;` | files | example |\n")
-    stream.write("| --- | --- | --- |\n")
+    // `lines` (statement count) sits next to `files` so the table mirrors
+    // the other reports and makes the tiebreaker rationale visible.
+    stream.write("| trailing `;` | lines | files | example |\n")
+    stream.write("| --- | --- | --- | --- |\n")
+    let totalStmts = 0
     for (let i = 0; i < BUCKET_LABELS.length; i++) {
         const files = bucketFiles[i]
+        const bucketStmts = files.reduce((s, f) => s + f.total, 0)
+        totalStmts += bucketStmts
         if (files.length === 0) {
-            stream.write(`| ${BUCKET_LABELS[i]} | 0 ||\n`)
+            stream.write(`| ${BUCKET_LABELS[i]} | 0 | 0 ||\n`)
         } else {
             // The example column shows the file with the largest statement count
             // in the bucket; ties resolved lexicographically by path.
             const example = files.slice().sort((a, b) => b.total - a.total || a.path.localeCompare(b.path))[0]
-            stream.write(`| ${BUCKET_LABELS[i]} | ${files.length} | ${example.path} |\n`)
+            stream.write(`| ${BUCKET_LABELS[i]} | ${bucketStmts} | ${files.length} | ${example.path} |\n`)
         }
     }
-    stream.write(`| total | ${perFile.length} | |\n`)
+    stream.write(`| total | ${totalStmts} | ${perFile.length} | |\n`)
     stream.write("\n")
     console.error(`report semicolons: ${perFile.length} files counted / ${sourceFiles.length} files total`)
     // The recommendation is rendered in the trailing `## recommendation`

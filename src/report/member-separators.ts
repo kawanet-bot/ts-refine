@@ -15,6 +15,7 @@ import type {RunMemberSeparatorsOpts} from "@kawanet/ts-survey"
 import type {ClassMemberTypes, Project, TypeElementTypes} from "ts-morph"
 import {Node} from "ts-morph"
 
+import {pickRecommendByFiles} from "../lib/pick-recommend.ts"
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
 import type {ReportOpts} from "./types.ts"
 
@@ -77,18 +78,8 @@ export async function runReportMemberSeparators(project: Project, {stream, absIn
         }
     }
 
-    // Recommendation: file-count majority among the primary buckets.
-    let recommendSep: Separator | undefined
-    let maxFiles = 0
-    for (const s of DISPLAY_ORDER) {
-        const fc = buckets.get(s)?.files ?? 0
-        if (fc > maxFiles) {
-            maxFiles = fc
-            recommendSep = s
-        } else if (fc === maxFiles && fc > 0 && recommendSep !== s) {
-            recommendSep = undefined
-        }
-    }
+    // Recommendation: file-count majority, line count breaks ties.
+    const recommendSep = pickRecommendByFiles(DISPLAY_ORDER, (s) => buckets.get(s))
 
     const totalLines = [...buckets.values()].reduce((s, b) => s + b.lines, 0)
 

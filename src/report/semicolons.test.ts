@@ -16,9 +16,10 @@ describe("runReportSemicolons (sample/semicolons-mixed)", () => {
         assert.match(out, /^### semicolons\n/)
         // The fixture has one all-semi (100%), one no-semi (0%), and one mixed
         // (around 50%). The empty file has no statements and must be excluded.
-        assert.match(out, /\| 0% \| 1 \| /)
-        assert.match(out, /\| 100% \| 1 \| /)
-        assert.match(out, /\| total \| 3 \| \|/)
+        // Columns are now `label | lines | files | example`.
+        assert.match(out, /\| 0% \| \d+ \| 1 \| /)
+        assert.match(out, /\| 100% \| \d+ \| 1 \| /)
+        assert.match(out, /\| total \| \d+ \| 3 \| \|/)
         // Empty file should not appear anywhere.
         assert.equal(/empty\.ts/.test(out), false)
         // Recommendation is no longer inlined in the Markdown; it comes back
@@ -46,9 +47,37 @@ describe("runReportSemicolons (sample/semicolons-mixed)", () => {
         })
 
         const out = lines.join("")
-        assert.match(out, /\| 1-10% \| 1 \| /)
-        assert.match(out, /\| 50% \| 1 \| /)
-        assert.match(out, /\| 90-99% \| 1 \| /)
+        assert.match(out, /\| 1-10% \| 10 \| 1 \| /)
+        assert.match(out, /\| 50% \| 2 \| 1 \| /)
+        assert.match(out, /\| 90-99% \| 10 \| 1 \| /)
+    })
+
+    it("breaks a file-count tie by total statement count and emits a recommendation", async () => {
+        // 1 below file with 10 statements vs 1 above file with 3.
+        // Files tie at 1 each → statement counts (10 vs 3) decide → "off".
+        const project = new Project({useInMemoryFileSystem: true})
+        project.createSourceFile("/sample/no-semi.ts", statements(0, 10))
+        project.createSourceFile("/sample/all-semi.ts", statements(3, 3))
+        const lines: string[] = []
+        const ret = await runReportSemicolons(project, {
+            stream: {write: (l) => lines.push(l)},
+            absIncludes: ["/sample/*.ts"],
+            absExcludes: [],
+        })
+        assert.deepEqual(ret, {semicolons: "off"})
+    })
+
+    it("returns an empty partial when files AND statements tie on both sides", async () => {
+        const project = new Project({useInMemoryFileSystem: true})
+        project.createSourceFile("/sample/no-semi.ts", statements(0, 5))
+        project.createSourceFile("/sample/all-semi.ts", statements(5, 5))
+        const lines: string[] = []
+        const ret = await runReportSemicolons(project, {
+            stream: {write: (l) => lines.push(l)},
+            absIncludes: ["/sample/*.ts"],
+            absExcludes: [],
+        })
+        assert.deepEqual(ret, {})
     })
 
     it("does not count grammar-required do-while semicolons", async () => {
@@ -63,8 +92,8 @@ describe("runReportSemicolons (sample/semicolons-mixed)", () => {
         })
 
         const out = lines.join("")
-        assert.match(out, /\| 0% \| 1 \| /)
-        assert.match(out, /\| total \| 1 \| \|/)
+        assert.match(out, /\| 0% \| \d+ \| 1 \| /)
+        assert.match(out, /\| total \| \d+ \| 1 \| \|/)
     })
 })
 

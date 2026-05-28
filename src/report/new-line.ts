@@ -5,6 +5,7 @@
 import type {RunNewLineOpts} from "@kawanet/ts-survey"
 import type {Project} from "ts-morph"
 
+import {pickRecommendByFiles} from "../lib/pick-recommend.ts"
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
 import type {ReportOpts} from "./types.ts"
 
@@ -48,17 +49,7 @@ export async function runReportNewLine(project: Project, {stream, absIncludes, a
         }
     }
 
-    let recommend: NewLine | undefined
-    let maxFiles = 0
-    for (const k of DISPLAY_ORDER) {
-        const fc = buckets.get(k)?.files ?? 0
-        if (fc > maxFiles) {
-            maxFiles = fc
-            recommend = k
-        } else if (fc === maxFiles && fc > 0 && recommend !== k) {
-            recommend = undefined
-        }
-    }
+    const recommend = pickRecommendByFiles(DISPLAY_ORDER, (k) => buckets.get(k))
 
     const totalLines = [...buckets.values()].reduce((s, b) => s + b.lines, 0)
 
