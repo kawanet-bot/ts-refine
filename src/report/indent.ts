@@ -11,7 +11,6 @@ import type {Project} from "ts-morph"
 
 import type {RunIndentOpts} from "../action/indent.ts"
 import {detectIndent, type IndentCounts, type IndentWidth, primaryIndentWidth} from "../lib/detect-indent.ts"
-import {writeRecommendation} from "../lib/recommendation.ts"
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
 import type {ReportOpts} from "../lib/types.ts"
 
@@ -83,15 +82,9 @@ export async function runReportIndent(project: Project, {stream, absIncludes, ab
     }
     stream.write(`| total | ${totalLines} | ${perFile.length} | |\n`)
     stream.write("\n")
-    if (recommendWidth !== undefined) {
-        const flag = recommendWidth === "tab" ? "--indent tab" : `--indent ${recommendWidth}`
-        writeRecommendation(stream, flag)
-        stream.write("\n")
-    }
     console.error(`report indent: ${perFile.length} files counted / ${sourceFiles.length} files total`)
-    // Only numeric widths translate to a RunIndentOpts.width. A "tab"
-    // recommendation is meaningful in the table but has no action mapping
-    // today (the --indent action takes a positive integer), so we leave
-    // the return slot empty in that case.
+    // Markdown 末尾の `## recommendation` 節でまとめて出すため、ここでは
+    // アクション引数 (RunIndentOpts) の形だけ返す。"tab" は現アクション
+    // (`--indent N`) に対応しないので空で返し、`## recommendation` 側で省略。
     return typeof recommendWidth === "number" ? {width: recommendWidth} : {}
 }

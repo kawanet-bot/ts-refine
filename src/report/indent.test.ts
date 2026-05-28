@@ -7,10 +7,10 @@ import {runReportIndent} from "./indent.ts"
 const SAMPLE_TSCONFIG = path.resolve(import.meta.dirname, "../../sample/indents-mixed/tsconfig.json")
 
 describe("runReportIndent (sample/indents-mixed)", () => {
-    it("groups files by primary leading width and recommends the file-count majority", async () => {
+    it("groups files by primary leading width and returns the file-count majority", async () => {
         const project = new Project({tsConfigFilePath: SAMPLE_TSCONFIG})
         const lines: string[] = []
-        await runReportIndent(project, {stream: {write: (l) => lines.push(l)}, absIncludes: [], absExcludes: []})
+        const ret = await runReportIndent(project, {stream: {write: (l) => lines.push(l)}, absIncludes: [], absExcludes: []})
 
         const out = lines.join("")
         assert.match(out, /^### indent\n/)
@@ -27,9 +27,10 @@ describe("runReportIndent (sample/indents-mixed)", () => {
         // accidentally satisfy this check.
         assert.equal(/^\| 8 \|/m.test(out), false)
         assert.match(out, /\| total \| 17 \| 4 \| \|/)
-        // Bucket 4 contains 2 files; bucket 2 and bucket tab each contain
-        // one. The 4-primary wins on file count.
-        assert.match(out, /recommendation:\n {4}--indent 4\n/)
+        // 推奨は Markdown には出さず、戻り値として返す (アクション引数 RunIndentOpts.width)。
+        assert.equal(/^recommendation:/m.test(out), false)
+        // バケット 4 は 2 ファイル / 2 と tab は 1 ファイルずつなので width=4 が勝つ。
+        assert.deepEqual(ret, {width: 4})
         assert.equal(/no-indent\.ts/.test(out), false)
     })
 })

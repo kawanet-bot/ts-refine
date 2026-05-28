@@ -30,6 +30,16 @@ describe("selectFormat", () => {
         assert.equal(json.useTabs, false)
     })
 
+    it("swaps the report stream for a sink and writes the ts-survey command on finalize", () => {
+        const {writer, out} = makeStdout()
+        const f = selectFormat("ts-survey", writer)
+        f.reportStream.write("### dropped\n")
+        assert.equal(out(), "")
+        f.finalize({semicolons: {mode: "remove"}, indent: {width: 4}, memberSeparators: {separator: "none"}})
+        // 2 行形式: `ts-survey \` + 2 スペースインデント + フラグ列。
+        assert.equal(out(), "ts-survey \\\n  --remove-semicolons --indent 4 --member-separator none\n")
+    })
+
     it("throws on an unknown format name", () => {
         const {writer} = makeStdout()
         assert.throws(() => selectFormat("typo-format", writer), /unknown format: typo-format/)

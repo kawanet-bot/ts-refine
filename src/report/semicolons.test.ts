@@ -7,10 +7,10 @@ import {runReportSemicolons} from "./semicolons.ts"
 const SAMPLE_TSCONFIG = path.resolve(import.meta.dirname, "../../sample/semicolons-mixed/tsconfig.json")
 
 describe("runReportSemicolons (sample/semicolons-mixed)", () => {
-    it("buckets files by trailing `;` ratio and reports a recommendation", async () => {
+    it("buckets files by trailing `;` ratio and returns the action params", async () => {
         const project = new Project({tsConfigFilePath: SAMPLE_TSCONFIG})
         const lines: string[] = []
-        await runReportSemicolons(project, {stream: {write: (l) => lines.push(l)}, absIncludes: [], absExcludes: []})
+        const ret = await runReportSemicolons(project, {stream: {write: (l) => lines.push(l)}, absIncludes: [], absExcludes: []})
 
         const out = lines.join("")
         assert.match(out, /^### semicolons\n/)
@@ -18,11 +18,13 @@ describe("runReportSemicolons (sample/semicolons-mixed)", () => {
         // (around 50%). The empty file has no statements and must be excluded.
         assert.match(out, /\| 0% \| 1 \| /)
         assert.match(out, /\| 100% \| 1 \| /)
-        // Total row no longer carries the recommendation; it now lives in a
-        // grep-able block below the table.
         assert.match(out, /\| total \| 3 \| \|/)
         // Empty file should not appear anywhere.
         assert.equal(/empty\.ts/.test(out), false)
+        // 推奨は Markdown には出さず、戻り値として返す (アクション引数の形)。
+        assert.equal(/^recommendation:/m.test(out), false)
+        // 戻り値は RunSemicolonsOpts の Partial。タイ判定なら空。
+        if (Object.keys(ret).length > 0) assert.ok(ret.mode === "remove" || ret.mode === "insert")
     })
 
     it("uses integer bucket boundaries for exact 50% and near-boundary tails", async () => {

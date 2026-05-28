@@ -10,10 +10,11 @@
 // into the formatted output.
 
 import {writePrettierConfig} from "../lib/format-prettier.ts"
+import {writeTsSurveyCommand} from "../lib/format-ts-survey.ts"
 import type {Writer} from "../lib/writable.ts"
 import type {TsSurveyReport} from "../report/run-reports.ts"
 
-export const formatNames = ["prettier"] as const
+export const formatNames = ["prettier", "ts-survey"] as const
 
 export interface FormatDispatch {
     reportStream: Writer
@@ -33,6 +34,12 @@ export function selectFormat(name: string | null, stdout: Writer): FormatDispatc
         return {
             reportStream: NULL_SINK,
             finalize: (report) => writePrettierConfig(report, stdout),
+        }
+    }
+    if (name === "ts-survey") {
+        return {
+            reportStream: NULL_SINK,
+            finalize: (report) => writeTsSurveyCommand(report, stdout),
         }
     }
     // formatNames is exhaustive — this guards future entries that forget to add a branch.

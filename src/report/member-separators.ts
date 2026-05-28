@@ -14,7 +14,7 @@
 import {Node} from "ts-morph"
 import type {ClassMemberTypes, Project, TypeElementTypes} from "ts-morph"
 
-import {writeRecommendation} from "../lib/recommendation.ts"
+import type {RunMemberSeparatorsOpts} from "../action/member-separators.ts"
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
 import type {ReportOpts} from "../lib/types.ts"
 
@@ -30,7 +30,9 @@ const SEP_LABEL: Record<Separator, string> = {
     ";": "`;`",
 }
 
-const SEP_FLAG_VALUE: Record<Separator, string> = {
+// CLI 表記 (`--member-separator <value>`) と内部 Separator 記号の対応。
+// `RunMemberSeparatorsOpts.separator` の値もこの右辺と一致させる。
+const SEP_FLAG_VALUE: Record<Separator, RunMemberSeparatorsOpts["separator"]> = {
     none: "none",
     ",": "comma",
     ";": "semi",
@@ -38,7 +40,7 @@ const SEP_FLAG_VALUE: Record<Separator, string> = {
 
 type Bucket = {lines: number; files: number; topPath: string; topLines: number}
 
-export async function runReportMemberSeparators(project: Project, {stream, absIncludes, absExcludes}: ReportOpts): Promise<void> {
+export async function runReportMemberSeparators(project: Project, {stream, absIncludes, absExcludes}: ReportOpts): Promise<Partial<RunMemberSeparatorsOpts>> {
     const sourceFiles = selectSourceFiles(project, {absIncludes, absExcludes}).filter((sf) => !sf.getFilePath().endsWith(".d.ts"))
 
     type PerFile = {path: string; counts: Map<Separator, number>; primary: Separator}
@@ -100,11 +102,10 @@ export async function runReportMemberSeparators(project: Project, {stream, absIn
     }
     stream.write(`| total | ${totalLines} | ${perFile.length} | |\n`)
     stream.write("\n")
-    if (recommendSep !== undefined) {
-        writeRecommendation(stream, `--member-separator ${SEP_FLAG_VALUE[recommendSep]}`)
-        stream.write("\n")
-    }
     console.error(`report member-separators: ${perFile.length} files counted / ${sourceFiles.length} files total`)
+    // 推奨は Markdown 末尾の `## recommendation` 節でまとめて出すので、
+    // ここではアクション引数の形だけ返す。ファイル数最頻が決まらなければ空。
+    return recommendSep !== undefined ? {separator: SEP_FLAG_VALUE[recommendSep]} : {}
 }
 
 // Reads the member AST and returns the trailing separator. Only members with

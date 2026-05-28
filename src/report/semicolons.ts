@@ -5,7 +5,6 @@
 import type {Project} from "ts-morph"
 
 import type {RunSemicolonsOpts} from "../action/semicolons.ts"
-import {writeRecommendation} from "../lib/recommendation.ts"
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
 import {isSemiEligibleStatement} from "../lib/statement-kinds.ts"
 import type {ReportOpts} from "../lib/types.ts"
@@ -50,7 +49,6 @@ export async function runReportSemicolons(project: Project, {stream, absIncludes
     const below = perFile.filter((f) => f.withSemi * 2 < f.total).length
     const above = perFile.filter((f) => f.withSemi * 2 > f.total).length
     const recommendMode: "remove" | "insert" | undefined = below > above ? "remove" : above > below ? "insert" : undefined
-    const recommendFlag = recommendMode === "remove" ? "--remove-semicolons" : recommendMode === "insert" ? "--insert-semicolons" : undefined
 
     stream.write("### semicolons\n")
     stream.write("\n")
@@ -69,11 +67,9 @@ export async function runReportSemicolons(project: Project, {stream, absIncludes
     }
     stream.write(`| total | ${perFile.length} | |\n`)
     stream.write("\n")
-    if (recommendFlag) {
-        writeRecommendation(stream, recommendFlag)
-        stream.write("\n")
-    }
     console.error(`report semicolons: ${perFile.length} files counted / ${sourceFiles.length} files total`)
+    // 推奨は Markdown 末尾の `## recommendation` 節でまとめて出すので、
+    // ここではアクション引数 (RunSemicolonsOpts) の形で返すだけ。
     return recommendMode ? {mode: recommendMode} : {}
 }
 
