@@ -123,8 +123,7 @@ describe("runFix --semicolons off keeps `;` at ASI-hazard sites", () => {
 describe("runFix --semicolons off and do-while statements", () => {
     it("removes the trailing `;` after `} while (...)` (LS divergence from the old hand-rolled action)", async () => {
         // The LS deletion-context rule does not exempt do-while; the
-        // retired hand-rolled filter did. Pinned under #165's
-        // delegate-to-LS mandate.
+        // retired hand-rolled filter did. Pinned as the LS outcome.
         const project = new Project({useInMemoryFileSystem: true})
         const sf = project.createSourceFile("do-while.ts", ["let x = 0;", "do {", "  x++", "} while (x < 2);", "const y = x;"].join("\n"))
 
