@@ -7,9 +7,9 @@
 // map (see lib/detect-indent) so callers can introspect the distribution;
 // the report just picks the per-file mode out of that map.
 
+import type {RunIndentOpts} from "@kawanet/ts-survey"
 import type {Project} from "ts-morph"
 
-import type {RunIndentOpts} from "../action/indent.ts"
 import {detectIndent, type IndentCounts, type IndentWidth, primaryIndentWidth} from "../lib/detect-indent.ts"
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
 import type {ReportOpts} from "../lib/types.ts"

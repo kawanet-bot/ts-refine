@@ -5,13 +5,10 @@
 // merges those into a single TsSurveyReport so a caller can chain them
 // into action calls (or format them with --format).
 
+import type {RunReportsOpts, TsSurveyReport} from "@kawanet/ts-survey"
 import type {Project} from "ts-morph"
 
-import type {RunIndentOpts} from "../action/indent.ts"
-import type {RunMemberSeparatorsOpts} from "../action/member-separators.ts"
-import type {RunSemicolonsOpts} from "../action/semicolons.ts"
 import type {ReportOpts} from "../lib/types.ts"
-import type {Writer} from "../lib/writable.ts"
 import {runReportIndent} from "./indent.ts"
 import {runReportMemberSeparators} from "./member-separators.ts"
 import {runReportSemicolons} from "./semicolons.ts"
@@ -20,26 +17,6 @@ import {runReportUnusedExports} from "./unused-exports.ts"
 // Fixed run order. Reports that return a recommendation slot also appear
 // as keys on the returned TsSurveyReport.
 export const reportNames = ["unused-exports", "semicolons", "indent", "member-separators"] as const
-
-export interface RunReportsOpts {
-    reportNames: string[]
-    stream: Writer
-    absIncludes: string[]
-    absExcludes: string[]
-}
-
-// Each key is a Partial of the options the matching action would accept.
-// The formatter family (`--format prettier`, `--format ts-survey`)
-// rebuilds its output from this shape, so reports stay decoupled from
-// any specific output format. `memberSeparators` carries the shape even
-// though the action isn't implemented yet — that lets the formatters
-// emit the recommendation today, and the action drops in later without
-// touching either side.
-export interface TsSurveyReport {
-    semicolons?: Partial<RunSemicolonsOpts>
-    indent?: Partial<RunIndentOpts>
-    memberSeparators?: Partial<RunMemberSeparatorsOpts>
-}
 
 export async function runReports(project: Project, opts: RunReportsOpts): Promise<TsSurveyReport> {
     const {stream, reportNames: requested, absIncludes, absExcludes} = opts

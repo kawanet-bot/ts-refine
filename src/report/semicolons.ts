@@ -2,9 +2,9 @@
 // statements, bucketed into a compact fixed layout. Helps decide which
 // direction minimizes churn when standardizing on insert or remove.
 
+import type {RunSemicolonsOpts} from "@kawanet/ts-survey"
 import type {Project} from "ts-morph"
 
-import type {RunSemicolonsOpts} from "../action/semicolons.ts"
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
 import {isSemiEligibleStatement} from "../lib/statement-kinds.ts"
 import type {ReportOpts} from "../lib/types.ts"

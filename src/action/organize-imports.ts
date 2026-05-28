@@ -5,12 +5,8 @@
 import fs from "node:fs/promises"
 import type {Project} from "ts-morph"
 
+import type {RunOrganizeImportsOpts} from "@kawanet/ts-survey"
 import {selectSourceFiles} from "../lib/source-files.ts"
-import type {TsSurveyOpts} from "../lib/types.ts"
-
-export interface RunOrganizeImportsOpts extends TsSurveyOpts {
-    dryRun: boolean
-}
 
 export async function runOrganizeImports(project: Project, {dryRun, absIncludes, absExcludes}: RunOrganizeImportsOpts): Promise<void> {
     // Force no spaces inside braces (`{A}`). Semicolon handling lives in the

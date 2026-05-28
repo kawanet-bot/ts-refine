@@ -1,7 +1,8 @@
+import type {RunIndentOpts} from "@kawanet/ts-survey"
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
 import {Project} from "ts-morph"
-import {runIndent, type RunIndentOpts} from "./indent.ts"
+import {runIndent} from "./indent.ts"
 
 const opts = (width: number): RunIndentOpts => ({dryRun: true, absIncludes: [], absExcludes: [], width})
 

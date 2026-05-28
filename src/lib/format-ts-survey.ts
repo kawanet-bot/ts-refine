@@ -9,7 +9,8 @@
 // second line lets `grep -E '^ +--'` extract just the flags so the
 // recommendation can be piped back into another ts-survey invocation.
 
-import type {TsSurveyReport} from "../report/run-reports.ts"
+import type {TsSurveyReport} from "@kawanet/ts-survey"
+
 import type {Writer} from "./writable.ts"
 
 // Translates each fired recommendation into a CLI flag string. The

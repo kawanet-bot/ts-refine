@@ -5,16 +5,11 @@
 // the common pitfalls.
 
 import fs from "node:fs/promises"
+import type {RunSemicolonsOpts} from "@kawanet/ts-survey"
 import type {Project} from "ts-morph"
 
 import {selectSourceFiles} from "../lib/source-files.ts"
 import {isSemiEligibleStatement} from "../lib/statement-kinds.ts"
-
-import type {RunOrganizeImportsOpts} from "./organize-imports.ts"
-
-export interface RunSemicolonsOpts extends RunOrganizeImportsOpts {
-    mode: "remove" | "insert"
-}
 
 // Tokens that, when starting the next statement on a separate line, would
 // fuse with the previous expression under ASI if its trailing `;` were

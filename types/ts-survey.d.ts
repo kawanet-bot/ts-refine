@@ -30,6 +30,15 @@ export interface RunIndentOpts extends RunOrganizeImportsOpts {
     width: number
 }
 
+// `runMemberSeparators` isn't implemented yet; the Opts interface exists
+// so the matching report can return its recommendation in the same
+// Partial<RunXxxOpts> shape every other report uses, and so the
+// formatters (`--format prettier`, `--format ts-survey`) can already
+// translate the recommendation into output.
+export interface RunMemberSeparatorsOpts extends RunOrganizeImportsOpts {
+    separator: "semi" | "comma" | "none"
+}
+
 export interface RunReportsOpts extends TsSurveyOpts {
     stream: Writer
     reportNames: string[]
@@ -42,6 +51,7 @@ export interface RunReportsOpts extends TsSurveyOpts {
 export interface TsSurveyReport {
     semicolons?: Partial<RunSemicolonsOpts>
     indent?: Partial<RunIndentOpts>
+    memberSeparators?: Partial<RunMemberSeparatorsOpts>
 }
 
 export declare function initProject(tsconfigPath: string): Project

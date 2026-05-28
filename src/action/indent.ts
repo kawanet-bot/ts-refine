@@ -11,17 +11,12 @@
 // 1-space convention is not rescaled.
 
 import fs from "node:fs/promises"
+import type {RunIndentOpts} from "@kawanet/ts-survey"
 import {Node} from "ts-morph"
 import type {Project, SourceFile} from "ts-morph"
 
 import {detectIndent, type IndentWidth, primaryIndentWidth} from "../lib/detect-indent.ts"
 import {selectSourceFiles} from "../lib/source-files.ts"
-
-import type {RunOrganizeImportsOpts} from "./organize-imports.ts"
-
-export interface RunIndentOpts extends RunOrganizeImportsOpts {
-    width: number
-}
 
 export async function runIndent(project: Project, {dryRun, absIncludes, absExcludes, width}: RunIndentOpts): Promise<void> {
     const sourceFiles = selectSourceFiles(project, {absIncludes, absExcludes}).filter((sf) => !sf.getFilePath().endsWith(".d.ts"))

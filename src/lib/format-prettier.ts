@@ -13,9 +13,9 @@
 // Reports that didn't recommend anything contribute no fields, so an
 // empty TsSurveyReport renders as `{}`.
 
+import type {TsSurveyReport} from "@kawanet/ts-survey"
 import type {Options as PrettierOptions} from "prettier"
 
-import type {TsSurveyReport} from "../report/run-reports.ts"
 import type {Writer} from "./writable.ts"
 
 // Collects the recommendations that fired into a PrettierOptions object.
