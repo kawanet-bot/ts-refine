@@ -5,8 +5,7 @@
 // merges those into a single TsSurveyReport so a caller can chain them
 // into action calls (or format them with --format).
 
-import type {RunReportsOpts, TsSurveyReport} from "@kawanet/ts-survey"
-import type {Project} from "ts-morph"
+import type * as declared from "@kawanet/ts-survey"
 
 import type {ReportOpts} from "../lib/types.ts"
 import {runReportIndent} from "./indent.ts"
@@ -18,7 +17,7 @@ import {runReportUnusedExports} from "./unused-exports.ts"
 // as keys on the returned TsSurveyReport.
 export const reportNames = ["unused-exports", "semicolons", "indent", "member-separators"] as const
 
-export async function runReports(project: Project, opts: RunReportsOpts): Promise<TsSurveyReport> {
+export const runReports: typeof declared.runReports = async (project, opts) => {
     const {stream, reportNames: requested, absIncludes, absExcludes} = opts
 
     // Validate every requested name up-front so a typo fails before any
@@ -29,7 +28,7 @@ export async function runReports(project: Project, opts: RunReportsOpts): Promis
         }
     }
 
-    const report: TsSurveyReport = {}
+    const report: declared.TsSurveyReport = {}
     const reportOpts: ReportOpts = {stream, absIncludes, absExcludes}
 
     if (requested.includes("unused-exports")) {

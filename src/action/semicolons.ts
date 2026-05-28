@@ -4,9 +4,8 @@
 // `isSemicolonDeletionContext` (formatting/rules.ts) closely enough to avoid
 // the common pitfalls.
 
-import type {RunSemicolonsOpts} from "@kawanet/ts-survey"
+import type * as declared from "@kawanet/ts-survey"
 import fs from "node:fs/promises"
-import type {Project} from "ts-morph"
 
 import {selectSourceFiles} from "../lib/source-files.ts"
 import {isSemiEligibleStatement} from "../lib/statement-kinds.ts"
@@ -16,7 +15,7 @@ import {isSemiEligibleStatement} from "../lib/statement-kinds.ts"
 // removed. Matches the TS LS deletion-context list.
 const ASI_HAZARD_CHARS = new Set(["[", "(", "+", "-", "/", "`", ".", ","])
 
-export async function runSemicolons(project: Project, {dryRun, absIncludes, absExcludes, mode}: RunSemicolonsOpts): Promise<void> {
+export const runSemicolons: typeof declared.runSemicolons = async (project, {dryRun, absIncludes, absExcludes, mode}) => {
     // Exclude .d.ts to match the semicolons report scope.
     const sourceFiles = selectSourceFiles(project, {absIncludes, absExcludes}).filter((sf) => !sf.getFilePath().endsWith(".d.ts"))
 

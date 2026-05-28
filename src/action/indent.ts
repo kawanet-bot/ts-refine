@@ -10,15 +10,15 @@
 // continuation lines (first non-space `*`) are likewise skipped so their
 // 1-space convention is not rescaled.
 
-import type {RunIndentOpts} from "@kawanet/ts-survey"
+import type * as declared from "@kawanet/ts-survey"
 import fs from "node:fs/promises"
-import type {Project, SourceFile} from "ts-morph"
+import type {SourceFile} from "ts-morph"
 import {Node} from "ts-morph"
 
 import {detectIndent, type IndentWidth, primaryIndentWidth} from "../lib/detect-indent.ts"
 import {selectSourceFiles} from "../lib/source-files.ts"
 
-export async function runIndent(project: Project, {dryRun, absIncludes, absExcludes, width}: RunIndentOpts): Promise<void> {
+export const runIndent: typeof declared.runIndent = async (project, {dryRun, absIncludes, absExcludes, width}) => {
     const sourceFiles = selectSourceFiles(project, {absIncludes, absExcludes}).filter((sf) => !sf.getFilePath().endsWith(".d.ts"))
 
     let changedCount = 0
