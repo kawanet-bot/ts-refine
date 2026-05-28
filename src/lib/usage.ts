@@ -6,7 +6,7 @@ import {reportNames} from "../report/report-names.ts"
 
 export function usage(): string {
     return [
-        "Usage: ts-survey [--report <names>|--apply] [-p tsconfig.json] [options]",
+        "Usage: ts-survey [--report <names>|--format <name>|--apply] [-p tsconfig.json] [options]",
         "",
         "Reports (read; the primary mode):",
         "  (no args)                   Run every report and print the survey Markdown",
