@@ -1,0 +1,48 @@
+// Reuses the original organize-imports-action coverage against the
+// unified runFix entry point. The "uses braces without surrounding
+// spaces" test now pins the result via `--bracket-spacing off` (an
+// explicit override) — the old action hard-coded that setting at the
+// call site; under runFix it is just one slot of the merged settings.
+
+import {strict as assert} from "node:assert"
+import path from "node:path"
+import {describe, it} from "node:test"
+import {Project} from "ts-morph"
+
+import {runFix} from "./run-fix.ts"
+
+const SAMPLE_TSCONFIG = path.resolve(import.meta.dirname, "../../sample/basic/tsconfig.json")
+const INDEX = path.resolve(import.meta.dirname, "../../sample/basic/src/index.ts")
+
+describe("runFix (organize-imports path, dry-run, sample/basic)", () => {
+    it("alphabetises imports in-memory without touching disk", async () => {
+        const project = new Project({tsConfigFilePath: SAMPLE_TSCONFIG})
+
+        // Confirm the fixture starts with imports in non-canonical order so that
+        // organizeImports actually has something to do.
+        const before = project.getSourceFile(INDEX)!.getFullText()
+        assert.ok(before.indexOf("./used.js") < before.indexOf("./partial.js"), "fixture should start with ./used.js before ./partial.js")
+
+        await runFix(project, {dryRun: true, absIncludes: [], absExcludes: [], report: {}})
+
+        const after = project.getSourceFile(INDEX)!.getFullText()
+        const pPos = after.indexOf("./partial.js")
+        const uPos = after.indexOf("./used.js")
+        assert.ok(pPos !== -1 && uPos !== -1, "both imports must be preserved")
+        assert.ok(pPos < uPos, "after organize, ./partial.js must precede ./used.js")
+    })
+
+    it("uses braces without surrounding spaces (`{A}` style) when bracket-spacing off is in effect", async () => {
+        const project = new Project({tsConfigFilePath: SAMPLE_TSCONFIG})
+        // Old runOrganizeImports hard-coded
+        // insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces:false.
+        // The unified action drives this slot from the merged
+        // bracket-spacing recommendation/override instead, so pin it
+        // explicitly to reproduce the original outcome.
+        await runFix(project, {dryRun: true, absIncludes: [], absExcludes: [], report: {}, bracketSpacing: "off"})
+
+        const text = project.getSourceFile(INDEX)!.getFullText()
+        // `{ usedConst,` with a leading space would indicate brace-spacing on.
+        assert.ok(/import\s*\{usedConst/.test(text), `expected {A} style; got: ${text}`)
+    })
+})

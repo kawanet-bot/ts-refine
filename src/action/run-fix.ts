@@ -51,9 +51,13 @@ export const runFix: typeof declared.runFix = async (project, opts) => {
         sf.formatText(resolved.formatSettings)
 
         // Step 2: organize imports against the already-formatted file.
-        // Skipped when --organize-imports off was passed.
+        // Skipped when --organize-imports off was passed. The same
+        // FormatCodeSettings is handed in: organizeImports rebuilds the
+        // import block from scratch and would otherwise fall back to the
+        // LS defaults (e.g. `{ A }` even when bracket-spacing off was
+        // requested), drifting from the surrounding file.
         if (resolved.organizeImports) {
-            sf.organizeImports()
+            sf.organizeImports(resolved.formatSettings)
         }
 
         // Step 3: normalize line endings if a target was resolved. The LS
