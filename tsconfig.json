@@ -3,6 +3,7 @@
     "node_modules"
   ],
   "include": [
+    "builder/",
     "src/",
     "types/"
   ],

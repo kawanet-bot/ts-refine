@@ -1,0 +1,21 @@
+import {builtinModules} from "node:module"
+
+// `dependencies` and Node builtins are resolved at runtime by the consumer —
+// never bundle them. Cover both bare and `node:` prefixed forms so the
+// result does not depend on which form a source uses. The package's own
+// name is included so its self-reference stays external.
+const externals = new Set<string>([
+    ...builtinModules,
+    ...builtinModules.map((m) => `node:${m}`),
+    "@kawanet/ts-survey",
+    "minimatch",
+    "ts-morph",
+])
+
+export const isExternal = (id: string): boolean => {
+    if (externals.has(id)) return true
+    for (const ext of externals) {
+        if (id.startsWith(ext + "/")) return true
+    }
+    return false
+}

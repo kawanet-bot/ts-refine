@@ -9,6 +9,7 @@
 .idea/codeStyles/
 .npmrc
 .pnpm-debug.log*
+dist/
 node_modules/
 nohup.out
 npm-debug.log*

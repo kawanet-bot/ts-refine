@@ -14,29 +14,44 @@
     "ts-morph": "^28.0.0"
   },
   "devDependencies": {
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "@rollup/plugin-sucrase": "^5.1.0",
     "@types/node": "^24.10.0",
     "prettier": "^3.8.3",
+    "rollup": "^4.60.3",
     "typescript": "^6.0.3"
   },
   "engines": {
     "node": ">=22.18"
   },
+  "exports": {
+    ".": {
+      "types": "./types/ts-survey.d.ts",
+      "import": "./dist/ts-survey.mjs"
+    }
+  },
   "files": [
     "LICENSE",
     "README.md",
+    "dist/ts-survey.mjs",
     "src/**/*.ts",
-    "!src/**/*.test.ts"
+    "!src/**/*.test.ts",
+    "types/*.d.ts"
   ],
   "homepage": "https://github.com/kawanet/ts-survey#readme",
   "license": "MIT",
+  "main": "./dist/ts-survey.mjs",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/kawanet/ts-survey.git"
   },
   "scripts": {
+    "build": "make -C builder all",
     "fixpack": "fixpack",
     "format": "prettier --write 'src/**/*.ts'",
+    "prepare": "make -C builder test",
     "test": "node --test 'src/**/*.test.ts'"
   },
-  "type": "module"
+  "type": "module",
+  "types": "./types/ts-survey.d.ts"
 }
