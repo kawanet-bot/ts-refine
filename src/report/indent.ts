@@ -10,7 +10,7 @@
 import type {Project} from "ts-morph"
 
 import type {RunIndentOpts} from "../action/indent.ts"
-import {detectIndent, type IndentCounts, type IndentWidth} from "../lib/detect-indent.ts"
+import {detectIndent, type IndentCounts, type IndentWidth, primaryIndentWidth} from "../lib/detect-indent.ts"
 import {writeRecommendation} from "../lib/recommendation.ts"
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
 import type {ReportOpts} from "../lib/types.ts"
@@ -28,7 +28,7 @@ export async function runReportIndent(project: Project, {stream, absIncludes, ab
     for (const sf of sourceFiles) {
         const counts = detectIndent(sf.getFullText())
         if (counts.size === 0) continue
-        const primary = primaryWidth(counts)
+        const primary = primaryIndentWidth(counts)
         if (primary === undefined) continue
         perFile.push({path: displayPath(sf.getFilePath()), counts, primary})
     }
@@ -94,29 +94,4 @@ export async function runReportIndent(project: Project, {stream, absIncludes, ab
     // today (the --indent action takes a positive integer), so we leave
     // the return slot empty in that case.
     return typeof recommendWidth === "number" ? {width: recommendWidth} : {}
-}
-
-// Picks the width with the most lines in this file. Ties break toward the
-// smaller numeric width (so an evenly-split file is reported under its
-// first-level indent), and numeric beats "tab" when those are tied (a
-// mixed file is more often a space-indented file with stray tab lines
-// than the other way around).
-function primaryWidth(counts: IndentCounts): IndentWidth | undefined {
-    let best: IndentWidth | undefined
-    let bestCount = 0
-    for (const [k, v] of counts) {
-        if (v > bestCount) {
-            bestCount = v
-            best = k
-            continue
-        }
-        if (v !== bestCount) continue
-        if (best === undefined) {
-            best = k
-            continue
-        }
-        if (typeof k === "number" && typeof best === "number" && k < best) best = k
-        else if (typeof k === "number" && best === "tab") best = k
-    }
-    return best
 }

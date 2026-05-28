@@ -9,18 +9,19 @@ describe("detectIndent", () => {
         assert.equal(counts.size, 1)
     })
 
-    it("returns one entry per distinct leading-space width in the file", () => {
-        // Mixed widths in one file must produce multiple entries, not a
-        // single decision.
+    it("counts the diff between consecutive lines, not the absolute leading width", () => {
+        // A 2-space file with one nested block: every block transition
+        // contributes diff 2; the 4-leading line never appears as key 4.
         const counts = detectIndent(["function f() {", "  a()", "  b()", "  if (x) {", "    return 1", "  }", "}"].join("\n"))
         assert.equal(counts.get(2), 4)
-        assert.equal(counts.get(4), 1)
+        assert.equal(counts.has(4), false)
         assert.equal(counts.has("tab"), false)
     })
 
     it("skips ` *` block-comment continuation lines so they do not appear under width 1", () => {
         const counts = detectIndent("/**\n * doc line\n * doc line\n */\nfunction f() {\n    return 1\n}\n")
-        assert.equal(counts.get(4), 1)
+        // 0→4 and 4→0 each contribute one diff-4 entry.
+        assert.equal(counts.get(4), 2)
         assert.equal(counts.has(1), false)
     })
 

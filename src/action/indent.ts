@@ -14,7 +14,7 @@ import fs from "node:fs/promises"
 import {Node} from "ts-morph"
 import type {Project, SourceFile} from "ts-morph"
 
-import {detectIndent, type IndentCounts, type IndentWidth} from "../lib/detect-indent.ts"
+import {detectIndent, type IndentWidth, primaryIndentWidth} from "../lib/detect-indent.ts"
 import {selectSourceFiles} from "../lib/source-files.ts"
 
 import type {RunOrganizeImportsOpts} from "./organize-imports.ts"
@@ -55,7 +55,8 @@ export async function runIndent(project: Project, {dryRun, absIncludes, absExclu
 function rewriteIndent(sf: SourceFile, text: string, target: number): string {
     const counts = detectIndent(text)
     if (counts.size === 0) return text
-    const unit = pickSourceUnit(counts)
+    const unit = primaryIndentWidth(counts)
+    if (unit === undefined) return text
 
     // Collect template-literal ranges before we touch the file so the
     // positions remain valid for the duration of the rewrite.
@@ -81,26 +82,6 @@ function rewriteIndent(sf: SourceFile, text: string, target: number): string {
         pos += original.length + 1
     }
     return changed ? lines.join("\n") : text
-}
-
-// Picks the per-file source unit to rescale against. "tab" wins when tab
-// lines outnumber space lines; otherwise the smallest numeric width of at
-// least 2 is taken (a `>= 2` floor keeps a stray 1-space line from
-// dragging the unit down across the whole file). Falls back to the
-// smallest numeric width when no value reaches 2.
-function pickSourceUnit(counts: IndentCounts): IndentWidth {
-    const tabLines = counts.get("tab") ?? 0
-    let spaceLines = 0
-    let unit = 0
-    let smallest = 0
-    for (const [k, n] of counts) {
-        if (k === "tab") continue
-        spaceLines += n
-        if (smallest === 0 || k < smallest) smallest = k
-        if (k >= 2 && (unit === 0 || k < unit)) unit = k
-    }
-    if (tabLines > spaceLines) return "tab"
-    return unit !== 0 ? unit : smallest
 }
 
 function rewriteLine(line: string, lineStart: number, sourceUnit: IndentWidth, target: number, tplRanges: [number, number][]): string {
