@@ -1,6 +1,6 @@
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
-import {writePrettierConfig} from "./format-prettier.ts"
+import {writePrettierConfig, writePrettierMarkdown} from "./format-prettier.ts"
 
 function capture(report: Parameters<typeof writePrettierConfig>[0]): string {
     let out = ""
@@ -42,5 +42,30 @@ describe("writePrettierConfig", () => {
     it("uses 4-space indentation matching the family .prettierrc convention", () => {
         const out = capture({semicolons: {mode: "remove"}})
         assert.match(out, /\n {4}"semi":/)
+    })
+})
+
+describe("writePrettierMarkdown", () => {
+    function captureMd(report: Parameters<typeof writePrettierMarkdown>[0]): string {
+        let out = ""
+        writePrettierMarkdown(report, {write: (s) => (out += s)})
+        return out
+    }
+
+    it("wraps the JSON in a `### .prettierrc` fenced block ending in a trailing blank line", () => {
+        const out = captureMd({semicolons: {mode: "remove"}, indent: {width: 4}})
+        // Section header + table-style blank + fence open + body + fence close + trailing blank.
+        assert.match(out, /^### \.prettierrc\n\n```json\n/)
+        assert.match(out, /\n```\n\n$/)
+        const jsonBody = out.match(/```json\n([\s\S]*?)\n```/)?.[1]
+        assert.ok(jsonBody)
+        const parsed = JSON.parse(jsonBody!)
+        assert.equal(parsed.semi, false)
+        assert.equal(parsed.tabWidth, 4)
+        assert.equal(parsed.useTabs, false)
+    })
+
+    it("emits nothing when no recommendations fired", () => {
+        assert.equal(captureMd({}), "")
     })
 })

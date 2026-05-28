@@ -74,12 +74,23 @@ describe("parseArgs", () => {
         // Survey-style default: every report in the registry runs.
         assert.ok(r.reportNames.includes("unused-exports"))
         assert.ok(r.reportNames.includes("semicolons"))
+        assert.equal(r.surveyDefault, true)
     })
 
     it("does not auto-populate reports when an action is specified", () => {
         const r = parseArgs(["--organize-imports"])
         assert.ok(r && !("help" in r))
         assert.deepEqual(r.reportNames, [])
+        assert.equal(r.surveyDefault, false)
+    })
+
+    it("treats explicit --report or --format as opting out of the survey-default flag", () => {
+        const r1 = parseArgs(["--report", "unused-exports", SAMPLE_TSCONFIG])
+        assert.ok(r1 && !("help" in r1))
+        assert.equal(r1.surveyDefault, false)
+        const r2 = parseArgs(["--format", "prettier", SAMPLE_TSCONFIG])
+        assert.ok(r2 && !("help" in r2))
+        assert.equal(r2.surveyDefault, false)
     })
 
     it("returns undefined on an unknown option", () => {

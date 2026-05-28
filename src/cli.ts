@@ -12,6 +12,7 @@
 
 import {selectFormat} from "./format/run-format.ts"
 import {initProject, runIndent, runOrganizeImports, runReports, runSemicolons} from "./index.ts"
+import {writePrettierMarkdown} from "./lib/format-prettier.ts"
 import {parseArgs} from "./lib/parse-args.ts"
 import {usage} from "./lib/usage.ts"
 
@@ -56,6 +57,10 @@ try {
     // hard-codes any specific format name.
     const format = selectFormat(opts.format, process.stdout)
     const report = await runReports(project, {...fileOpts, reportNames: opts.reportNames, stream: format.reportStream})
+    // 全部おまかせ実行のときだけ、Markdown テーブル群の末尾に .prettierrc を
+    // 要約として追加する。--report 明示時は読者が必要な節だけ要求しているし、
+    // --format 指定時はそもそも Markdown を出していない。
+    if (opts.surveyDefault) writePrettierMarkdown(report, process.stdout)
     format.finalize(report)
 } catch (e) {
     console.error(e instanceof Error ? e.message : String(e))

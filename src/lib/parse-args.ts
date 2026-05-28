@@ -29,6 +29,10 @@ export interface ParsedArgs {
     indentWidth: number | null
     reportNames: string[]
     format: string | null
+    // True when neither an action nor an explicit --report / --format was
+    // given. The default-survey path uses this to decide whether to append
+    // the `.prettierrc` summary block under the per-report tables.
+    surveyDefault: boolean
     tsconfigPath: string
     dryRun: boolean
     absIncludes: string[]
@@ -134,6 +138,9 @@ export function parseArgs(argv: string[]): ParseArgsResult | undefined {
 
     // Default: when neither an action nor an explicit --report was given,
     // run every registered report. This is the "survey" baseline behavior.
+    // surveyDefault は --format も未指定であることまで含めた「全部おまかせ」
+    // 状態だけ true にする — cli.ts はこれを見て .prettierrc 要約ブロックを差し込む。
+    const surveyDefault = !hasAction && !hasReport && format === null
     const effectiveReports = !hasAction && !hasReport ? [...knownReportNames] : requestedReports
 
     // Default to ./tsconfig.json in the current working directory when the
@@ -154,6 +161,7 @@ export function parseArgs(argv: string[]): ParseArgsResult | undefined {
         indentWidth,
         reportNames: effectiveReports,
         format,
+        surveyDefault,
         tsconfigPath: absTsconfig,
         dryRun,
         absIncludes,
