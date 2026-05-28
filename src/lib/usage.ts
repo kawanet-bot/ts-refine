@@ -6,7 +6,7 @@ import {reportNames} from "../report/report-names.ts"
 
 export function usage(): string {
     return [
-        "Usage: ts-survey [--report <names>|--fix] [-p tsconfig.json] [options]",
+        "Usage: ts-survey [--report <names>|--apply] [-p tsconfig.json] [options]",
         "",
         "Reports (read; the primary mode):",
         "  (no args)                   Run every report and print the survey Markdown",
@@ -15,13 +15,13 @@ export function usage(): string {
         "  --format <name>             Suppress Markdown and emit the named format instead",
         `                              Known formats: ${formatNames.join(", ")}`,
         "",
-        "Fix (write; applies the reports' recommendations to disk):",
-        "  --fix                       Apply the recommended settings to every file",
-        "  --indent <N>                Override indent width (implies --fix)",
-        "  --semicolons on|off         Override semicolon insertion (implies --fix)",
-        "  --new-line lf|crlf          Override end-of-line (implies --fix)",
-        "  --bracket-spacing on|off    Override inner-brace spacing (implies --fix)",
-        "  --organize-imports on|off   Toggle organize-imports under --fix (default: on)",
+        "Apply (write; applies the reports' recommendations to disk):",
+        "  --apply                     Apply the recommended settings to every file",
+        "  --indent <N>                Override indent width (implies --apply)",
+        "  --semicolons on|off         Override semicolon insertion (implies --apply)",
+        "  --new-line lf|crlf          Override end-of-line (implies --apply)",
+        "  --bracket-spacing on|off    Override inner-brace spacing (implies --apply)",
+        "  --organize-imports on|off   Toggle organize-imports under --apply (default: on)",
         "",
         "Project (mirrors `tsc -p`):",
         "  -p, --project <path>        Path to a tsconfig.json or a directory",
@@ -32,7 +32,7 @@ export function usage(): string {
         "  --exclude <glob>            Skip files matching the glob",
         "",
         "Common:",
-        "  --dry-run                   Fix only: print paths instead of writing",
+        "  --dry-run                   Apply only: print paths instead of writing",
         "  -h, --help                  Show this help",
     ].join("\n")
 }

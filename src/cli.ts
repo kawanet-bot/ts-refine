@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
-// argv → Project → one report pass, then either runFix (write) or
+// argv → Project → one report pass, then either runApply (write) or
 // Markdown + format finalizer (read). parseArgs ensures the two paths
 // never overlap.
 
 import type {TsSurveyReportName} from "@kawanet/ts-survey"
 
 import {selectFormat} from "./format/run-format.ts"
-import {initProject, runFix, runReports} from "./index.ts"
+import {initProject, runApply, runReports} from "./index.ts"
 import {writePrettierMarkdown} from "./lib/format-prettier.ts"
 import {writeTsSurveyMarkdown} from "./lib/format-ts-survey.ts"
 import {parseArgs} from "./lib/parse-args.ts"
@@ -28,7 +28,7 @@ if ("help" in opts) {
 
 const fileOpts = {absIncludes: opts.absIncludes, absExcludes: opts.absExcludes}
 
-// Swallow the Markdown stream in fix mode; runFix consumes the report.
+// Swallow the Markdown stream in apply mode; runApply consumes the report.
 const NULL_SINK = {write: () => {}}
 
 // Library throws (missing tsconfig, unknown report name) become clean
@@ -36,15 +36,15 @@ const NULL_SINK = {write: () => {}}
 try {
     const project = initProject(opts.tsconfigPath)
 
-    const format = opts.fix ? {reportStream: NULL_SINK, finalize: () => {}} : selectFormat(opts.format, process.stdout)
+    const format = opts.apply ? {reportStream: NULL_SINK, finalize: () => {}} : selectFormat(opts.format, process.stdout)
 
     // Report-name validation lives in runReports so typos surface as a
     // named error there. Cast at the boundary.
     const reportNames = opts.reportNames as TsSurveyReportName[]
     const report = await runReports(project, {...fileOpts, reportNames, stream: format.reportStream})
 
-    if (opts.fix) {
-        await runFix(project, {...fileOpts, dryRun: opts.dryRun, report, ...opts.fixOverrides})
+    if (opts.apply) {
+        await runApply(project, {...fileOpts, dryRun: opts.dryRun, report, ...opts.applyOverrides})
     } else {
         // Survey-default appends `## recommendation` + `### .prettierrc`.
         // `--report` / `--format` paths skip both intentionally.

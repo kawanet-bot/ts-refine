@@ -17,7 +17,7 @@ export interface ReportOpts extends TsSurveyOpts {
 // Alias so merge-recommendations.ts can name the input concisely.
 export type TsSurveyReportForMerge = TsSurveyReport
 
-// mergeRecommendations output. Separates LS settings from runFix-only
+// mergeRecommendations output. Separates LS settings from runApply-only
 // concerns (organize-imports gate, line-ending post-pass, CR diagnostic).
 export interface ResolvedSettings {
     formatSettings: FormatCodeSettings

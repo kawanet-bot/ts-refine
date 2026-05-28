@@ -1,4 +1,4 @@
-// `--fix`: resolve report + overrides → LS formatter + organizeImports.
+// `--apply`: resolve report + overrides → LS formatter + organizeImports.
 // Order is formatText → organizeImports; the same FormatCodeSettings
 // feeds both so the rebuilt import block matches the file.
 
@@ -8,7 +8,7 @@ import fs from "node:fs/promises"
 import {mergeRecommendations, normalizeNewLines} from "../lib/merge-recommendations.ts"
 import {selectSourceFiles} from "../lib/source-files.ts"
 
-export const runFix: typeof declared.runFix = async (project, opts) => {
+export const runApply: typeof declared.runApply = async (project, opts) => {
     const {dryRun, absIncludes, absExcludes, report, ...overrides} = opts
     const resolved = mergeRecommendations(report, overrides)
 
@@ -53,5 +53,5 @@ export const runFix: typeof declared.runFix = async (project, opts) => {
     }
 
     const verb = dryRun ? "would change" : "changed"
-    console.error(`fix: ${verb} ${changedCount} / ${totalCount} files`)
+    console.error(`apply: ${verb} ${changedCount} / ${totalCount} files`)
 }

@@ -1,40 +1,40 @@
 // Reuses the original indent-action coverage against the unified
-// runFix entry point. Each it block exercises `runFix({indent: N})`
+// runApply entry point. Each it block exercises `runApply({indent: N})`
 // instead of the retired `runIndent`; the assertions are preserved.
 
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
 import {Project} from "ts-morph"
 
-import type {RunFixOpts, TsSurveyReport} from "@kawanet/ts-survey"
-import {runFix} from "./run-fix.ts"
+import type {RunApplyOpts, TsSurveyReport} from "@kawanet/ts-survey"
+import {runApply} from "./run-apply.ts"
 
-// Builds RunFixOpts with the indent override pinned and unrelated
+// Builds RunApplyOpts with the indent override pinned and unrelated
 // passes (organize-imports) silenced so the test exercises only the
 // indent dimension.
-function opts(width: number): Omit<RunFixOpts, "report"> & {report: TsSurveyReport} {
+function opts(width: number): Omit<RunApplyOpts, "report"> & {report: TsSurveyReport} {
     return {dryRun: true, absIncludes: [], absExcludes: [], indent: width, organizeImports: "off", report: {}}
 }
 
-describe("runFix --indent (dry-run, in-memory)", () => {
+describe("runApply --indent (dry-run, in-memory)", () => {
     it("expands 2-space indent to 4-space", async () => {
         const project = new Project({useInMemoryFileSystem: true})
         const sf = project.createSourceFile("a.ts", ["function f() {", "  return 1", "}", ""].join("\n"))
-        await runFix(project, opts(4))
+        await runApply(project, opts(4))
         assert.match(sf.getFullText(), /\n {4}return 1\n/)
     })
 
     it("expands a single leading tab to width spaces", async () => {
         const project = new Project({useInMemoryFileSystem: true})
         const sf = project.createSourceFile("b.ts", ["function f() {", "\treturn 1", "}", ""].join("\n"))
-        await runFix(project, opts(4))
+        await runApply(project, opts(4))
         assert.match(sf.getFullText(), /\n {4}return 1\n/)
     })
 
     it("does not rewrite indent inside a template literal", async () => {
         const project = new Project({useInMemoryFileSystem: true})
         const sf = project.createSourceFile("c.ts", ["function f() {", "  const s = `", "    indented inside template", "    other inside template", "  `", "  return s", "}", ""].join("\n"))
-        await runFix(project, opts(4))
+        await runApply(project, opts(4))
         const lines = sf.getFullText().split("\n")
         // Code lines (outside template) are rewritten to 4-space.
         assert.equal(lines[0], "function f() {")
@@ -51,7 +51,7 @@ describe("runFix --indent (dry-run, in-memory)", () => {
     it("leaves JSDoc continuation lines (` * ...`) alone", async () => {
         const project = new Project({useInMemoryFileSystem: true})
         const sf = project.createSourceFile("d.ts", ["/**", " * docs", " */", "function f() {", "  return 1", "}", ""].join("\n"))
-        await runFix(project, opts(4))
+        await runApply(project, opts(4))
         const text = sf.getFullText()
         assert.match(text, /\n \* docs\n/)
         assert.match(text, /\n {4}return 1\n/)
@@ -61,7 +61,7 @@ describe("runFix --indent (dry-run, in-memory)", () => {
         const project = new Project({useInMemoryFileSystem: true})
         const sf = project.createSourceFile("e.ts", ["function f() {", "    return 1", "}", ""].join("\n"))
         const before = sf.getFullText()
-        await runFix(project, opts(4))
+        await runApply(project, opts(4))
         assert.equal(sf.getFullText(), before)
     })
 
@@ -71,7 +71,7 @@ describe("runFix --indent (dry-run, in-memory)", () => {
         // step). Hand-rolled alignment such as the 5-space `     2` below
         // is not preserved; Prettier matches.
         const sf = project.createSourceFile("f.ts", ["function f() {", "  const x = 1 +", "     2", "}", ""].join("\n"))
-        await runFix(project, opts(4))
+        await runApply(project, opts(4))
         const lines = sf.getFullText().split("\n")
         assert.equal(lines[1], "    const x = 1 +")
         // Two indent levels: one for the function body, one for the

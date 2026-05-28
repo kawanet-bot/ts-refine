@@ -72,7 +72,7 @@ describe("mergeRecommendations", () => {
         assert.equal(r.formatSettings.newLineCharacter, "\n")
     })
 
-    it("organizeImports defaults to true under fix", () => {
+    it("organizeImports defaults to true under apply", () => {
         const r = mergeRecommendations({}, {})
         assert.equal(r.organizeImports, true)
     })

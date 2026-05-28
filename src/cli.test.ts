@@ -10,7 +10,7 @@ describe("cli", () => {
         const r = spawnSync(process.execPath, [CLI, "--help"], {encoding: "utf8"})
         assert.equal(r.status, 0)
         assert.match(r.stdout, /Usage: ts-survey/)
-        assert.match(r.stdout, /--fix/)
+        assert.match(r.stdout, /--apply/)
         assert.match(r.stdout, /--report/)
         assert.match(r.stdout, /--organize-imports on\|off/)
     })

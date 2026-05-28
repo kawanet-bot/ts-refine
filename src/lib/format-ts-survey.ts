@@ -8,7 +8,7 @@ import type {Writer} from "./writable.ts"
 
 // Fixed emission order so the output is byte-identical regardless of
 // upstream property order. member-separators is printed for the human
-// record even though `--fix` does not consume it.
+// record even though `--apply` does not consume it.
 function buildTsSurveyFlags(report: TsSurveyReport): string[] {
     const flags: string[] = []
     if (report.semicolons?.semicolons) flags.push(`--semicolons ${report.semicolons.semicolons}`)
@@ -19,16 +19,16 @@ function buildTsSurveyFlags(report: TsSurveyReport): string[] {
     return flags
 }
 
-// Always starts with `--fix` (the verb the recommendation translates to).
-// Empty recommendations still emit `ts-survey --fix`, paralleling
+// Always starts with `--apply` (the verb the recommendation translates to).
+// Empty recommendations still emit `ts-survey --apply`, paralleling
 // `--format prettier`'s empty `{}`.
 export function writeTsSurveyCommand(report: TsSurveyReport, stream: Writer): void {
     const flags = buildTsSurveyFlags(report)
     if (flags.length === 0) {
-        stream.write("ts-survey --fix\n")
+        stream.write("ts-survey --apply\n")
         return
     }
-    stream.write("ts-survey --fix \\\n")
+    stream.write("ts-survey --apply \\\n")
     stream.write(`  ${flags.join(" ")}\n`)
 }
 
@@ -40,7 +40,7 @@ export function writeTsSurveyMarkdown(report: TsSurveyReport, stream: Writer): v
     stream.write("## recommendation\n")
     stream.write("\n")
     stream.write("```sh\n")
-    stream.write("ts-survey --fix \\\n")
+    stream.write("ts-survey --apply \\\n")
     stream.write(`  ${flags.join(" ")}\n`)
     stream.write("```\n")
     stream.write("\n")

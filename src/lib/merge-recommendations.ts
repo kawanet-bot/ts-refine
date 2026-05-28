@@ -1,15 +1,15 @@
-// Pure helper: report + overrides → settings runFix consumes.
+// Pure helper: report + overrides → settings runApply consumes.
 // Per-field precedence is override > recommendation > undefined.
 
 import {ts} from "ts-morph"
 
-import type {FixOverrides} from "./parse-args.ts"
+import type {ApplyOverrides} from "./parse-args.ts"
 import type {ResolvedSettings, TsSurveyReportForMerge} from "./types.ts"
 
 // FormatCodeSettings is readonly; build mutably and cast at the return.
 type MutableFormatSettings = {-readonly [K in keyof ResolvedSettings["formatSettings"]]: ResolvedSettings["formatSettings"][K]}
 
-export function mergeRecommendations(report: TsSurveyReportForMerge, overrides: FixOverrides): ResolvedSettings {
+export function mergeRecommendations(report: TsSurveyReportForMerge, overrides: ApplyOverrides): ResolvedSettings {
     const formatSettings: MutableFormatSettings = {}
 
     // convertTabsToSpaces is pinned: the recommender speaks spaces only.

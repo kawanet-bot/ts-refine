@@ -1,13 +1,13 @@
-// argv → ParsedArgs. Two modes (report / fix) are mutually exclusive;
-// any fix-side override implicitly enables --fix, mirroring how --format
-// implies --report. tsconfig path mirrors `tsc -p`.
+// argv → ParsedArgs. Two modes (report / apply) are mutually exclusive;
+// any apply-side override implicitly enables --apply, mirroring how
+// --format implies --report. tsconfig path mirrors `tsc -p`.
 
 import path from "node:path"
 
 import {reportNames as knownReportNames} from "../report/report-names.ts"
 
 // `newLine` is narrowed to lf|crlf because LS cannot emit CR-only.
-export interface FixOverrides {
+export interface ApplyOverrides {
     organizeImports?: "on" | "off"
     indent?: number
     semicolons?: "on" | "off"
@@ -16,8 +16,8 @@ export interface FixOverrides {
 }
 
 export interface ParsedArgs {
-    fix: boolean
-    fixOverrides: FixOverrides
+    apply: boolean
+    applyOverrides: ApplyOverrides
     reportNames: string[]
     format: string | null
     // True only when nothing was specified; gates the recommendation +
@@ -38,8 +38,8 @@ export type ParseArgsResult = ParsedArgs | HelpRequested
 export function parseArgs(argv: string[]): ParseArgsResult | undefined {
     if (argv.includes("--help") || argv.includes("-h")) return {help: true}
 
-    let fixExplicit = false
-    const overrides: FixOverrides = {}
+    let applyExplicit = false
+    const overrides: ApplyOverrides = {}
     let format: string | null = null
     let tsconfigPath: string | null = null
     let dryRun = false
@@ -50,8 +50,8 @@ export function parseArgs(argv: string[]): ParseArgsResult | undefined {
 
     for (let i = 0; i < argv.length; i++) {
         const a = argv[i]
-        if (a === "--fix") {
-            fixExplicit = true
+        if (a === "--apply") {
+            applyExplicit = true
         } else if (a === "--organize-imports") {
             const v = argv[++i]
             if (v !== "on" && v !== "off") {
@@ -145,20 +145,20 @@ export function parseArgs(argv: string[]): ParseArgsResult | undefined {
     }
 
     const hasOverride = Object.keys(overrides).length > 0
-    const fix = fixExplicit || hasOverride
+    const apply = applyExplicit || hasOverride
     const hasReport = requestedReports.length > 0
     const hasFormat = format !== null
-    if (fix && hasReport) {
-        console.error("fix flags (--fix and per-field overrides) cannot be combined with --report")
+    if (apply && hasReport) {
+        console.error("apply flags (--apply and per-field overrides) cannot be combined with --report")
         return undefined
     }
-    if (fix && hasFormat) {
-        console.error("fix flags (--fix and per-field overrides) cannot be combined with --format")
+    if (apply && hasFormat) {
+        console.error("apply flags (--apply and per-field overrides) cannot be combined with --format")
         return undefined
     }
 
     // Survey baseline: nothing specified → run every registered report.
-    const surveyDefault = !fix && !hasReport && !hasFormat
+    const surveyDefault = !apply && !hasReport && !hasFormat
     const effectiveReports = surveyDefault ? [...knownReportNames] : requestedReports
 
     const absTsconfig = resolveTsconfigPath(tsconfigPath ?? ".")
@@ -169,8 +169,8 @@ export function parseArgs(argv: string[]): ParseArgsResult | undefined {
     const absExcludes = excludeGlobs.map((g) => resolveGlob(g, tsconfigDir))
 
     return {
-        fix,
-        fixOverrides: overrides,
+        apply,
+        applyOverrides: overrides,
         reportNames: effectiveReports,
         format,
         surveyDefault,
