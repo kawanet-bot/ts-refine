@@ -1,3 +1,4 @@
+import type {TsSurveyReportName} from "@kawanet/ts-survey"
 import {strict as assert} from "node:assert"
 import path from "node:path"
 import {describe, it} from "node:test"
@@ -13,7 +14,10 @@ describe("runReports", () => {
         await assert.rejects(
             () =>
                 runReports(project, {
-                    reportNames: ["typo-name"],
+                    // Intentional typo. The typed surface narrows to known
+                    // names, so the cast lets the test reach the runtime
+                    // validation that the production CLI also relies on.
+                    reportNames: ["typo-name" as unknown as TsSurveyReportName],
                     stream: {write: (l) => lines.push(l)},
                     absIncludes: [],
                     absExcludes: [],

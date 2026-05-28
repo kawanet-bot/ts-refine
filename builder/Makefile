@@ -9,13 +9,16 @@ BUILDER_SRC := $(wildcard ./*.ts)
 MJS_DST := ../dist/ts-survey.mjs
 MJS_CONFIG := ./rollup-mjs.config.ts
 
-# Public runtime named exports that must be verified in every bundle.
-NAMED_EXPORTS := initProject runOrganizeImports runIndent runSemicolons runReports
+# Public runtime named exports the smoke target must find in the bundle.
+# Derived from `export declare function <name>(...)` lines in the
+# published .d.ts so adding a new entry there is enough — no parallel
+# update here.
+NAMED_EXPORTS := $(shell sed -nE 's/^export declare function ([a-zA-Z_$$]+).*/\1/p' $(TYPES))
 
 # Bundle should contain only this package's own src/ — ts-morph and minimatch
 # are externalized. A noticeably larger output means an accidental bundling
 # of a transitive dep; fail the build so it cannot slip in.
-MAX_BYTES := 35000
+MAX_BYTES := 42000
 
 ALL := $(MJS_DST)
 
@@ -29,8 +32,11 @@ $(MJS_DST): $(MJS_CONFIG) $(SRC) $(BUILDER_SRC)
 	@echo ""
 
 # Verify the bundle by importing the package itself through the public
-# entrypoint. This catches misconfigured `exports`/`main` paths.
+# entrypoint. This catches misconfigured `exports`/`main` paths. An
+# empty NAMED_EXPORTS would let smoke silently pass even when the .d.ts
+# regex stops matching, so guard against it explicitly.
 smoke: $(MJS_DST)
+	@test -n "$(NAMED_EXPORTS)" || { echo "ERROR: NAMED_EXPORTS empty — check the sed pattern against $(TYPES)" >&2; exit 1; }
 	cd .. && node --input-type=module -e 'const m = await import("@kawanet/ts-survey"); for (const k of process.argv.slice(1)) { if (typeof m[k] !== "function") { console.error("missing MJS export:", k); process.exit(1); } console.log("MJS export OK:", k); }' $(NAMED_EXPORTS)
 
 test: all smoke

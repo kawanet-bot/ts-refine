@@ -1,21 +1,21 @@
-// Report router. Owns the registry of report names, validates argv-side
-// input against it, and runs requested reports in a fixed order. Each
-// report function returns the action params its recommendation would
-// drive (or an empty partial when nothing strict was found); the router
-// merges those into a single TsSurveyReport so a caller can chain them
-// into action calls (or format them with --format).
+// Report router. Validates argv-side input against the report-name
+// registry (kept in ./report-names.ts so it can be imported without
+// dragging in ts-morph) and runs requested reports in a fixed order.
+// Each report function returns the action params its recommendation
+// would drive (or an empty partial when nothing strict was found); the
+// router merges those into a single TsSurveyReport so a caller can
+// chain them into action calls (or format them with --format).
 
 import type * as declared from "@kawanet/ts-survey"
 
 import type {ReportOpts} from "../lib/types.ts"
+import {runReportBracketSpacing} from "./bracket-spacing.ts"
 import {runReportIndent} from "./indent.ts"
 import {runReportMemberSeparators} from "./member-separators.ts"
+import {runReportNewLine} from "./new-line.ts"
+import {reportNames} from "./report-names.ts"
 import {runReportSemicolons} from "./semicolons.ts"
 import {runReportUnusedExports} from "./unused-exports.ts"
-
-// Fixed run order. Reports that return a recommendation slot also appear
-// as keys on the returned TsSurveyReport.
-export const reportNames = ["unused-exports", "semicolons", "indent", "member-separators"] as const
 
 export const runReports: typeof declared.runReports = async (project, opts) => {
     const {stream, reportNames: requested, absIncludes, absExcludes} = opts
@@ -42,6 +42,12 @@ export const runReports: typeof declared.runReports = async (project, opts) => {
     }
     if (requested.includes("member-separators")) {
         report.memberSeparators = await runReportMemberSeparators(project, reportOpts)
+    }
+    if (requested.includes("new-line")) {
+        report.newLine = await runReportNewLine(project, reportOpts)
+    }
+    if (requested.includes("bracket-spacing")) {
+        report.bracketSpacing = await runReportBracketSpacing(project, reportOpts)
     }
 
     return report

@@ -23,7 +23,7 @@ export interface RunOrganizeImportsOpts extends TsSurveyOpts {
 }
 
 export interface RunSemicolonsOpts extends RunOrganizeImportsOpts {
-    mode: "remove" | "insert"
+    semicolons: "on" | "off"
 }
 
 export interface RunIndentOpts extends RunOrganizeImportsOpts {
@@ -39,9 +39,34 @@ export interface RunMemberSeparatorsOpts extends RunOrganizeImportsOpts {
     separator: "semi" | "comma" | "none"
 }
 
+// `runNewLine` action isn't implemented yet — same arrangement as
+// RunMemberSeparatorsOpts: the report returns this shape so the
+// formatters can already render `--new-line <value>` and `endOfLine`.
+export interface RunNewLineOpts extends RunOrganizeImportsOpts {
+    newLine: "lf" | "crlf" | "cr"
+}
+
+// `runBracketSpacing` action isn't implemented yet. The report returns
+// the Partial so the formatters can render `--bracket-spacing on|off`
+// and Prettier's `bracketSpacing`.
+export interface RunBracketSpacingOpts extends RunOrganizeImportsOpts {
+    bracketSpacing: "on" | "off"
+}
+
+// Every report module that runReports knows about. Adding a report
+// means extending this union, the runtime list in
+// src/report/report-names.ts, and the dispatch in src/report/run-reports.ts.
+export type TsSurveyReportName =
+    | "unused-exports"
+    | "semicolons"
+    | "indent"
+    | "member-separators"
+    | "new-line"
+    | "bracket-spacing"
+
 export interface RunReportsOpts extends TsSurveyOpts {
     stream: Writer
-    reportNames: string[]
+    reportNames: TsSurveyReportName[]
 }
 
 // Recommendations collected by runReports, keyed by the report that
@@ -52,6 +77,8 @@ export interface TsSurveyReport {
     semicolons?: Partial<RunSemicolonsOpts>
     indent?: Partial<RunIndentOpts>
     memberSeparators?: Partial<RunMemberSeparatorsOpts>
+    newLine?: Partial<RunNewLineOpts>
+    bracketSpacing?: Partial<RunBracketSpacingOpts>
 }
 
 export declare function initProject(tsconfigPath: string): Project

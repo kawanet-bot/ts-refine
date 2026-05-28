@@ -4,12 +4,15 @@
 // prettier, an in-memory sink for tests, etc.).
 //
 // Mapping:
-//   semicolons.mode === "insert"            → semi: true
-//   semicolons.mode === "remove"            → semi: false
+//   semicolons.semicolons === "on"          → semi: true
+//   semicolons.semicolons === "off"         → semi: false
 //   indent.width === <number>               → tabWidth: <number>, useTabs: false
 //   memberSeparators.separator === "semi"   → semi: true   (only when semicolons is silent)
 //   memberSeparators.separator === "comma"  → semi: false, trailingComma: "all"
 //   memberSeparators.separator === "none"   → semi: false, trailingComma: "none"
+//   newLine.newLine === <lf|crlf|cr>        → endOfLine: <lf|crlf|cr>
+//   bracketSpacing.bracketSpacing === "on"  → bracketSpacing: true
+//   bracketSpacing.bracketSpacing === "off" → bracketSpacing: false
 // Reports that didn't recommend anything contribute no fields, so an
 // empty TsSurveyReport renders as `{}`.
 
@@ -23,8 +26,8 @@ import type {Writer} from "./writable.ts"
 // embedded in the default Markdown survey.
 function buildPrettierOptions(report: TsSurveyReport): PrettierOptions {
     const opts: PrettierOptions = {}
-    if (report.semicolons?.mode === "insert") opts.semi = true
-    else if (report.semicolons?.mode === "remove") opts.semi = false
+    if (report.semicolons?.semicolons === "on") opts.semi = true
+    else if (report.semicolons?.semicolons === "off") opts.semi = false
     if (typeof report.indent?.width === "number") {
         opts.tabWidth = report.indent.width
         opts.useTabs = false
@@ -49,6 +52,9 @@ function buildPrettierOptions(report: TsSurveyReport): PrettierOptions {
         if (ms === "comma") opts.trailingComma = "all"
         else if (ms === "none") opts.trailingComma = "none"
     }
+    if (report.newLine?.newLine) opts.endOfLine = report.newLine.newLine
+    if (report.bracketSpacing?.bracketSpacing === "on") opts.bracketSpacing = true
+    else if (report.bracketSpacing?.bracketSpacing === "off") opts.bracketSpacing = false
     return opts
 }
 

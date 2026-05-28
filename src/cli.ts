@@ -5,10 +5,12 @@
 // order (not input order):
 //   1. --organize-imports
 //   2. --indent <N>
-//   3. --remove-semicolons / --insert-semicolons
+//   3. --semicolons on|off
 // Organize-imports first reorders the structure; indent rewrites the
 // leading whitespace once that structure is final; the semicolons pass
 // only touches trailing characters and stays last.
+
+import type {TsSurveyReportName} from "@kawanet/ts-survey"
 
 import {selectFormat} from "./format/run-format.ts"
 import {initProject, runIndent, runOrganizeImports, runReports, runSemicolons} from "./index.ts"
@@ -47,9 +49,8 @@ try {
     if (opts.indentWidth !== null) {
         await runIndent(project, {...fileOpts, dryRun: opts.dryRun, width: opts.indentWidth})
     }
-    if (opts.removeSemicolons || opts.insertSemicolons) {
-        const mode: "remove" | "insert" = opts.removeSemicolons ? "remove" : "insert"
-        await runSemicolons(project, {...fileOpts, dryRun: opts.dryRun, mode})
+    if (opts.semicolons !== null) {
+        await runSemicolons(project, {...fileOpts, dryRun: opts.dryRun, semicolons: opts.semicolons})
     }
     // When no action was specified, parseArgs fills reportNames with every
     // registered report (the survey default), so this call is a no-op only
@@ -57,7 +58,11 @@ try {
     // per-format stream swap and post-processing, so cli.ts no longer
     // hard-codes any specific format name.
     const format = selectFormat(opts.format, process.stdout)
-    const report = await runReports(project, {...fileOpts, reportNames: opts.reportNames, stream: format.reportStream})
+    // parseArgs intentionally keeps reportNames as a `string[]` so a typo
+    // reaches runReports and surfaces the actionable "unknown report name"
+    // error there rather than at the parse boundary. Cast at the call site.
+    const reportNames = opts.reportNames as TsSurveyReportName[]
+    const report = await runReports(project, {...fileOpts, reportNames, stream: format.reportStream})
     // Survey-default mode appends two recommendation blocks under the
     // per-report tables: `## recommendation` (the runnable ts-survey
     // command) followed by `### .prettierrc` (the JSON form). Skipping
