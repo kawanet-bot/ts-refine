@@ -2,13 +2,12 @@
 // matched source file. Writes only files whose text actually changed, by
 // comparing getFullText() before and after.
 
+import type * as declared from "@kawanet/ts-survey"
 import fs from "node:fs/promises"
-import type {Project} from "ts-morph"
 
-import type {RunOrganizeImportsOpts} from "@kawanet/ts-survey"
 import {selectSourceFiles} from "../lib/source-files.ts"
 
-export async function runOrganizeImports(project: Project, {dryRun, absIncludes, absExcludes}: RunOrganizeImportsOpts): Promise<void> {
+export const runOrganizeImports: typeof declared.runOrganizeImports = async (project, {dryRun, absIncludes, absExcludes}) => {
     // Force no spaces inside braces (`{A}`). Semicolon handling lives in the
     // dedicated semicolons action so combined runs converge on a final form.
     const formatSettings = {
