@@ -10,20 +10,17 @@ import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
 import {isSemiEligibleStatement} from "../lib/statement-kinds.ts"
 import type {ReportOpts} from "../lib/types.ts"
 
-// Fixed 12-row layout: 0% and 100% match exactly, the middle buckets use a
-// half-open (prev < p <= curr) range, and 91-99% is half-open to exclude 100.
+// Fixed 7-row layout: 0% / 100% / exact-50% match by equality, "1-10%" and
+// "90-99%" are the near-boundary tails, and the two middle buckets fill the
+// remaining gap on either side of 50%. The earlier 10%-stepped layout was
+// too sparse to be useful — every middle bucket was empty for typical files.
 const BUCKETS: {label: string; test: (p: number) => boolean}[] = [
     {label: "0%", test: (p) => p === 0},
     {label: "1-10%", test: (p) => p > 0 && p <= 10},
-    {label: "11-20%", test: (p) => p > 10 && p <= 20},
-    {label: "21-30%", test: (p) => p > 20 && p <= 30},
-    {label: "31-40%", test: (p) => p > 30 && p <= 40},
-    {label: "41-50%", test: (p) => p > 40 && p <= 50},
-    {label: "51-60%", test: (p) => p > 50 && p <= 60},
-    {label: "61-70%", test: (p) => p > 60 && p <= 70},
-    {label: "71-80%", test: (p) => p > 70 && p <= 80},
-    {label: "81-90%", test: (p) => p > 80 && p <= 90},
-    {label: "91-99%", test: (p) => p > 90 && p < 100},
+    {label: "11-49%", test: (p) => p > 10 && p < 50},
+    {label: "50%", test: (p) => p === 50},
+    {label: "51-89%", test: (p) => p > 50 && p < 90},
+    {label: "90-99%", test: (p) => p >= 90 && p < 100},
     {label: "100%", test: (p) => p === 100},
 ]
 
