@@ -10,22 +10,27 @@
 
 import {initProject, runOrganizeImports, runReports, runSemicolons} from "./index.ts"
 import {parseArgs} from "./lib/parse-args.ts"
-import {reportNames} from "./report/run-reports.ts"
 
-const opts = await parseArgs(process.argv.slice(2), {reportNames})
+const opts = await parseArgs(process.argv.slice(2))
 
 const project = initProject(opts.tsconfigPath)
 
 const fileOpts = {absIncludes: opts.absIncludes, absExcludes: opts.absExcludes}
 
-if (opts.organizeImports) {
-    await runOrganizeImports(project, {...fileOpts, dryRun: opts.dryRun})
-}
-if (opts.removeSemicolons || opts.insertSemicolons) {
-    const mode: "remove" | "insert" = opts.removeSemicolons ? "remove" : "insert"
-    await runSemicolons(project, {...fileOpts, dryRun: opts.dryRun, mode})
-}
-
-if (opts.reportNames.length > 0) {
-    await runReports(project, {...fileOpts, reportNames: opts.reportNames, stream: process.stdout})
+// Library-side throws (e.g. unknown report name from runReports) are
+// surfaced as a clean CLI error rather than an unhandled-rejection stack.
+try {
+    if (opts.organizeImports) {
+        await runOrganizeImports(project, {...fileOpts, dryRun: opts.dryRun})
+    }
+    if (opts.removeSemicolons || opts.insertSemicolons) {
+        const mode: "remove" | "insert" = opts.removeSemicolons ? "remove" : "insert"
+        await runSemicolons(project, {...fileOpts, dryRun: opts.dryRun, mode})
+    }
+    if (opts.reportNames.length > 0) {
+        await runReports(project, {...fileOpts, reportNames: opts.reportNames, stream: process.stdout})
+    }
+} catch (e) {
+    console.error(e instanceof Error ? e.message : String(e))
+    process.exit(1)
 }

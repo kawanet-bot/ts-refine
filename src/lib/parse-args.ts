@@ -6,9 +6,16 @@
 //   report (read) : --report <names>
 // Multiple actions can run in one invocation. Reports are exclusive with
 // actions. --remove-semicolons and --insert-semicolons are mutually exclusive.
+//
+// The acceptable set of report names is owned by report/run-reports.ts;
+// `parseArgs` only records what the user typed and does not validate the
+// names against the registry. Content validation happens inside runReports
+// where the registry lives.
 
 import fs from "node:fs/promises"
 import path from "node:path"
+
+import {reportNames} from "../report/run-reports.ts"
 
 export type ParsedArgs = {
     organizeImports: boolean
@@ -21,9 +28,9 @@ export type ParsedArgs = {
     absExcludes: string[]
 }
 
-export async function parseArgs(argv: string[], {reportNames}: {reportNames: string[]}): Promise<ParsedArgs> {
+export async function parseArgs(argv: string[]): Promise<ParsedArgs> {
     if (argv.length === 0 || argv.includes("--help") || argv.includes("-h")) {
-        usage(argv.length === 0 ? 1 : 0, {reportNames})
+        usage(argv.length === 0 ? 1 : 0)
     }
 
     let organizeImports = false
@@ -35,6 +42,7 @@ export async function parseArgs(argv: string[], {reportNames}: {reportNames: str
     const excludeGlobs: string[] = []
     // Report names accumulate in input order with de-duplication. Both
     // comma-separated values and repeated --report flags are accepted.
+    // Whether each name is known is decided by runReports later.
     const requestedReports: string[] = []
 
     for (let i = 0; i < argv.length; i++) {
@@ -49,32 +57,28 @@ export async function parseArgs(argv: string[], {reportNames}: {reportNames: str
             const v = argv[++i]
             if (!v || v.startsWith("-")) {
                 console.error("--report requires a report name (e.g. --report unused-exports)")
-                usage(1, {reportNames})
+                usage(1)
             }
             for (const name of v
                 .split(",")
                 .map((s) => s.trim())
                 .filter(Boolean)) {
-                if (!reportNames.includes(name)) {
-                    console.error(`unknown report name: ${name} (known: ${reportNames.join(", ")})`)
-                    process.exit(1)
-                }
                 if (!requestedReports.includes(name)) requestedReports.push(name)
             }
         } else if (a === "--dry-run") {
             dryRun = true
         } else if (a === "--include") {
-            includeGlobs.push(takeGlobValue(argv, ++i, "--include", {reportNames}))
+            includeGlobs.push(takeGlobValue(argv, ++i, "--include"))
         } else if (a === "--exclude") {
-            excludeGlobs.push(takeGlobValue(argv, ++i, "--exclude", {reportNames}))
+            excludeGlobs.push(takeGlobValue(argv, ++i, "--exclude"))
         } else if (a.startsWith("--")) {
             console.error(`unknown option: ${a}`)
-            usage(1, {reportNames})
+            usage(1)
         } else if (!tsconfigPath) {
             tsconfigPath = a
         } else {
             console.error(`extra argument: ${a}`)
-            usage(1, {reportNames})
+            usage(1)
         }
     }
 
@@ -91,11 +95,11 @@ export async function parseArgs(argv: string[], {reportNames}: {reportNames: str
     }
     if (!hasAction && !hasReport) {
         console.error("no action specified")
-        usage(1, {reportNames})
+        usage(1)
     }
     if (!tsconfigPath) {
         console.error("missing tsconfig.json path")
-        usage(1, {reportNames})
+        usage(1)
     }
 
     const absTsconfig = path.resolve(tsconfigPath)
@@ -124,11 +128,11 @@ export async function parseArgs(argv: string[], {reportNames}: {reportNames: str
     }
 }
 
-function takeGlobValue(args: string[], idx: number, optName: string, {reportNames}: {reportNames: string[]}): string {
+function takeGlobValue(args: string[], idx: number, optName: string): string {
     const v = args[idx]
     if (!v || v.startsWith("-")) {
         console.error(`${optName} requires a glob value`)
-        usage(1, {reportNames})
+        usage(1)
     }
     return v
 }
@@ -138,7 +142,7 @@ function resolveGlob(pattern: string, baseDir: string): string {
     return path.resolve(baseDir, pattern)
 }
 
-function usage(code: number, {reportNames}: {reportNames: string[]}): never {
+function usage(code: number): never {
     const out = code === 0 ? console.log : console.error
     out("Usage: ts-survey <action(s)|--report> <tsconfig.json> [options]")
     out("")

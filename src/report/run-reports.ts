@@ -26,6 +26,13 @@ export type RunReportsOpts = {
 
 export async function runReports(project: Project, opts: RunReportsOpts): Promise<void> {
     const {stream, reportNames: requested, absIncludes, absExcludes} = opts
+    // Validate every requested name up-front so a typo fails before any
+    // report runs. The registry is the source of truth for what names exist.
+    for (const name of requested) {
+        if (!(name in REPORTS)) {
+            throw new Error(`unknown report name: ${name} (known: ${reportNames.join(", ")})`)
+        }
+    }
     for (const name of Object.keys(REPORTS)) {
         if (!requested.includes(name)) continue
         await REPORTS[name](project, {stream, absIncludes, absExcludes})
