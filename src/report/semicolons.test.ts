@@ -18,7 +18,9 @@ describe("runReportSemicolons (sample/semicolons-mixed)", () => {
         // (around 50%). The empty file has no statements and must be excluded.
         assert.match(out, /\| 0% \| 1 \| /)
         assert.match(out, /\| 100% \| 1 \| /)
-        assert.match(out, /\| total \| 3 \| recommend: /)
+        // Total row no longer carries the recommendation; it now lives in a
+        // grep-able block below the table.
+        assert.match(out, /\| total \| 3 \| \|/)
         // Empty file should not appear anywhere.
         assert.equal(/empty\.ts/.test(out), false)
     })

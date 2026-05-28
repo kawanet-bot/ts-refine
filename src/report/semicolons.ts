@@ -4,6 +4,7 @@
 
 import type {Project} from "ts-morph"
 
+import {writeRecommendation} from "../lib/recommendation.ts"
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
 import {isSemiEligibleStatement} from "../lib/statement-kinds.ts"
 import type {ReportOpts} from "./unused-exports.ts"
@@ -59,9 +60,9 @@ export async function runReportSemicolons(project: Project, {stream, absIncludes
     // exactly 50% are ambiguous and excluded from the comparison.
     const below = perFile.filter((f) => f.percent < 50).length
     const above = perFile.filter((f) => f.percent > 50).length
-    let recommend = "-"
-    if (below > above) recommend = "`--remove-semicolons`"
-    else if (above > below) recommend = "`--insert-semicolons`"
+    let recommendFlag: string | undefined
+    if (below > above) recommendFlag = "--remove-semicolons"
+    else if (above > below) recommendFlag = "--insert-semicolons"
 
     stream.write("### semicolons\n")
     stream.write("\n")
@@ -78,7 +79,11 @@ export async function runReportSemicolons(project: Project, {stream, absIncludes
             stream.write(`| ${BUCKETS[i].label} | ${files.length} | ${example.path} |\n`)
         }
     }
-    stream.write(`| total | ${perFile.length} | recommend: ${recommend} |\n`)
+    stream.write(`| total | ${perFile.length} | |\n`)
     stream.write("\n")
+    if (recommendFlag) {
+        writeRecommendation(stream, recommendFlag)
+        stream.write("\n")
+    }
     console.error(`report semicolons: ${perFile.length} files counted / ${sourceFiles.length} files total`)
 }
