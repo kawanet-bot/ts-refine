@@ -10,12 +10,13 @@ import type * as declared from "@kawanet/ts-survey"
 import type {ReportOpts} from "../lib/types.ts"
 import {runReportIndent} from "./indent.ts"
 import {runReportMemberSeparators} from "./member-separators.ts"
+import {runReportNewLine} from "./new-line.ts"
 import {runReportSemicolons} from "./semicolons.ts"
 import {runReportUnusedExports} from "./unused-exports.ts"
 
 // Fixed run order. Reports that return a recommendation slot also appear
 // as keys on the returned TsSurveyReport.
-export const reportNames = ["unused-exports", "semicolons", "indent", "member-separators"] as const
+export const reportNames = ["unused-exports", "semicolons", "indent", "member-separators", "new-line"] as const
 
 export const runReports: typeof declared.runReports = async (project, opts) => {
     const {stream, reportNames: requested, absIncludes, absExcludes} = opts
@@ -42,6 +43,9 @@ export const runReports: typeof declared.runReports = async (project, opts) => {
     }
     if (requested.includes("member-separators")) {
         report.memberSeparators = await runReportMemberSeparators(project, reportOpts)
+    }
+    if (requested.includes("new-line")) {
+        report.newLine = await runReportNewLine(project, reportOpts)
     }
 
     return report

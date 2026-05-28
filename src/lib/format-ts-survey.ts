@@ -24,6 +24,7 @@ function buildTsSurveyFlags(report: TsSurveyReport): string[] {
     else if (report.semicolons?.mode === "insert") flags.push("--insert-semicolons")
     if (typeof report.indent?.width === "number") flags.push(`--indent ${report.indent.width}`)
     if (report.memberSeparators?.separator) flags.push(`--member-separator ${report.memberSeparators.separator}`)
+    if (report.newLine?.newLine) flags.push(`--new-line ${report.newLine.newLine}`)
     return flags
 }
 

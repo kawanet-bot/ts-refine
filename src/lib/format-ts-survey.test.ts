@@ -29,15 +29,20 @@ describe("writeTsSurveyCommand", () => {
         assert.equal(out, "ts-survey \\\n  --member-separator none\n")
     })
 
-    it("combines all three recommendations in a fixed order", () => {
+    it("maps newLine.newLine → --new-line V", () => {
+        const out = capture((s) => writeTsSurveyCommand({newLine: {newLine: "lf"}}, s))
+        assert.equal(out, "ts-survey \\\n  --new-line lf\n")
+    })
+
+    it("combines all recommendations in a fixed order", () => {
         const out = capture((s) =>
             writeTsSurveyCommand(
                 // Input keys are intentionally reversed; the output order is fixed.
-                {memberSeparators: {separator: "none"}, indent: {width: 4}, semicolons: {mode: "remove"}},
+                {newLine: {newLine: "lf"}, memberSeparators: {separator: "none"}, indent: {width: 4}, semicolons: {mode: "remove"}},
                 s,
             ),
         )
-        assert.equal(out, "ts-survey \\\n  --remove-semicolons --indent 4 --member-separator none\n")
+        assert.equal(out, "ts-survey \\\n  --remove-semicolons --indent 4 --member-separator none --new-line lf\n")
     })
 
     it("emits a bare `ts-survey` when nothing was recommended", () => {

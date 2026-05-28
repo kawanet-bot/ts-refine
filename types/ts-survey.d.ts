@@ -39,6 +39,13 @@ export interface RunMemberSeparatorsOpts extends RunOrganizeImportsOpts {
     separator: "semi" | "comma" | "none"
 }
 
+// `runNewLine` action isn't implemented yet — same arrangement as
+// RunMemberSeparatorsOpts: the report returns this shape so the
+// formatters can already render `--new-line <value>` and `endOfLine`.
+export interface RunNewLineOpts extends RunOrganizeImportsOpts {
+    newLine: "lf" | "crlf" | "cr"
+}
+
 export interface RunReportsOpts extends TsSurveyOpts {
     stream: Writer
     reportNames: string[]
@@ -52,6 +59,7 @@ export interface TsSurveyReport {
     semicolons?: Partial<RunSemicolonsOpts>
     indent?: Partial<RunIndentOpts>
     memberSeparators?: Partial<RunMemberSeparatorsOpts>
+    newLine?: Partial<RunNewLineOpts>
 }
 
 export declare function initProject(tsconfigPath: string): Project

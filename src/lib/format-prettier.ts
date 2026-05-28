@@ -10,6 +10,7 @@
 //   memberSeparators.separator === "semi"   → semi: true   (only when semicolons is silent)
 //   memberSeparators.separator === "comma"  → semi: false, trailingComma: "all"
 //   memberSeparators.separator === "none"   → semi: false, trailingComma: "none"
+//   newLine.newLine === <lf|crlf|cr>        → endOfLine: <lf|crlf|cr>
 // Reports that didn't recommend anything contribute no fields, so an
 // empty TsSurveyReport renders as `{}`.
 
@@ -49,6 +50,7 @@ function buildPrettierOptions(report: TsSurveyReport): PrettierOptions {
         if (ms === "comma") opts.trailingComma = "all"
         else if (ms === "none") opts.trailingComma = "none"
     }
+    if (report.newLine?.newLine) opts.endOfLine = report.newLine.newLine
     return opts
 }
 

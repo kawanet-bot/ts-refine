@@ -76,6 +76,16 @@ describe("writePrettierConfig", () => {
         assert.equal(json.semi, true)
         assert.equal(json.trailingComma, undefined)
     })
+
+    it("maps newLine.newLine=lf → endOfLine: 'lf'", () => {
+        const json = JSON.parse(capture({newLine: {newLine: "lf"}}))
+        assert.equal(json.endOfLine, "lf")
+    })
+
+    it("maps newLine.newLine=crlf → endOfLine: 'crlf'", () => {
+        const json = JSON.parse(capture({newLine: {newLine: "crlf"}}))
+        assert.equal(json.endOfLine, "crlf")
+    })
 })
 
 describe("writePrettierMarkdown", () => {
