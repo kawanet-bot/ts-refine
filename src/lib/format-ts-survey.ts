@@ -7,15 +7,16 @@ import type {RunReportsOpts, TsSurveyReport} from "@kawanet/ts-survey"
 // Local alias for readability — not exported.
 type Writer = RunReportsOpts["stream"]
 
-// Fixed emission order so the output is byte-identical regardless of
-// upstream property order. Only flags the `format` command consumes are
-// emitted; member-separators is report-only and intentionally omitted.
+// Returns argv-style tokens (flag and value pushed separately), the same
+// shape parseArgs consumes. Fixed emission order keeps the joined output
+// byte-identical regardless of upstream property order. Only flags the
+// `format` command consumes are emitted; member-separators is report-only.
 function buildTsSurveyFlags(report: TsSurveyReport): string[] {
     const flags: string[] = []
-    if (report.semicolons?.semicolons) flags.push(`--semicolons ${report.semicolons.semicolons}`)
-    if (report.indent?.width !== undefined) flags.push(`--indent ${report.indent.width}`)
-    if (report.newLine?.newLine) flags.push(`--new-line ${report.newLine.newLine}`)
-    if (report.bracketSpacing?.bracketSpacing) flags.push(`--bracket-spacing ${report.bracketSpacing.bracketSpacing}`)
+    if (report.semicolons?.semicolons) flags.push("--semicolons", report.semicolons.semicolons)
+    if (report.indent?.width !== undefined) flags.push("--indent", String(report.indent.width))
+    if (report.newLine?.newLine) flags.push("--new-line", report.newLine.newLine)
+    if (report.bracketSpacing?.bracketSpacing) flags.push("--bracket-spacing", report.bracketSpacing.bracketSpacing)
     return flags
 }
 

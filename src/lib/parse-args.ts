@@ -42,11 +42,34 @@ interface HelpRequested {
 
 type ParseArgsResult = ParsedArgs | HelpRequested
 
+// Raw scan result: the subcommand plus accumulated options, before any
+// command-presence / mode-consistency checks. Per-value validation
+// (on/off, positive int, etc.) already happened during the scan.
+interface RawArgs {
+    command: string | null
+    positionals: string[]
+    overrides: ApplyOverrides
+    output: string | null
+    tsconfigPath: string | null
+    dryRun: boolean
+    includeGlobs: string[]
+    excludeGlobs: string[]
+}
+
 export function parseArgs(argv: string[]): ParseArgsResult | undefined {
     // `help` is the canonical spelling; -h / --help are aliases that win
     // wherever they appear (including after a subcommand).
     if (argv.includes("--help") || argv.includes("-h")) return {help: true}
 
+    const raw = scanArgs(argv)
+    if (raw === undefined) return undefined
+    return resolveArgs(raw)
+}
+
+// Front half: argv → RawArgs. Walks the tokens, validates each option's
+// value, and collects the first bare token as the command and the rest
+// as positionals. Returns undefined on a value error (stderr written).
+function scanArgs(argv: string[]): RawArgs | undefined {
     let command: string | null = null
     const positionals: string[] = []
     const overrides: ApplyOverrides = {}
@@ -143,6 +166,14 @@ export function parseArgs(argv: string[]): ParseArgsResult | undefined {
             positionals.push(a)
         }
     }
+
+    return {command, positionals, overrides, output, tsconfigPath, dryRun, includeGlobs, excludeGlobs}
+}
+
+// Back half: RawArgs → ParsedArgs. Command-presence + mode-consistency
+// checks, then resolves the report set and the glob / tsconfig paths.
+function resolveArgs(raw: RawArgs): ParseArgsResult | undefined {
+    const {command, positionals, overrides, output, tsconfigPath, dryRun, includeGlobs, excludeGlobs} = raw
 
     // No subcommand: bare invocation is help; options without a command
     // are a usage error so a misplaced flag can't silently do nothing.
