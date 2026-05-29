@@ -9,7 +9,7 @@ import {applyReportNames, reportNames as knownReportNames} from "../report/repor
 // `newLine` is narrowed to lf|crlf because LS cannot emit CR-only.
 export interface ApplyOverrides {
     organizeImports?: "on" | "off"
-    indent?: number
+    indent?: number | "tab"
     semicolons?: "on" | "off"
     newLine?: "lf" | "crlf"
     bracketSpacing?: "on" | "off"
@@ -69,15 +69,20 @@ export function parseArgs(argv: string[]): ParseArgsResult | undefined {
         } else if (a === "--indent") {
             const v = argv[++i]
             if (!v || v.startsWith("-")) {
-                console.error("--indent requires a positive integer (e.g. --indent 4)")
+                console.error("--indent requires a positive integer or 'tab' (e.g. --indent 4)")
                 return undefined
             }
-            const n = Number(v)
-            if (!Number.isInteger(n) || n <= 0) {
-                console.error(`--indent expects a positive integer; got: ${v}`)
-                return undefined
+            // "tab" maps to tab indentation; otherwise a positive integer.
+            if (v === "tab") {
+                overrides.indent = "tab"
+            } else {
+                const n = Number(v)
+                if (!Number.isInteger(n) || n <= 0) {
+                    console.error(`--indent expects a positive integer or 'tab'; got: ${v}`)
+                    return undefined
+                }
+                overrides.indent = n
             }
-            overrides.indent = n
         } else if (a === "--new-line") {
             // `cr` rejected: LS formatter accepts \n / \r\n only.
             const v = argv[++i]

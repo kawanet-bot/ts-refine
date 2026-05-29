@@ -74,9 +74,8 @@ export async function runReportIndent(project: Project, {stream, absIncludes, ab
     stream.write("\n")
     console.error(`report indent: ${perFile.length} files counted / ${sourceFiles.length} files total`)
     // The recommendation is rendered in the `## recommendation` section
-    // at the end of the Markdown survey, so all we return is the action
-    // params (RunIndentOpts) shape. A "tab" majority has no numeric
-    // mapping under the current `--indent N` action, so it returns
-    // empty and the `## recommendation` block simply omits it.
-    return typeof recommendWidth === "number" ? {width: recommendWidth} : {}
+    // at the end of the Markdown survey. Both a numeric width and a "tab"
+    // majority are actionable (LS convertTabsToSpaces / Prettier useTabs),
+    // so either is returned; only a tie (undefined) yields empty.
+    return recommendWidth !== undefined ? {width: recommendWidth} : {}
 }

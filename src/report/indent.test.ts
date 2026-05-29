@@ -69,16 +69,16 @@ describe("runReportIndent (sample/indents-mixed)", () => {
 })
 
 describe("runReportIndent (sample/tab-indent)", () => {
-    it("returns an empty partial when all files use tab indentation", async () => {
-        // Tab is not representable as --indent N, so the recommendation
-        // object stays empty; --format ts-survey emits `ts-survey --apply`
-        // with no --indent flag.
+    it("recommends width=tab when all files use tab indentation", async () => {
+        // Tab is actionable (LS convertTabsToSpaces:false / Prettier
+        // useTabs), so the recommendation returns {width: "tab"} and the
+        // formatters emit `--indent tab` / `useTabs: true`.
         const project = new Project({tsConfigFilePath: TAB_TSCONFIG})
         const lines: string[] = []
         const ret = await runReportIndent(project, {stream: {write: (l) => lines.push(l)}, absIncludes: [], absExcludes: []})
 
         const out = lines.join("")
         assert.match(out, /\| tab \| \d+ \| 3 \| /)
-        assert.deepEqual(ret, {})
+        assert.deepEqual(ret, {width: "tab"})
     })
 })

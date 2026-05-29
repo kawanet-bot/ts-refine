@@ -168,6 +168,13 @@ describe("parseArgs", () => {
         assert.equal(r, undefined)
     })
 
+    it("accepts --indent tab for tab indentation (implies --apply)", () => {
+        const r = parseArgs(["--indent", "tab", "-p", SAMPLE_TSCONFIG])
+        assert.ok(r && !("help" in r))
+        assert.equal(r.apply, true)
+        assert.equal(r.applyOverrides.indent, "tab")
+    })
+
     it("accepts --new-line lf and --new-line crlf", () => {
         const r1 = parseArgs(["--new-line", "lf", "-p", SAMPLE_TSCONFIG])
         assert.ok(r1 && !("help" in r1))
