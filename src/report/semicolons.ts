@@ -7,7 +7,7 @@ import type {RunSemicolonsOpts} from "@kawanet/ts-survey"
 import type {Project} from "ts-morph"
 
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
-import {isSemiEligibleStatement, isTypeMember} from "../lib/statement-kinds.ts"
+import {isSemiEligibleStatement, isTypeMember} from "./statement-kinds.ts"
 import type {ReportOpts} from "./types.ts"
 
 // Fixed 7-row layout: 0% / 100% / exact-50% match by equality, "1-10%" and
