@@ -60,7 +60,7 @@ try {
         const report = await runReports(project, {...fileOpts, reportNames, stream: NULL_SINK})
         await runReformat(project, {...fileOpts, dryRun: opts.dryRun, report, ...opts.applyOverrides})
     } else {
-        const format = selectOutput(opts.output, process.stdout)
+        const output = selectOutput(opts.output, process.stdout)
         // The default survey leads with the list cleanup-candidate listing,
         // then the report tables, then `## recommendation` + `### .prettierrc`.
         // Named reports and `--output` paths skip these survey-only blocks.
@@ -70,12 +70,12 @@ try {
             process.stdout.write("### list --no-exports --no-importers --unused-exports\n\n")
             writeListTable(candidates, process.stdout)
         }
-        const report = await runReports(project, {...fileOpts, reportNames, stream: format.reportStream})
+        const report = await runReports(project, {...fileOpts, reportNames, stream: output.reportStream})
         if (opts.surveyDefault) {
             writeReformatMarkdown(report, process.stdout)
             writePrettierMarkdown(report, process.stdout)
         }
-        format.finalize(report)
+        output.finalize(report)
     }
 } catch (e) {
     console.error(e instanceof Error ? e.message : String(e))
