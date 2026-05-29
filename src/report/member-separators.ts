@@ -4,12 +4,10 @@
 // accessors, constructors) are skipped because the separator choice isn't
 // theirs to make.
 //
-// Prettier mapping (for context):
-//   - `semi: true`                              → `;`
-//   - `semi: false` + `trailingComma: "all"`    → `,`
-//   - `semi: false` + `trailingComma: "none"`   → none (newline only)
-// `semi` is the first-level control; `trailingComma` only matters when
-// `semi: false`.
+// This report is diagnostic only: it has no formatter mapping. Comma
+// members can't be produced by the LS or Prettier, and the `;`/none
+// choice is already governed by the semicolons report, so the
+// recommendation is not emitted to either output.
 
 import type {RunMemberSeparatorsOpts} from "@kawanet/ts-survey"
 import type {ClassMemberTypes, Project, TypeElementTypes} from "ts-morph"
