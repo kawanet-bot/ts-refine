@@ -52,12 +52,13 @@ export async function runReportIndent(project: Project, {stream, absIncludes, ab
         }
     }
 
-    // Numeric widths ascending, then "tab" last.
+    // Numeric widths ascending (present only), then always a "tab" row —
+    // shown as 0 when absent so the table layout stays predictable.
     const numerics = [...buckets.keys()].filter((k): k is number => typeof k === "number").sort((a, b) => a - b)
-    const widths: IndentWidth[] = [...numerics]
-    if (buckets.has("tab")) widths.push("tab")
+    const widths: IndentWidth[] = [...numerics, "tab"]
 
     // Recommendation: file-count majority, with line count breaking ties.
+    // An empty "tab" bucket is skipped inside pickRecommendByFiles.
     const recommendWidth = pickRecommendByFiles(widths, (w) => buckets.get(w))
 
     const totalLines = [...buckets.values()].reduce((s, b) => s + b.lines, 0)
@@ -67,8 +68,12 @@ export async function runReportIndent(project: Project, {stream, absIncludes, ab
     stream.write("| indent | lines | files | example |\n")
     stream.write("| --- | --- | --- | --- |\n")
     for (const w of widths) {
-        const b = buckets.get(w)!
-        stream.write(`| ${w} | ${b.lines} | ${b.files} | ${b.topPath} |\n`)
+        const b = buckets.get(w)
+        if (b) {
+            stream.write(`| ${w} | ${b.lines} | ${b.files} | ${b.topPath} |\n`)
+        } else {
+            stream.write(`| ${w} | 0 | 0 ||\n`)
+        }
     }
     stream.write(`| total | ${totalLines} | ${perFile.length} | |\n`)
     stream.write("\n")

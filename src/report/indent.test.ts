@@ -52,6 +52,8 @@ describe("runReportIndent (sample/indents-mixed)", () => {
             absExcludes: [],
         })
         assert.deepEqual(ret, {width: 4})
+        // No tab-indented file, but the tab row is still emitted at 0.
+        assert.match(lines.join(""), /\| tab \| 0 \| 0 \|\|/)
     })
 
     it("returns an empty partial when files AND transition counts tie", async () => {

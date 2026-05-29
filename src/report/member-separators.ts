@@ -89,8 +89,14 @@ export async function runReportMemberSeparators(project: Project, {stream, absIn
     stream.write("| --- | --- | --- | --- |\n")
     for (const s of DISPLAY_ORDER) {
         const b = buckets.get(s)
-        if (!b) continue
-        stream.write(`| ${SEP_LABEL[s]} | ${b.lines} | ${b.files} | ${b.topPath} |\n`)
+        // `\n` and `;` always get a row (0 when absent); `,` only appears
+        // when present, since a comma style is unusual enough to be noise
+        // as a permanent 0-row.
+        if (b) {
+            stream.write(`| ${SEP_LABEL[s]} | ${b.lines} | ${b.files} | ${b.topPath} |\n`)
+        } else if (s !== ",") {
+            stream.write(`| ${SEP_LABEL[s]} | 0 | 0 ||\n`)
+        }
     }
     stream.write(`| total | ${totalLines} | ${perFile.length} | |\n`)
     stream.write("\n")
