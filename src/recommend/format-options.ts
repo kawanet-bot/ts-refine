@@ -11,7 +11,7 @@ import type {TsSurveyReport} from "@kawanet/ts-survey"
 import type {FormatCodeSettings} from "ts-morph"
 import {ts} from "ts-morph"
 
-import type {ApplyOverrides} from "./parse-args.ts"
+import type {ApplyOverrides} from "../lib/parse-args.ts"
 
 // `newLine` is lf|crlf only: a `cr` recommendation is neither a runnable
 // ts-survey flag nor an LS setting, so it never enters FormatOptions.

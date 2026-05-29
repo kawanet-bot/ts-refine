@@ -39,7 +39,7 @@ describe("parseArgs", () => {
         assert.deepEqual(r.reportNames, ["typo-name"])
     })
 
-    it("passes unknown --output names through without rejecting (selectFormat validates)", () => {
+    it("passes unknown --output names through without rejecting (selectOutput validates)", () => {
         const r = parseArgs(["report", "--output", "typo-format", "-p", SAMPLE_TSCONFIG])
         assert.ok(r && !("help" in r))
         assert.equal(r.output, "typo-format")

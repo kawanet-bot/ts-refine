@@ -6,12 +6,12 @@
 
 import type {InspectorName, TsSurveyReportName} from "@kawanet/ts-survey"
 
-import {selectFormat} from "./format/run-format.ts"
+import {selectOutput} from "./recommend/select-output.ts"
 import {writeInspectFile} from "./inspect/format-inspect.ts"
 import {initProject, runInspect, runList, runMove, runReformat, runReports} from "./index.ts"
 import {filterListEntries, writeListTable} from "./list/format-list.ts"
-import {writePrettierMarkdown} from "./lib/format-prettier.ts"
-import {writeReformatMarkdown} from "./lib/format-ts-survey.ts"
+import {writePrettierMarkdown} from "./recommend/output-prettier.ts"
+import {writeReformatMarkdown} from "./recommend/output-reformat.ts"
 import {parseArgs} from "./lib/parse-args.ts"
 import {usage} from "./lib/usage.ts"
 
@@ -60,7 +60,7 @@ try {
         const report = await runReports(project, {...fileOpts, reportNames, stream: NULL_SINK})
         await runReformat(project, {...fileOpts, dryRun: opts.dryRun, report, ...opts.applyOverrides})
     } else {
-        const format = selectFormat(opts.output, process.stdout)
+        const format = selectOutput(opts.output, process.stdout)
         // The default survey leads with the list cleanup-candidate listing,
         // then the report tables, then `## recommendation` + `### .prettierrc`.
         // Named reports and `--output` paths skip these survey-only blocks.

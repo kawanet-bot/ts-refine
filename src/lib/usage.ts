@@ -1,7 +1,7 @@
-// CLI help text. Name lists come from the report / format registries
+// CLI help text. Name lists come from the report / output registries
 // so help stays in sync with wired-up entries.
 
-import {formatNames} from "../format/run-format.ts"
+import {outputNames} from "../recommend/select-output.ts"
 import {inspectorNames} from "../inspect/inspector-names.ts"
 import {reportNames} from "../report/report-names.ts"
 
@@ -22,7 +22,7 @@ export function usage(): string {
         "  report --<report>...        Restrict to the named reports (e.g. --semicolons --indent)",
         `                              Known reports: ${reportNames.join(", ")}`,
         "  --output <name>             Suppress Markdown and emit the named output instead",
-        `                              Known outputs: ${formatNames.join(", ")}`,
+        `                              Known outputs: ${outputNames.join(", ")}`,
         "",
         "reformat (write; applies the reports' recommendations to disk):",
         "  reformat                    Apply the recommended settings to every file",

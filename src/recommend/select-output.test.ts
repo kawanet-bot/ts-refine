@@ -1,7 +1,7 @@
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
 import type {RunReportsOpts} from "@kawanet/ts-survey"
-import {selectFormat} from "./run-format.ts"
+import {selectOutput} from "./select-output.ts"
 
 type Writer = RunReportsOpts["stream"]
 
@@ -10,10 +10,10 @@ function makeStdout(): {writer: Writer; out: () => string} {
     return {writer: {write: (s) => (out += s)}, out: () => out}
 }
 
-describe("selectFormat", () => {
+describe("selectOutput", () => {
     it("returns a no-op finalize and the stdout stream when no format is selected", () => {
         const {writer, out} = makeStdout()
-        const f = selectFormat(null, writer)
+        const f = selectOutput(null, writer)
         assert.equal(f.reportStream, writer)
         f.finalize({semicolons: {semicolons: "off"}})
         assert.equal(out(), "")
@@ -21,7 +21,7 @@ describe("selectFormat", () => {
 
     it("swaps the report stream for a sink and writes prettier JSON on finalize", () => {
         const {writer, out} = makeStdout()
-        const f = selectFormat("prettier", writer)
+        const f = selectOutput("prettier", writer)
         // Markdown body would have been written here — sink swallows it.
         f.reportStream.write("### dropped\n")
         assert.equal(out(), "")
@@ -34,7 +34,7 @@ describe("selectFormat", () => {
 
     it("swaps the report stream for a sink and writes the reformat command on finalize", () => {
         const {writer, out} = makeStdout()
-        const f = selectFormat("reformat", writer)
+        const f = selectOutput("reformat", writer)
         f.reportStream.write("### dropped\n")
         assert.equal(out(), "")
         f.finalize({semicolons: {semicolons: "off"}, indent: {width: 4}, memberSeparators: {separator: "none"}})
@@ -46,6 +46,6 @@ describe("selectFormat", () => {
 
     it("throws on an unknown format name", () => {
         const {writer} = makeStdout()
-        assert.throws(() => selectFormat("typo-format", writer), /unknown --output: typo-format/)
+        assert.throws(() => selectOutput("typo-format", writer), /unknown --output: typo-format/)
     })
 })

@@ -5,7 +5,7 @@
 import type * as declared from "@kawanet/ts-survey"
 import fs from "node:fs/promises"
 
-import {mergeFormatOptions, normalizeNewLines, overridesToFormatOptions, reportToFormatOptions, resolveSettings} from "../lib/format-options.ts"
+import {mergeFormatOptions, normalizeNewLines, overridesToFormatOptions, reportToFormatOptions, resolveSettings} from "../recommend/format-options.ts"
 import {selectSourceFiles} from "../lib/source-files.ts"
 
 export const runReformat: typeof declared.runReformat = async (project, opts) => {

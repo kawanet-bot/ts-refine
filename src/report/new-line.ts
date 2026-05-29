@@ -5,7 +5,7 @@
 import type {RunNewLineOpts} from "@kawanet/ts-survey"
 import type {Project} from "ts-morph"
 
-import {pickRecommendByFiles} from "../lib/pick-recommend.ts"
+import {pickRecommendByFiles} from "../recommend/pick-recommend.ts"
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
 import type {ReportOpts} from "./types.ts"
 

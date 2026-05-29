@@ -13,7 +13,7 @@ import type {RunMemberSeparatorsOpts} from "@kawanet/ts-survey"
 import type {ClassMemberTypes, Project, TypeElementTypes} from "ts-morph"
 import {Node} from "ts-morph"
 
-import {pickRecommendByFiles} from "../lib/pick-recommend.ts"
+import {pickRecommendByFiles} from "../recommend/pick-recommend.ts"
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
 import type {ReportOpts} from "./types.ts"
 
