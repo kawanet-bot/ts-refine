@@ -6,8 +6,10 @@
 //   ts-survey reformat [--indent N|tab ...] [files...] [-p tsconfig] [--dry-run]
 //   ts-survey list [--no-exports] [--no-importers] [--unused-exports] [files...]
 //   ts-survey inspect [--<inspector>...] [files...]
-// Any non-dash argument after the subcommand is a file path (globs allowed),
-// forwarded to ts-morph. Selector validation stays in the runner.
+//   ts-survey move <source...> <dest> [-p tsconfig] [--dry-run]
+// Any non-dash argument after the subcommand is a file path (globs allowed,
+// except move where the last positional is the destination).
+// Selector validation stays in the runner.
 
 import path from "node:path"
 
@@ -23,7 +25,7 @@ export interface ApplyOverrides {
     bracketSpacing?: "on" | "off"
 }
 
-type Command = "report" | "reformat" | "list" | "inspect"
+type Command = "report" | "reformat" | "list" | "inspect" | "move"
 
 // `list` filter flags; OR-combined when more than one is set.
 interface ListFilters {
@@ -70,12 +72,47 @@ export function parseArgs(argv: string[]): ParseArgsResult | undefined {
     if (command === "reformat") return parseReformat(rest)
     if (command === "list") return parseList(rest)
     if (command === "inspect") return parseInspect(rest)
+    if (command === "move") return parseMove(rest)
     if (command.startsWith("-")) {
-        console.error("expected a subcommand: report, reformat, list, inspect, or help")
+        console.error("expected a subcommand: report, reformat, list, inspect, move, or help")
         return undefined
     }
-    console.error(`unknown command: ${command} (expected: report, reformat, list, inspect, help)`)
+    console.error(`unknown command: ${command} (expected: report, reformat, list, inspect, move, help)`)
     return undefined
+}
+
+// `move`: positional args are `<source...> <dest>` — the parser only
+// validates the count and stores them as `paths`; the cli/dispatch layer
+// splits the list (last element → dest, the rest → sources) and hands
+// them to runMove.
+function parseMove(rest: string[]): ParseArgsResult | undefined {
+    const files: string[] = []
+    let tsconfigPath: string | null = null
+    let dryRun = false
+
+    for (let i = 0; i < rest.length; i++) {
+        const a = rest[i]
+        if (a === "--dry-run") {
+            dryRun = true
+        } else if (a === "-p" || a === "--project") {
+            const v = takeProject(rest, ++i, a, tsconfigPath)
+            if (v === undefined) return undefined
+            tsconfigPath = v
+        } else if (a.startsWith("-")) {
+            console.error(`unknown option: ${a}`)
+            return undefined
+        } else {
+            files.push(a)
+        }
+    }
+
+    if (files.length < 2) {
+        console.error("move requires at least one source and a destination (e.g. move foo.ts dest/)")
+        return undefined
+    }
+
+    const {absTsconfig, paths} = resolvePaths(tsconfigPath, files)
+    return {command: "move", reportNames: [], output: null, applyOverrides: {}, surveyDefault: false, tsconfigPath: absTsconfig, dryRun, paths}
 }
 
 // `inspect`: per-file analysis. `--<inspector>` flags select which
@@ -269,11 +306,16 @@ function takeProject(args: string[], idx: number, optName: string, existing: str
 
 // Resolve the tsconfig path and the positional files. Files are resolved
 // against the tsconfig dir (not cwd) so the target set doesn't shift with
-// the working directory — same basis the removed --include used.
+// the working directory — same basis the removed --include used. A
+// trailing `/` on the input survives the resolve (move uses it as a
+// "this is a directory" hint).
 function resolvePaths(tsconfigPath: string | null, files: string[]): {absTsconfig: string; paths: string[]} {
     const absTsconfig = resolveTsconfigPath(tsconfigPath ?? ".")
     const tsconfigDir = path.dirname(absTsconfig)
-    const paths = files.map((g) => (path.isAbsolute(g) ? g : path.resolve(tsconfigDir, g)))
+    const paths = files.map((g) => {
+        const absolute = path.isAbsolute(g) ? g : path.resolve(tsconfigDir, g)
+        return g.endsWith("/") || g.endsWith(path.sep) ? absolute + path.sep : absolute
+    })
     return {absTsconfig, paths}
 }
 

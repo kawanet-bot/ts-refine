@@ -18,7 +18,7 @@ NAMED_EXPORTS := $(shell sed -nE 's/^export declare function ([a-zA-Z_$$]+).*/\1
 # Bundle should contain only this package's own src/ — ts-morph is
 # externalized. A noticeably larger output means an accidental bundling
 # of a transitive dep; fail the build so it cannot slip in.
-MAX_BYTES := 46000
+MAX_BYTES := 52000
 
 ALL := $(MJS_DST)
 

@@ -126,6 +126,26 @@ export interface RunInspectOpts extends TsSurveyOpts {
     inspectorNames: InspectorName[]
 }
 
+// Input to `runMove`. `sources` are absolute paths of existing project
+// source files; `dest` is either an existing directory (multi-source) or
+// a destination file path (single-source rename). ts-morph's move is
+// format-preserving on its own, so no FormatOptions / report input is
+// required here.
+export interface RunMoveOpts {
+    sources: string[]
+    dest: string
+    dryRun: boolean
+}
+
+// runMove returns the planned moves (from → to) and the set of in-project
+// files whose contents were rewritten (importers of the moved files plus
+// the moved files themselves), so callers can show a dry-run summary or
+// follow up with their own post-processing.
+export interface MoveResult {
+    moves: {from: string; to: string}[]
+    touched: string[]
+}
+
 export declare function initProject(tsconfigPath: string): Project
 
 export declare function runReports(project: Project, opts: RunReportsOpts): Promise<TsSurveyReport>
@@ -135,3 +155,5 @@ export declare function runReformat(project: Project, opts: RunReformatOpts): Pr
 export declare function runList(project: Project, opts: RunListOpts): Promise<ListEntry[]>
 
 export declare function runInspect(project: Project, opts: RunInspectOpts): Promise<InspectFile[]>
+
+export declare function runMove(project: Project, opts: RunMoveOpts): Promise<MoveResult>

@@ -21,6 +21,7 @@ describe("cli", () => {
             assert.match(r.stdout, /^  reformat /m)
             assert.match(r.stdout, /^  list /m)
             assert.match(r.stdout, /^  inspect /m)
+            assert.match(r.stdout, /^  move /m)
             assert.match(r.stdout, /--output <name>/)
             assert.match(r.stdout, /--organize-imports on\|off/)
         }

@@ -8,7 +8,7 @@ import type {InspectorName, TsSurveyReportName} from "@kawanet/ts-survey"
 
 import {selectFormat} from "./format/run-format.ts"
 import {writeInspectFile} from "./inspect/format-inspect.ts"
-import {initProject, runInspect, runList, runReformat, runReports} from "./index.ts"
+import {initProject, runInspect, runList, runMove, runReformat, runReports} from "./index.ts"
 import {filterListEntries, writeListTable} from "./list/format-list.ts"
 import {writePrettierMarkdown} from "./lib/format-prettier.ts"
 import {writeReformatMarkdown} from "./lib/format-ts-survey.ts"
@@ -49,6 +49,13 @@ try {
         const inspectorNames = opts.inspectorNames! as InspectorName[]
         const files = await runInspect(project, {...fileOpts, inspectorNames})
         for (const file of files) writeInspectFile(file, process.stdout)
+    } else if (opts.command === "move") {
+        // Move's positionals arrive in opts.paths as a flat list; the
+        // dispatch seam splits the destination (last) from the sources
+        // (rest) and hands them to runMove.
+        const sources = opts.paths.slice(0, -1)
+        const dest = opts.paths[opts.paths.length - 1]
+        await runMove(project, {sources, dest, dryRun: opts.dryRun})
     } else if (opts.command === "reformat") {
         const report = await runReports(project, {...fileOpts, reportNames, stream: NULL_SINK})
         await runReformat(project, {...fileOpts, dryRun: opts.dryRun, report, ...opts.applyOverrides})
