@@ -40,6 +40,23 @@ describe("runMove (in-memory, dry-run)", () => {
         assert.equal(c.getFullText(), "import {x} from \"./sub/a\"\nconst _ = x\n")
     })
 
+    it("preserves the dynamic-import extension across the NodeNext js↔ts mapping (.mjs → .mts source)", async () => {
+        // import("./a.mjs") resolves to /src/a.mts under NodeNext. The
+        // restoration must put `.mjs` back, not strip to bare `./a`.
+        const project = new Project({
+            useInMemoryFileSystem: true,
+            compilerOptions: {
+                module: ts.ModuleKind.NodeNext,
+                moduleResolution: ts.ModuleResolutionKind.NodeNext,
+                allowImportingTsExtensions: true,
+            } as any,
+        })
+        project.createSourceFile("/src/a.mts", "export const x = 1\n")
+        const b = project.createSourceFile("/src/b.ts", "const _ = import(\"./a.mjs\")\n")
+        await runMove(project, {sources: ["/src/a.mts"], dest: "/src/sub/", dryRun: true})
+        assert.equal(b.getFullText(), "const _ = import(\"./sub/a.mjs\")\n")
+    })
+
     it("preserves whatever extension each importer wrote (.ts / .js / none in one file)", async () => {
         // NodeNext-style resolver — `./a.js` is a valid way to refer to a.ts.
         const project = new Project({
@@ -161,6 +178,35 @@ describe("runMove (on disk)", () => {
 
     after(async () => {
         await fs.rm(workdir, {recursive: true, force: true})
+    })
+
+    it("does not persist unrelated pending edits on the project (selective save)", async () => {
+        const sub = await fs.mkdtemp(path.join(os.tmpdir(), "ts-survey-move-save-"))
+        try {
+            await fs.mkdir(path.join(sub, "src"))
+            await fs.writeFile(path.join(sub, "tsconfig.json"), JSON.stringify({
+                compilerOptions: {target: "ES2022", module: "ESNext", moduleResolution: "bundler", strict: true, allowImportingTsExtensions: true, noEmit: true},
+                include: ["src/**/*"],
+            }))
+            await fs.writeFile(path.join(sub, "src/a.ts"), "export const x = 1\n")
+            await fs.writeFile(path.join(sub, "src/b.ts"), "import {x} from \"./a.ts\"\nconst _ = x\n")
+            await fs.writeFile(path.join(sub, "src/unrelated.ts"), "export const z = 3 // ORIGINAL\n")
+
+            const project = new Project({tsConfigFilePath: path.join(sub, "tsconfig.json")})
+            // Caller's pending edit on a file runMove never touches.
+            project.getSourceFileOrThrow(path.join(sub, "src/unrelated.ts")).replaceWithText("export const z = 999 // CALLER EDIT\n")
+            await runMove(project, {sources: [path.join(sub, "src/a.ts")], dest: path.join(sub, "lib/"), dryRun: false})
+
+            // unrelated.ts on disk must stay at the original content.
+            const onDisk = await fs.readFile(path.join(sub, "src/unrelated.ts"), "utf8")
+            assert.equal(onDisk, "export const z = 3 // ORIGINAL\n")
+            // And the move itself still happened end-to-end.
+            await assert.rejects(fs.access(path.join(sub, "src/a.ts")))
+            assert.equal(await fs.readFile(path.join(sub, "lib/a.ts"), "utf8"), "export const x = 1\n")
+            assert.equal(await fs.readFile(path.join(sub, "src/b.ts"), "utf8"), "import {x} from \"../lib/a.ts\"\nconst _ = x\n")
+        } finally {
+            await fs.rm(sub, {recursive: true, force: true})
+        }
     })
 
     it("persists the move and the importer rewrite to disk", async () => {

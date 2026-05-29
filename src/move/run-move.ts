@@ -67,30 +67,48 @@ export const runMove: typeof declared.runMove = async (project, opts) => {
     // (`.ts`, `.js`, `.mjs`, none, …) — no migration across styles.
     for (const r of records) restoreOriginalExtension(r)
 
-    // Touched = every file whose contents changed: the moved files plus
-    // any importer that held a recorded specifier.
+    // Touched = every source file whose contents changed: the moved
+    // files (now at their dest paths) plus every importer that held a
+    // recorded specifier.
     const destPaths = new Set(plan.map((p) => p.to))
-    const touchedSet = new Set<string>(destPaths)
-    for (const r of records) touchedSet.add(r.node.getSourceFile().getFilePath())
+    const touchedFiles = new Set<SourceFile>()
+    for (const {to} of plan) {
+        const sf = project.getSourceFile(to)
+        if (sf) touchedFiles.add(sf)
+    }
+    for (const r of records) touchedFiles.add(r.node.getSourceFile())
 
     // Dry-run: print planned moves + the importers that would change;
-    // never touch disk. Otherwise let ts-morph persist moves and content
-    // updates atomically via project.save().
+    // never touch disk. Otherwise persist only what we changed — call
+    // sf.save() per touched file (respects the project's filesystem, so
+    // an in-memory project stays in memory) and delete each moved file's
+    // OLD path. We deliberately avoid project.save(), which would also
+    // flush unrelated pending edits a caller may have queued up.
     if (dryRun) {
         for (const {from, to} of plan) console.log(`would move: ${displayPath(from)} -> ${displayPath(to)}`)
-        for (const p of touchedSet) {
+        for (const sf of touchedFiles) {
+            const p = sf.getFilePath()
             if (!destPaths.has(p)) console.log(`would update: ${displayPath(p)}`)
         }
     } else {
-        await project.save()
+        const fileSystem = project.getFileSystem()
+        for (const {from} of plan) {
+            try {
+                await fileSystem.delete(from)
+            } catch {
+                // Source already gone (e.g., ts-morph's in-memory FS
+                // dropped it as part of move) — nothing to delete.
+            }
+        }
+        for (const sf of touchedFiles) await sf.save()
     }
 
     const verb = dryRun ? "would move" : "moved"
-    console.error(`move: ${verb} ${plan.length} file${plan.length === 1 ? "" : "s"} (${touchedSet.size} touched)`)
+    console.error(`move: ${verb} ${plan.length} file${plan.length === 1 ? "" : "s"} (${touchedFiles.size} touched)`)
 
     return {
         moves: plan.map(({from, to}) => ({from, to})),
-        touched: [...touchedSet],
+        touched: [...touchedFiles].map((sf) => sf.getFilePath()),
     }
 }
 
@@ -213,17 +231,40 @@ function restoreOriginalExtension(r: SpecRecord): void {
 }
 
 // Resolve a dynamic import literal to a project SourceFile. The literal
-// may include `.ts`, `.js`, `.mjs`, etc. (TypeScript's bundler/NodeNext
-// resolution treats `./x.js` as pointing at `x.ts` when the latter is the
-// real source); we try the literal as-given first, then rewrite any
-// known extension to `.ts` to find the source file.
+// may carry an emit-style extension (`.js` / `.jsx` / `.mjs` / `.cjs`),
+// the .ts-family extension, or none — TypeScript's NodeNext / bundler
+// resolution maps each to the corresponding TS source. We try the literal
+// as-given first, then a small set of candidates that swap JS-family
+// extensions for their TS-family counterparts.
 function resolveDynamicTarget(from: SourceFile, specifier: string, project: Project): SourceFile | undefined {
     if (!specifier.startsWith(".") && !path.isAbsolute(specifier)) return undefined
     const baseDir = from.getDirectoryPath()
     const absolute = path.isAbsolute(specifier) ? specifier : path.resolve(baseDir, specifier)
-    return (
-        project.getSourceFile(absolute) ??
-        project.getSourceFile(withExtension(absolute, ".ts")) ??
-        (extensionOf(absolute) === "" ? project.getSourceFile(absolute + ".ts") : undefined)
-    )
+    for (const candidate of dynamicTargetCandidates(absolute)) {
+        const sf = project.getSourceFile(candidate)
+        if (sf) return sf
+    }
+    return undefined
+}
+
+// JS-family → TS-family swap map for dynamic-import resolution. The
+// resolver tries each candidate in turn; the first one that's a project
+// source file wins.
+const JS_TO_TS_SWAPS: Record<string, string[]> = {
+    ".js": [".ts", ".tsx"],
+    ".jsx": [".tsx"],
+    ".mjs": [".mts"],
+    ".cjs": [".cts"],
+}
+
+function dynamicTargetCandidates(absolute: string): string[] {
+    const candidates = [absolute]
+    const ext = extensionOf(absolute)
+    if (ext === "") {
+        // No extension: every TS-family extension is a candidate.
+        for (const tsExt of [".ts", ".tsx", ".mts", ".cts"]) candidates.push(absolute + tsExt)
+    } else if (JS_TO_TS_SWAPS[ext]) {
+        for (const tsExt of JS_TO_TS_SWAPS[ext]) candidates.push(withExtension(absolute, tsExt))
+    }
+    return candidates
 }
