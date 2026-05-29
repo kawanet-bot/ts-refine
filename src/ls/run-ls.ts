@@ -1,4 +1,4 @@
-// `ls`: per-file export / usage snapshot. For each file (in scope, .d.ts
+// `list`: per-file export / usage snapshot. For each file (in scope, .d.ts
 // excluded) it counts exported declarations, how many of those have no
 // external reference (unused), and how many other files import it. The
 // full set is returned unfiltered so later commands can reuse it; the CLI
@@ -12,10 +12,10 @@ import {Node} from "ts-morph"
 
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
 
-export const runLs: typeof declared.runLs = async (project, {paths}) => {
+export const runList: typeof declared.runList = async (project, {paths}) => {
     const sourceFiles = selectSourceFiles(project, {paths}).filter((sf) => !sf.getFilePath().endsWith(".d.ts"))
 
-    const entries: declared.LsEntry[] = []
+    const entries: declared.ListEntry[] = []
     for (const sf of sourceFiles) {
         let exports = 0
         let unused = 0
@@ -47,6 +47,6 @@ export const runLs: typeof declared.runLs = async (project, {paths}) => {
     }
 
     entries.sort((a, b) => a.file.localeCompare(b.file))
-    console.error(`ls: ${entries.length} files`)
+    console.error(`list: ${entries.length} files`)
     return entries
 }

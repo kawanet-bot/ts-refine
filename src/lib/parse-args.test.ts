@@ -236,27 +236,27 @@ describe("parseArgs", () => {
         assert.equal(r, undefined)
     })
 
-    it("parses `ls` with no filters", () => {
-        const r = parseArgs(["ls", "-p", SAMPLE_TSCONFIG])
+    it("parses `list` with no filters", () => {
+        const r = parseArgs(["list", "-p", SAMPLE_TSCONFIG])
         assert.ok(r && !("help" in r))
-        assert.equal(r.command, "ls")
-        assert.deepEqual(r.lsFilters, {noExports: false, noImporters: false, unusedExports: false})
+        assert.equal(r.command, "list")
+        assert.deepEqual(r.listFilters, {noExports: false, noImporters: false, unusedExports: false})
     })
 
-    it("parses the `ls` filter flags", () => {
-        const r = parseArgs(["ls", "--no-exports", "--unused-exports", "-p", SAMPLE_TSCONFIG])
+    it("parses the `list` filter flags", () => {
+        const r = parseArgs(["list", "--no-exports", "--unused-exports", "-p", SAMPLE_TSCONFIG])
         assert.ok(r && !("help" in r))
-        assert.deepEqual(r.lsFilters, {noExports: true, noImporters: false, unusedExports: true})
+        assert.deepEqual(r.listFilters, {noExports: true, noImporters: false, unusedExports: true})
     })
 
-    it("accepts positional files under ls", () => {
-        const r = parseArgs(["ls", "-p", SAMPLE_TSCONFIG, "a.ts"])
+    it("accepts positional files under list", () => {
+        const r = parseArgs(["list", "-p", SAMPLE_TSCONFIG, "a.ts"])
         assert.ok(r && !("help" in r))
         assert.deepEqual(r.paths, [path.join(SAMPLE_DIR, "a.ts")])
     })
 
-    it("returns undefined on an unknown ls option", () => {
-        const r = quiet(() => parseArgs(["ls", "--bogus", "-p", SAMPLE_TSCONFIG]))
+    it("returns undefined on an unknown list option", () => {
+        const r = quiet(() => parseArgs(["list", "--bogus", "-p", SAMPLE_TSCONFIG]))
         assert.equal(r, undefined)
     })
 })

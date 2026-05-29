@@ -2,14 +2,14 @@ import {strict as assert} from "node:assert"
 import path from "node:path"
 import {describe, it} from "node:test"
 import {Project} from "ts-morph"
-import {runLs} from "./run-ls.ts"
+import {runList} from "./run-ls.ts"
 
 const SAMPLE_TSCONFIG = path.resolve(import.meta.dirname, "../../sample/basic/tsconfig.json")
 
-describe("runLs (sample/basic)", () => {
+describe("runList (sample/basic)", () => {
     it("reports per-file export / unused / importer counts", async () => {
         const project = new Project({tsConfigFilePath: SAMPLE_TSCONFIG})
-        const entries = await runLs(project, {paths: []})
+        const entries = await runList(project, {paths: []})
 
         const got = Object.fromEntries(entries.map((e) => [path.basename(e.file), {exports: e.exports, unused: e.unused, importers: e.importers}]))
         assert.deepEqual(got, {
@@ -27,7 +27,7 @@ describe("runLs (sample/basic)", () => {
     it("scopes to the given file globs", async () => {
         const project = new Project({tsConfigFilePath: SAMPLE_TSCONFIG})
         const dir = path.dirname(SAMPLE_TSCONFIG)
-        const entries = await runLs(project, {paths: [path.join(dir, "src/used.ts")]})
+        const entries = await runList(project, {paths: [path.join(dir, "src/used.ts")]})
         assert.deepEqual(
             entries.map((e) => path.basename(e.file)),
             ["used.ts"],

@@ -19,7 +19,7 @@ describe("cli", () => {
             assert.match(r.stdout, /Usage: ts-survey <command>/)
             assert.match(r.stdout, /report \[reports\.\.\.\]/)
             assert.match(r.stdout, /^  reformat /m)
-            assert.match(r.stdout, /^  ls /m)
+            assert.match(r.stdout, /^  list /m)
             assert.match(r.stdout, /--output <name>/)
             assert.match(r.stdout, /--organize-imports on\|off/)
         }
@@ -45,18 +45,18 @@ describe("cli", () => {
         assert.match(r.stderr, /apply: would change/)
     })
 
-    it("lists files via the ls subcommand", () => {
-        const r = run(["ls", "-p", SAMPLE])
+    it("lists files via the list subcommand", () => {
+        const r = run(["list", "-p", SAMPLE])
         assert.equal(r.status, 0)
         assert.match(r.stdout, /^\| file \| exports \| unused \| importers \|/m)
     })
 
-    it("leads the default survey with the ls cleanup-candidate section", () => {
+    it("leads the default survey with the list cleanup-candidate section", () => {
         const r = run(["report", "-p", SAMPLE])
         assert.equal(r.status, 0)
-        assert.match(r.stdout, /^### ls --no-exports --no-importers --unused-exports$/m)
-        // The ls section precedes the first report table.
-        assert.ok(r.stdout.indexOf("### ls ") < r.stdout.indexOf("### unused-exports"))
+        assert.match(r.stdout, /^### list --no-exports --no-importers --unused-exports$/m)
+        // The list section precedes the first report table.
+        assert.ok(r.stdout.indexOf("### list ") < r.stdout.indexOf("### unused-exports"))
     })
 
     it("exits non-zero on an unknown command", () => {

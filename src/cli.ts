@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 
-// argv → Project, then dispatch the subcommand: `ls` lists files, `report`
+// argv → Project, then dispatch the subcommand: `list` lists files, `report`
 // prints Markdown (+ optional output finalizer), `reformat` writes the
 // recommendations to disk. parseArgs routes and keeps the paths separate.
 
 import type {TsSurveyReportName} from "@kawanet/ts-survey"
 
 import {selectFormat} from "./format/run-format.ts"
-import {initProject, runLs, runReformat, runReports} from "./index.ts"
-import {filterLsEntries, writeLsTable} from "./ls/format-ls.ts"
+import {initProject, runList, runReformat, runReports} from "./index.ts"
+import {filterListEntries, writeListTable} from "./ls/format-ls.ts"
 import {writePrettierMarkdown} from "./lib/format-prettier.ts"
 import {writeReformatMarkdown} from "./lib/format-ts-survey.ts"
 import {parseArgs} from "./lib/parse-args.ts"
@@ -33,7 +33,7 @@ const fileOpts = {paths: opts.paths}
 const NULL_SINK = {write: () => {}}
 
 // Report-name validation lives in runReports so typos surface as a named
-// error there. Cast at the boundary (unused by the `ls` command).
+// error there. Cast at the boundary (unused by the `list` command).
 const reportNames = opts.reportNames as TsSurveyReportName[]
 
 // Library throws (missing tsconfig, unknown report name) become clean
@@ -41,22 +41,22 @@ const reportNames = opts.reportNames as TsSurveyReportName[]
 try {
     const project = initProject(opts.tsconfigPath)
 
-    if (opts.command === "ls") {
-        const entries = await runLs(project, fileOpts)
-        writeLsTable(filterLsEntries(entries, opts.lsFilters!), process.stdout)
+    if (opts.command === "list") {
+        const entries = await runList(project, fileOpts)
+        writeListTable(filterListEntries(entries, opts.listFilters!), process.stdout)
     } else if (opts.command === "reformat") {
         const report = await runReports(project, {...fileOpts, reportNames, stream: NULL_SINK})
         await runReformat(project, {...fileOpts, dryRun: opts.dryRun, report, ...opts.applyOverrides})
     } else {
         const format = selectFormat(opts.output, process.stdout)
-        // The default survey leads with the ls cleanup-candidate listing,
+        // The default survey leads with the list cleanup-candidate listing,
         // then the report tables, then `## recommendation` + `### .prettierrc`.
         // Named reports and `--output` paths skip these survey-only blocks.
         if (opts.surveyDefault) {
-            const entries = await runLs(project, fileOpts)
-            const candidates = filterLsEntries(entries, {noExports: true, noImporters: true, unusedExports: true})
-            process.stdout.write("### ls --no-exports --no-importers --unused-exports\n\n")
-            writeLsTable(candidates, process.stdout)
+            const entries = await runList(project, fileOpts)
+            const candidates = filterListEntries(entries, {noExports: true, noImporters: true, unusedExports: true})
+            process.stdout.write("### list --no-exports --no-importers --unused-exports\n\n")
+            writeListTable(candidates, process.stdout)
         }
         const report = await runReports(project, {...fileOpts, reportNames, stream: format.reportStream})
         if (opts.surveyDefault) {
