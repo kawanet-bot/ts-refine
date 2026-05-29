@@ -81,9 +81,13 @@ export const runMove: typeof declared.runMove = async (project, opts) => {
     // Dry-run: print planned moves + the importers that would change;
     // never touch disk. Otherwise persist only what we changed — call
     // sf.save() per touched file (respects the project's filesystem, so
-    // an in-memory project stays in memory) and delete each moved file's
-    // OLD path. We deliberately avoid project.save(), which would also
-    // flush unrelated pending edits a caller may have queued up.
+    // an in-memory project stays in memory) and then delete each moved
+    // file's OLD path. The save-then-delete order matters: if a save
+    // fails partway, the originals are still on disk and the move is
+    // recoverable; if we deleted first and a save failed, the original
+    // file would be gone with no new copy to replace it. We deliberately
+    // avoid project.save() either way, which would also flush unrelated
+    // pending edits a caller may have queued up.
     if (dryRun) {
         for (const {from, to} of plan) console.log(`would move: ${displayPath(from)} -> ${displayPath(to)}`)
         for (const sf of touchedFiles) {
@@ -91,6 +95,7 @@ export const runMove: typeof declared.runMove = async (project, opts) => {
             if (!destPaths.has(p)) console.log(`would update: ${displayPath(p)}`)
         }
     } else {
+        for (const sf of touchedFiles) await sf.save()
         const fileSystem = project.getFileSystem()
         for (const {from} of plan) {
             try {
@@ -100,7 +105,6 @@ export const runMove: typeof declared.runMove = async (project, opts) => {
                 // dropped it as part of move) — nothing to delete.
             }
         }
-        for (const sf of touchedFiles) await sf.save()
     }
 
     const verb = dryRun ? "would move" : "moved"
