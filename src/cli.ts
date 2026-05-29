@@ -4,10 +4,11 @@
 // prints Markdown (+ optional output finalizer), `reformat` writes the
 // recommendations to disk. parseArgs routes and keeps the paths separate.
 
-import type {TsSurveyReportName} from "@kawanet/ts-survey"
+import type {InspectorName, TsSurveyReportName} from "@kawanet/ts-survey"
 
 import {selectFormat} from "./format/run-format.ts"
-import {initProject, runList, runReformat, runReports} from "./index.ts"
+import {writeInspectFile} from "./inspect/format-inspect.ts"
+import {initProject, runInspect, runList, runReformat, runReports} from "./index.ts"
 import {filterListEntries, writeListTable} from "./list/format-list.ts"
 import {writePrettierMarkdown} from "./lib/format-prettier.ts"
 import {writeReformatMarkdown} from "./lib/format-ts-survey.ts"
@@ -44,6 +45,10 @@ try {
     if (opts.command === "list") {
         const entries = await runList(project, fileOpts)
         writeListTable(filterListEntries(entries, opts.listFilters!), process.stdout)
+    } else if (opts.command === "inspect") {
+        const inspectorNames = opts.inspectorNames! as InspectorName[]
+        const files = await runInspect(project, {...fileOpts, inspectorNames})
+        for (const file of files) writeInspectFile(file, process.stdout)
     } else if (opts.command === "reformat") {
         const report = await runReports(project, {...fileOpts, reportNames, stream: NULL_SINK})
         await runReformat(project, {...fileOpts, dryRun: opts.dryRun, report, ...opts.applyOverrides})

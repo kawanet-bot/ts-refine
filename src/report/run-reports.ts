@@ -15,7 +15,6 @@ import {runReportMemberSeparators} from "./member-separators.ts"
 import {runReportNewLine} from "./new-line.ts"
 import {reportNames} from "./report-names.ts"
 import {runReportSemicolons} from "./semicolons.ts"
-import {runReportUnusedExports} from "./unused-exports.ts"
 
 export const runReports: typeof declared.runReports = async (project, opts) => {
     const {stream, reportNames: requested, paths} = opts
@@ -31,9 +30,6 @@ export const runReports: typeof declared.runReports = async (project, opts) => {
     const report: declared.TsSurveyReport = {}
     const reportOpts: ReportOpts = {stream, paths}
 
-    if (requested.includes("unused-exports")) {
-        await runReportUnusedExports(project, reportOpts)
-    }
     if (requested.includes("semicolons")) {
         report.semicolons = await runReportSemicolons(project, reportOpts)
     }

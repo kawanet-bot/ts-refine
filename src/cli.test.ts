@@ -20,6 +20,7 @@ describe("cli", () => {
             assert.match(r.stdout, /report \[reports\.\.\.\]/)
             assert.match(r.stdout, /^  reformat /m)
             assert.match(r.stdout, /^  list /m)
+            assert.match(r.stdout, /^  inspect /m)
             assert.match(r.stdout, /--output <name>/)
             assert.match(r.stdout, /--organize-imports on\|off/)
         }
@@ -56,7 +57,16 @@ describe("cli", () => {
         assert.equal(r.status, 0)
         assert.match(r.stdout, /^### list --no-exports --no-importers --unused-exports$/m)
         // The list section precedes the first report table.
-        assert.ok(r.stdout.indexOf("### list ") < r.stdout.indexOf("### unused-exports"))
+        assert.ok(r.stdout.indexOf("### list ") < r.stdout.indexOf("### semicolons"))
+    })
+
+    it("inspects files via the inspect subcommand", () => {
+        const r = run(["inspect", "--exports", "-p", SAMPLE, "src/used.ts"])
+        assert.equal(r.status, 0)
+        // One file heading, then the exports table.
+        assert.match(r.stdout, /^## sample\/basic\/src\/used\.ts$/m)
+        assert.match(r.stdout, /^### exports$/m)
+        assert.match(r.stdout, /^\| line \| kind \| name \| importers \| example \|/m)
     })
 
     it("exits non-zero on an unknown command", () => {

@@ -5,11 +5,13 @@
 //   ts-survey report [--<report>...] [files...] [--output <name>] [-p tsconfig]
 //   ts-survey reformat [--indent N|tab ...] [files...] [-p tsconfig] [--dry-run]
 //   ts-survey list [--no-exports] [--no-importers] [--unused-exports] [files...]
+//   ts-survey inspect [--<inspector>...] [files...]
 // Any non-dash argument after the subcommand is a file path (globs allowed),
-// forwarded to ts-morph. Report-name validation stays in runReports.
+// forwarded to ts-morph. Selector validation stays in the runner.
 
 import path from "node:path"
 
+import {inspectorNames as knownInspectorNames} from "../inspect/inspector-names.ts"
 import {applyReportNames, reportNames as knownReportNames} from "../report/report-names.ts"
 
 // `newLine` is narrowed to lf|crlf because LS cannot emit CR-only.
@@ -21,7 +23,7 @@ export interface ApplyOverrides {
     bracketSpacing?: "on" | "off"
 }
 
-type Command = "report" | "reformat" | "list"
+type Command = "report" | "reformat" | "list" | "inspect"
 
 // `list` filter flags; OR-combined when more than one is set.
 interface ListFilters {
@@ -35,6 +37,8 @@ interface ParsedArgs {
     // For report: the requested selectors or the full registry.
     // For reformat: the recommendation-bearing reports runReformat consumes.
     reportNames: string[]
+    // inspect-only: the requested inspector selectors, or the full registry.
+    inspectorNames?: string[]
     // report-only: suppress Markdown and emit the named output instead.
     output: string | null
     applyOverrides: ApplyOverrides
@@ -65,12 +69,43 @@ export function parseArgs(argv: string[]): ParseArgsResult | undefined {
     if (command === "report") return parseReport(rest)
     if (command === "reformat") return parseReformat(rest)
     if (command === "list") return parseList(rest)
+    if (command === "inspect") return parseInspect(rest)
     if (command.startsWith("-")) {
-        console.error("expected a subcommand: report, reformat, list, or help")
+        console.error("expected a subcommand: report, reformat, list, inspect, or help")
         return undefined
     }
-    console.error(`unknown command: ${command} (expected: report, reformat, list, help)`)
+    console.error(`unknown command: ${command} (expected: report, reformat, list, inspect, help)`)
     return undefined
+}
+
+// `inspect`: per-file analysis. `--<inspector>` flags select which
+// inspectors run (default: all). Unknown `--<name>` becomes a selector
+// and is validated at runtime by runInspect (mirrors parseReport).
+function parseInspect(rest: string[]): ParseArgsResult | undefined {
+    const inspectorNames: string[] = []
+    const files: string[] = []
+    let tsconfigPath: string | null = null
+
+    for (let i = 0; i < rest.length; i++) {
+        const a = rest[i]
+        if (a === "-p" || a === "--project") {
+            const v = takeProject(rest, ++i, a, tsconfigPath)
+            if (v === undefined) return undefined
+            tsconfigPath = v
+        } else if (a.startsWith("--")) {
+            const name = a.slice(2)
+            if (!inspectorNames.includes(name)) inspectorNames.push(name)
+        } else if (a.startsWith("-")) {
+            console.error(`unknown option: ${a}`)
+            return undefined
+        } else {
+            files.push(a)
+        }
+    }
+
+    const effective = inspectorNames.length > 0 ? inspectorNames : [...knownInspectorNames]
+    const {absTsconfig, paths} = resolvePaths(tsconfigPath, files)
+    return {command: "inspect", reportNames: [], inspectorNames: effective, output: null, applyOverrides: {}, surveyDefault: false, tsconfigPath: absTsconfig, dryRun: false, paths}
 }
 
 // `list`: cleanup-candidate filters plus positional files. Each flag is a

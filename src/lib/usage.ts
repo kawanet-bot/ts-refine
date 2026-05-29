@@ -2,6 +2,7 @@
 // so help stays in sync with wired-up entries.
 
 import {formatNames} from "../format/run-format.ts"
+import {inspectorNames} from "../inspect/inspector-names.ts"
 import {reportNames} from "../report/report-names.ts"
 
 export function usage(): string {
@@ -13,6 +14,7 @@ export function usage(): string {
         "  report [reports...]         Survey the codebase; print Markdown reports",
         "  reformat                    Apply the reports' recommendations to disk",
         "  list                        List files with export / usage counts",
+        "  inspect [inspectors...]     Per-file analysis (exports, importers, ...)",
         "",
         "report (read; the primary mode):",
         "  report                      Run every report and print the survey Markdown",
@@ -37,11 +39,16 @@ export function usage(): string {
         "  --unused-exports            Only files with unused exports",
         "                              (multiple list filters combine with OR)",
         "",
+        "inspect (read; per-file analysis):",
+        "  inspect                     Run every inspector on every file",
+        "  inspect --<inspector>...    Restrict to the named inspectors",
+        `                              Known inspectors: ${inspectorNames.join(", ")}`,
+        "",
         "Project (mirrors `tsc -p`):",
         "  -p, --project <path>        Path to a tsconfig.json or a directory",
         "                              that contains one. Defaults to `-p .`.",
         "",
-        "Files (applies to report and reformat):",
+        "Files (applies to all read/write commands):",
         "  [files...]                  Restrict to the given files; globs are allowed,",
         "                              resolved against the tsconfig dir. Default: all.",
     ].join("\n")

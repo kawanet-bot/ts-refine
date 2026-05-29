@@ -41,7 +41,6 @@ export interface RunBracketSpacingOpts {
 // Every report runReports knows about. Pair with src/report/report-names.ts
 // (runtime list) and src/report/run-reports.ts (dispatch).
 export type TsSurveyReportName =
-    | "unused-exports"
     | "semicolons"
     | "indent"
     | "member-separators"
@@ -89,6 +88,44 @@ export interface ListEntry {
 
 export interface RunListOpts extends TsSurveyOpts {}
 
+// Per-file inspect output. Each requested inspector populates its slot
+// (a missing key means the inspector did not run for this file).
+export interface InspectFile {
+    file: string
+    exports?: InspectExport[]
+    importers?: InspectImporter[]
+}
+
+// One exported declaration. `example` is the alphabetically first
+// importer file path, or null when no external file uses this export
+// (rendered as **unused** in the Markdown table).
+export interface InspectExport {
+    line: number
+    kind: string
+    name: string
+    importers: number
+    example: string | null
+}
+
+// One importer of the inspected file (collapsed to a single row even when
+// the importer has several import statements). `kinds` covers the import
+// forms used: value | type | namespace | dynamic | side-effect | re-export.
+// `names` lists the imported symbol names, with display tokens for forms
+// that don't carry names (`* as A`, `(dynamic)`, `(side effect)`).
+export interface InspectImporter {
+    file: string
+    kinds: string[]
+    names: string[]
+}
+
+// Every inspector runInspect knows about. Pair with src/inspect/inspector-names.ts
+// (runtime list) and src/inspect/run-inspect.ts (dispatch).
+export type InspectorName = "exports" | "importers"
+
+export interface RunInspectOpts extends TsSurveyOpts {
+    inspectorNames: InspectorName[]
+}
+
 export declare function initProject(tsconfigPath: string): Project
 
 export declare function runReports(project: Project, opts: RunReportsOpts): Promise<TsSurveyReport>
@@ -96,3 +133,5 @@ export declare function runReports(project: Project, opts: RunReportsOpts): Prom
 export declare function runReformat(project: Project, opts: RunReformatOpts): Promise<void>
 
 export declare function runList(project: Project, opts: RunListOpts): Promise<ListEntry[]>
+
+export declare function runInspect(project: Project, opts: RunInspectOpts): Promise<InspectFile[]>

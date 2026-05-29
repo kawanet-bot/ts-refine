@@ -18,14 +18,12 @@ function quiet<T>(fn: () => T): T {
 }
 
 describe("parseArgs", () => {
-    it("treats `reformat` as the write mode and feeds the recommendation-bearing reports only", () => {
+    it("treats `reformat` as the write mode and feeds the reformat report set", () => {
         const r = parseArgs(["reformat", "-p", SAMPLE_TSCONFIG])
         assert.ok(r && !("help" in r))
         assert.equal(r.command, "reformat")
         assert.deepEqual(r.applyOverrides, {})
         assert.ok(r.reportNames.includes("semicolons"))
-        // Markdown-only extras (unused-exports) are skipped under `reformat`.
-        assert.equal(r.reportNames.includes("unused-exports"), false)
     })
 
     it("collects report-name selector flags with de-duplication", () => {
@@ -114,21 +112,18 @@ describe("parseArgs", () => {
         assert.ok(r && !("help" in r))
         assert.equal(r.command, "report")
         // Survey-style default: every report in the registry runs.
-        assert.ok(r.reportNames.includes("unused-exports"))
         assert.ok(r.reportNames.includes("semicolons"))
+        assert.ok(r.reportNames.includes("bracket-spacing"))
         assert.equal(r.surveyDefault, true)
     })
 
-    it("runs every recommendation-bearing report under `reformat`, skipping the Markdown-only extras", () => {
+    it("runs every recommendation-bearing report under `reformat`", () => {
         const r = parseArgs(["reformat"])
         assert.ok(r && !("help" in r))
         // surveyDefault gates the recommendation Markdown blocks only.
         assert.equal(r.surveyDefault, false)
         assert.ok(r.reportNames.includes("semicolons"))
         assert.ok(r.reportNames.includes("bracket-spacing"))
-        // unused-exports is Markdown-only and perturbs LS state for runReformat,
-        // so it sits in the extras registry and is skipped here.
-        assert.equal(r.reportNames.includes("unused-exports"), false)
     })
 
     it("opts out of the survey-default flag when selectors or --output are given", () => {
@@ -258,5 +253,30 @@ describe("parseArgs", () => {
     it("returns undefined on an unknown list option", () => {
         const r = quiet(() => parseArgs(["list", "--bogus", "-p", SAMPLE_TSCONFIG]))
         assert.equal(r, undefined)
+    })
+
+    it("defaults `inspect` to the full inspector registry", () => {
+        const r = parseArgs(["inspect", "-p", SAMPLE_TSCONFIG])
+        assert.ok(r && !("help" in r))
+        assert.equal(r.command, "inspect")
+        assert.deepEqual(r.inspectorNames, ["exports", "importers"])
+    })
+
+    it("collects inspector selectors and dedupes", () => {
+        const r = parseArgs(["inspect", "--exports", "--importers", "--exports", "-p", SAMPLE_TSCONFIG])
+        assert.ok(r && !("help" in r))
+        assert.deepEqual(r.inspectorNames, ["exports", "importers"])
+    })
+
+    it("passes unknown inspector selectors through (runInspect validates)", () => {
+        const r = parseArgs(["inspect", "--typo", "-p", SAMPLE_TSCONFIG])
+        assert.ok(r && !("help" in r))
+        assert.deepEqual(r.inspectorNames, ["typo"])
+    })
+
+    it("accepts positional files under inspect", () => {
+        const r = parseArgs(["inspect", "-p", SAMPLE_TSCONFIG, "a.ts"])
+        assert.ok(r && !("help" in r))
+        assert.deepEqual(r.paths, [path.join(SAMPLE_DIR, "a.ts")])
     })
 })

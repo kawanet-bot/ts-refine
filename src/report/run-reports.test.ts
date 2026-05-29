@@ -30,15 +30,15 @@ describe("runReports", () => {
         const lines: string[] = []
         await runReports(project, {
             // Input deliberately in reverse of registry order to confirm the
-            // router re-orders.
-            reportNames: ["semicolons", "unused-exports"],
+            // router re-orders. indent precedes semicolons in the registry.
+            reportNames: ["semicolons", "indent"],
             stream: {write: (l) => lines.push(l)},
             paths: [],
         })
         const out = lines.join("")
-        const unusedPos = out.indexOf("### unused-exports")
+        const indentPos = out.indexOf("### indent")
         const semiPos = out.indexOf("### semicolons")
-        assert.ok(unusedPos >= 0 && semiPos >= 0, "both sections must appear")
-        assert.ok(unusedPos < semiPos, "unused-exports must precede semicolons")
+        assert.ok(indentPos >= 0 && semiPos >= 0, "both sections must appear")
+        assert.ok(semiPos < indentPos, "semicolons must precede indent")
     })
 })
