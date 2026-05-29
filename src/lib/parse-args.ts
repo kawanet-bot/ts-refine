@@ -180,7 +180,7 @@ function resolveArgs(raw: RawArgs): ParseArgsResult | undefined {
     if (command === null) {
         const sawOption = output !== null || dryRun || Object.keys(overrides).length > 0 || includeGlobs.length > 0 || excludeGlobs.length > 0 || tsconfigPath !== null
         if (sawOption) {
-            console.error("expected a subcommand: report, format, or help")
+            console.error("expected a subcommand: report, reformat, or help")
             return undefined
         }
         return {help: true}
