@@ -21,8 +21,16 @@ No `.prettierrc`, no rule config: the codebase is the spec.
 
 Requires Node.js >= 22.18.
 
+For one-off use, run it with `npx`:
+
 ```sh
-npx ts-refine <command> [options] [files...]
+npx ts-refine help
+```
+
+For regular use in a project, install it as a dev dependency:
+
+```sh
+npm install --save-dev ts-refine
 ```
 
 ## Synopsis
