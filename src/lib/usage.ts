@@ -1,8 +1,8 @@
 // CLI help text. Name lists come from the report / output registries
 // so help stays in sync with wired-up entries.
 
-import {outputNames} from "../recommend/select-output.ts"
 import {inspectorNames} from "../inspect/inspector-names.ts"
+import {outputNames} from "../recommend/select-output.ts"
 import {reportNames} from "../report/report-names.ts"
 
 export function usage(): string {
@@ -16,6 +16,7 @@ export function usage(): string {
         "  list                        List files with export / usage counts",
         "  inspect [inspectors...]     Per-file analysis (exports, importers, ...)",
         "  move <source...> <dest>     Move .ts files and rewrite import paths",
+        "  rename --from <a> --to <b>  Rename an exported identifier project-wide",
         "",
         "report (read; the primary mode):",
         "  report                      Run every report and print the survey Markdown",
@@ -50,10 +51,16 @@ export function usage(): string {
         "                              Paths are resolved against the tsconfig dir",
         "                              (same basis the other commands use).",
         "",
+        "rename (write; rename an exported identifier and every reference):",
+        "  rename --from <a> --to <b>  Rename the export `a` to `b` project-wide,",
+        "                              updating importers and usages (aliases kept).",
+        "  rename <file> --from ...    Scope the lookup to the identifier that <file>",
+        "                              exports (when the name is not unique).",
+        "",
         "Global options (may appear before or after the command):",
         "  -p, --project <path>        Path to a tsconfig.json or a directory",
         "                              that contains one. Defaults to `-p .`.",
-        "  --dry-run                   format/move only: print instead of writing",
+        "  --dry-run                   format/move/rename only: print instead of writing",
         "  -h, --help                  Show this help",
         "",
         "Files (applies to all read/write commands):",

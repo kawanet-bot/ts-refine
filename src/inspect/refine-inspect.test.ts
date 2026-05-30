@@ -3,14 +3,14 @@ import path from "node:path"
 import {describe, it} from "node:test"
 import {Project} from "ts-morph"
 import type {InspectorName} from "ts-refine"
-import {runInspect} from "./run-inspect.ts"
+import {refineInspect} from "./refine-inspect.ts"
 
 const SAMPLE_TSCONFIG = path.resolve(import.meta.dirname, "../../sample/basic/tsconfig.json")
 
-describe("runInspect", () => {
+describe("refineInspect", () => {
     it("returns one InspectExport per export with importers count and alphabetical example", async () => {
         const project = new Project({tsConfigFilePath: SAMPLE_TSCONFIG})
-        const files = await runInspect(project, {paths: [], inspectorNames: ["exports"]})
+        const files = await refineInspect(project, {paths: [], inspectorNames: ["exports"]})
 
         const byName = Object.fromEntries(files.map((f) => [path.basename(f.file), f]))
         const used = byName["used.ts"]
@@ -35,7 +35,7 @@ describe("runInspect", () => {
     it("scopes to the given file globs", async () => {
         const project = new Project({tsConfigFilePath: SAMPLE_TSCONFIG})
         const dir = path.dirname(SAMPLE_TSCONFIG)
-        const files = await runInspect(project, {paths: [path.join(dir, "src/used.ts")], inspectorNames: ["exports"]})
+        const files = await refineInspect(project, {paths: [path.join(dir, "src/used.ts")], inspectorNames: ["exports"]})
         assert.deepEqual(
             files.map((f) => path.basename(f.file)),
             ["used.ts"],
@@ -45,7 +45,7 @@ describe("runInspect", () => {
     it("rejects an unknown inspector name", async () => {
         const project = new Project({tsConfigFilePath: SAMPLE_TSCONFIG})
         await assert.rejects(
-            () => runInspect(project, {paths: [], inspectorNames: ["typo" as unknown as InspectorName]}),
+            () => refineInspect(project, {paths: [], inspectorNames: ["typo" as unknown as InspectorName]}),
             /unknown inspector name: typo/,
         )
     })
@@ -64,7 +64,7 @@ describe("runInspect", () => {
         project.createSourceFile("/dyn.ts", "export const load = () => import(\"./target.ts\")\n")
         project.createSourceFile("/mixed.ts", "import {x, type T} from \"./target.ts\"\nconst _: T = x\n")
 
-        const files = await runInspect(project, {paths: ["/target.ts"], inspectorNames: ["importers"]})
+        const files = await refineInspect(project, {paths: ["/target.ts"], inspectorNames: ["importers"]})
         assert.equal(files.length, 1)
         const got = Object.fromEntries(files[0].importers!.map((i) => [i.file.replace(/^.*\//, ""), {kinds: i.kinds, names: i.names}]))
         assert.deepEqual(got["value.ts"], {kinds: ["value"], names: ["x"]})
@@ -83,7 +83,7 @@ describe("runInspect", () => {
     it("returns an empty importers list when nothing imports the file", async () => {
         const project = new Project({useInMemoryFileSystem: true})
         project.createSourceFile("/orphan.ts", "export const x = 1\n")
-        const files = await runInspect(project, {paths: ["/orphan.ts"], inspectorNames: ["importers"]})
+        const files = await refineInspect(project, {paths: ["/orphan.ts"], inspectorNames: ["importers"]})
         assert.deepEqual(files[0].importers, [])
     })
 })

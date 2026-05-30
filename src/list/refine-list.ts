@@ -7,12 +7,12 @@
 // The export/unused counting mirrors the unused-exports report; the two
 // will be unified in a later pass (that report is left untouched for now).
 
-import type * as declared from "ts-refine"
 import {Node} from "ts-morph"
+import type * as declared from "ts-refine"
 
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
 
-export const runList: typeof declared.runList = async (project, {paths}) => {
+export const refineList: typeof declared.refineList = async (project, {paths}) => {
     const sourceFiles = selectSourceFiles(project, {paths}).filter((sf) => !sf.getFilePath().endsWith(".d.ts"))
 
     const entries: declared.ListEntry[] = []

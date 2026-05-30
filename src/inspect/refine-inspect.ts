@@ -10,13 +10,13 @@
 // suggestion column.
 
 import path from "node:path"
+import {Node, ts, type ImportDeclaration, type SourceFile} from "ts-morph"
 import type * as declared from "ts-refine"
-import {Node, type ImportDeclaration, type SourceFile, ts} from "ts-morph"
 
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
 import {inspectorNames} from "./inspector-names.ts"
 
-export const runInspect: typeof declared.runInspect = async (project, opts) => {
+export const refineInspect: typeof declared.refineInspect = async (project, opts) => {
     const {paths, inspectorNames: requested} = opts
 
     for (const name of requested) {

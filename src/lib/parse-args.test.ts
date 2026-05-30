@@ -33,7 +33,7 @@ describe("parseArgs", () => {
         assert.deepEqual(r.reportNames, ["unused-exports", "semicolons"])
     })
 
-    it("passes unknown report selectors through without rejecting (runReports validates)", () => {
+    it("passes unknown report selectors through without rejecting (refineReport validates)", () => {
         const r = parseArgs(["report", "--typo-name", "-p", SAMPLE_TSCONFIG])
         assert.ok(r && !("help" in r))
         assert.deepEqual(r.reportNames, ["typo-name"])
@@ -268,7 +268,7 @@ describe("parseArgs", () => {
         assert.deepEqual(r.inspectorNames, ["exports", "importers"])
     })
 
-    it("passes unknown inspector selectors through (runInspect validates)", () => {
+    it("passes unknown inspector selectors through (refineInspect validates)", () => {
         const r = parseArgs(["inspect", "--typo", "-p", SAMPLE_TSCONFIG])
         assert.ok(r && !("help" in r))
         assert.deepEqual(r.inspectorNames, ["typo"])
@@ -340,5 +340,40 @@ describe("parseArgs", () => {
     it("treats globals with no subcommand as a usage error, not help", () => {
         assert.equal(quiet(() => parseArgs(["-p", SAMPLE_TSCONFIG])), undefined)
         assert.equal(quiet(() => parseArgs(["--dry-run"])), undefined)
+    })
+})
+
+describe("parseArgs rename", () => {
+    it("parses --from / --to as a project-wide rename", () => {
+        const r = parseArgs(["rename", "--from", "funcA", "--to", "funcB", "-p", SAMPLE_TSCONFIG])
+        assert.ok(r && !("help" in r))
+        assert.equal(r.command, "rename")
+        assert.equal(r.from, "funcA")
+        assert.equal(r.to, "funcB")
+        assert.equal(r.renameFile, null)
+        assert.equal(r.dryRun, false)
+    })
+
+    it("scopes rename to a file, resolved against the tsconfig dir", () => {
+        const r = parseArgs(["rename", "libs.ts", "--from", "funcA", "--to", "funcB", "-p", SAMPLE_TSCONFIG])
+        assert.ok(r && !("help" in r))
+        assert.equal(r.renameFile, path.resolve(SAMPLE_DIR, "libs.ts"))
+    })
+
+    it("accepts --dry-run on either side of rename", () => {
+        const r = parseArgs(["--dry-run", "rename", "--from", "funcA", "--to", "funcB", "-p", SAMPLE_TSCONFIG])
+        assert.ok(r && !("help" in r))
+        assert.equal(r.command, "rename")
+        assert.equal(r.dryRun, true)
+    })
+
+    it("errors when --to is missing", () => {
+        const r = quiet(() => parseArgs(["rename", "--from", "funcA", "-p", SAMPLE_TSCONFIG]))
+        assert.equal(r, undefined)
+    })
+
+    it("errors when more than one file is given", () => {
+        const r = quiet(() => parseArgs(["rename", "a.ts", "b.ts", "--from", "funcA", "--to", "funcB", "-p", SAMPLE_TSCONFIG]))
+        assert.equal(r, undefined)
     })
 })

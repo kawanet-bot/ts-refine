@@ -2,14 +2,14 @@
 // report recommendation and the CLI overrides are funneled into it, so
 // the ts-refine command output and the actual apply derive from one
 // value — guaranteeing they agree. The pipeline is:
-//   TsSurveyReport ─reportToFormatOptions─┐
+//   TsRefineReport ─reportToFormatOptions─┐
 //                                          ├─ mergeFormatOptions ─ resolveSettings ─▶ ResolvedSettings
 //   ApplyOverrides ─overridesToFormatOptions┘
-// and buildReformatFlags renders the same FormatOptions back to argv.
+// and buildFormatFlags renders the same FormatOptions back to argv.
 
-import type {TsSurveyReport} from "ts-refine"
 import type {FormatCodeSettings} from "ts-morph"
 import {ts} from "ts-morph"
+import type {TsRefineReport} from "ts-refine"
 
 import type {ApplyOverrides} from "../lib/parse-args.ts"
 
@@ -23,8 +23,8 @@ export interface FormatOptions {
     bracketSpacing?: "on" | "off"
 }
 
-// LS settings + runReformat-only concerns (organize gate, newline post-pass).
-// Local-ish shape — runReformat reads it; the CR diagnostic is computed at
+// LS settings + refineFormat-only concerns (organize gate, newline post-pass).
+// Local-ish shape — refineFormat reads it; the CR diagnostic is computed at
 // the apply entry from the report, not carried here.
 export interface ResolvedSettings {
     formatSettings: FormatCodeSettings
@@ -37,7 +37,7 @@ type MutableFormatSettings = {-readonly [K in keyof FormatCodeSettings]: FormatC
 
 // Recommendation → options. `cr` is read and discarded (see FormatOptions);
 // member-separators has no actionable mapping and is dropped too.
-export function reportToFormatOptions(report: TsSurveyReport): FormatOptions {
+export function reportToFormatOptions(report: TsRefineReport): FormatOptions {
     const options: FormatOptions = {}
     if (report.semicolons?.semicolons) options.semicolons = report.semicolons.semicolons
     if (report.indent?.width !== undefined) options.indent = report.indent.width
@@ -70,7 +70,7 @@ export function mergeFormatOptions(base: FormatOptions, override: FormatOptions)
     }
 }
 
-// FormatOptions → the settings runReformat hands to ts-morph.
+// FormatOptions → the settings refineFormat hands to ts-morph.
 export function resolveSettings(options: FormatOptions): ResolvedSettings {
     const formatSettings: MutableFormatSettings = {}
 

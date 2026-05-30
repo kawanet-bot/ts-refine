@@ -4,20 +4,23 @@
 // and preserves the surrounding text untouched; what it doesn't do is
 // preserve the `.ts` extension in the rewritten module specifiers, so we
 // snapshot the original `.ts` presence per specifier before the move and
-// restore it after. No format pass runs — sf.move() is format-preserving
-// on its own, and any cleanup (organize-imports, etc.) is the user's
-// follow-up call to format.
+// restore it after. After the moves, organizeImports re-sorts the import
+// block of each file whose imports actually changed (and only those), using
+// the project-wide surveyed style so the touched files converge on the
+// codebase's conventions. Files with no import change are never reformatted;
+// they get unified later by `format`. No full format pass runs here.
 //
 // Migration ("everyone should use this extension style") is intentionally
 // out of scope — that belongs in a separate subcommand. Each specifier
 // keeps the extension state it had before the move.
 
-import type * as declared from "ts-refine"
 import fs from "node:fs"
 import path from "node:path"
-import {Node, type ExportDeclaration, type ImportDeclaration, type Project, type SourceFile, type StringLiteral, ts} from "ts-morph"
+import {Node, ts, type ExportDeclaration, type ImportDeclaration, type Project, type SourceFile, type StringLiteral} from "ts-morph"
+import type * as declared from "ts-refine"
 
 import {displayPath} from "../lib/source-files.ts"
+import {organizeChangedImports} from "../recommend/organize-changed.ts"
 
 // One captured module specifier whose target is moving. Held by AST node
 // reference so it stays valid across sf.move() and can be patched in place.
@@ -46,8 +49,8 @@ function withExtension(specifier: string, ext: string): string {
     return specifier.replace(KNOWN_EXT, "") + ext
 }
 
-export const runMove: typeof declared.runMove = async (project, opts) => {
-    const {sources, dest, dryRun} = opts
+export const refineMove: typeof declared.refineMove = async (project, opts) => {
+    const {sources, dest, dryRun, report} = opts
 
     const plan = planMoves(project, sources, dest)
 
@@ -77,6 +80,15 @@ export const runMove: typeof declared.runMove = async (project, opts) => {
         if (sf) touchedFiles.add(sf)
     }
     for (const r of records) touchedFiles.add(r.node.getSourceFile())
+
+    // organizeImports re-sorts each import-changed file's import block (a
+    // relocation can reorder specifiers), using the project's surveyed style.
+    // Restricted to the files whose specifiers actually changed — files with
+    // no import change stay untouched. Collect the SourceFile set first,
+    // since organizeImports invalidates the recorded nodes as it rewrites.
+    const importChangedFiles = new Set<SourceFile>()
+    for (const r of records) importChangedFiles.add(r.node.getSourceFile())
+    organizeChangedImports(importChangedFiles, report)
 
     // Dry-run: print planned moves + the importers that would change;
     // never touch disk. Otherwise persist only what we changed — call

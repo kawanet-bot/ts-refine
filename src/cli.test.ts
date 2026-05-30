@@ -22,6 +22,7 @@ describe("cli", () => {
             assert.match(r.stdout, /^  list /m)
             assert.match(r.stdout, /^  inspect /m)
             assert.match(r.stdout, /^  move /m)
+            assert.match(r.stdout, /^  rename /m)
             assert.match(r.stdout, /--output <name>/)
             assert.match(r.stdout, /--organize-imports on\|off/)
         }
@@ -45,6 +46,18 @@ describe("cli", () => {
         const r = run(["format", "--dry-run", "-p", SAMPLE])
         assert.equal(r.status, 0)
         assert.match(r.stderr, /apply: would change/)
+    })
+
+    it("renames an exported identifier via the rename subcommand (dry-run)", () => {
+        const r = run(["rename", "--from", "usedFn", "--to", "renamedFn", "-p", SAMPLE, "--dry-run"])
+        assert.equal(r.status, 0)
+        assert.match(r.stderr, /rename: would rename usedFn -> renamedFn/)
+    })
+
+    it("errors when rename is missing --from / --to", () => {
+        const r = run(["rename", "--from", "usedFn", "-p", SAMPLE])
+        assert.notEqual(r.status, 0)
+        assert.match(r.stderr, /requires --from <name> and --to <name>/)
     })
 
     it("lists files via the list subcommand", () => {

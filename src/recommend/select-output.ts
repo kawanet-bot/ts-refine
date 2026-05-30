@@ -1,6 +1,6 @@
 // `--output` router. Owns the output-name registry and decides what
-// post-processing each output performs over a TsSurveyReport. Mirrors
-// the runReports router (which owns report-name validation): the CLI
+// post-processing each output performs over a TsRefineReport. Mirrors
+// the refineReport router (which owns report-name validation): the CLI
 // hands off a raw string and the dispatcher validates + dispatches, so a
 // new output slots in by extending `outputNames` and adding a branch.
 //
@@ -9,19 +9,19 @@
 // swaps the report stream for a sink so the Markdown body doesn't mix
 // into the rendered output.
 
-import type {RunReportsOpts, TsSurveyReport} from "ts-refine"
+import type {RefineReportOpts, TsRefineReport} from "ts-refine"
 
 import {writePrettierConfig} from "./output-prettier.ts"
-import {writeReformatCommand} from "./output-ts-refine.ts"
+import {writeFormatCommand} from "./output-ts-refine.ts"
 
 // Local alias for readability — not exported.
-type Writer = RunReportsOpts["stream"]
+type Writer = RefineReportOpts["stream"]
 
 export const outputNames = ["prettier", "ts-refine"] as const
 
 interface OutputDispatch {
     reportStream: Writer
-    finalize: (report: TsSurveyReport) => void
+    finalize: (report: TsRefineReport) => void
 }
 
 const NULL_SINK: Writer = {write: () => {}}
@@ -42,7 +42,7 @@ export function selectOutput(name: string | null, stdout: Writer): OutputDispatc
     if (name === "ts-refine") {
         return {
             reportStream: NULL_SINK,
-            finalize: (report) => writeReformatCommand(report, stdout),
+            finalize: (report) => writeFormatCommand(report, stdout),
         }
     }
     // outputNames is exhaustive — this guards future entries that forget to add a branch.
