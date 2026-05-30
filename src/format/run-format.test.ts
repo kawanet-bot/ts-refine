@@ -16,7 +16,7 @@ function quiet<T>(fn: () => Promise<T>): Promise<T> {
     })
 }
 
-describe("runFormat", () => {
+describe("refineFormat", () => {
     it("applies the indent recommendation when no override is given", async () => {
         const project = new Project({useInMemoryFileSystem: true})
         const sf = project.createSourceFile("a.ts", "function f() {\n  return 1\n}\n")

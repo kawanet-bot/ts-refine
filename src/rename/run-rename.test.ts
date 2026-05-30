@@ -19,7 +19,7 @@ function newProject(): Project {
     })
 }
 
-describe("runRename", () => {
+describe("refineRename", () => {
     it("renames an exported identifier across declaration, importer, and usage", async () => {
         const project = newProject()
         const libs = project.createSourceFile("/libs.ts", "export function funcA() { return 1 }\n")

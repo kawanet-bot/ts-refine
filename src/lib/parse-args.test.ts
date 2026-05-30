@@ -33,7 +33,7 @@ describe("parseArgs", () => {
         assert.deepEqual(r.reportNames, ["unused-exports", "semicolons"])
     })
 
-    it("passes unknown report selectors through without rejecting (runReports validates)", () => {
+    it("passes unknown report selectors through without rejecting (refineReport validates)", () => {
         const r = parseArgs(["report", "--typo-name", "-p", SAMPLE_TSCONFIG])
         assert.ok(r && !("help" in r))
         assert.deepEqual(r.reportNames, ["typo-name"])
@@ -268,7 +268,7 @@ describe("parseArgs", () => {
         assert.deepEqual(r.inspectorNames, ["exports", "importers"])
     })
 
-    it("passes unknown inspector selectors through (runInspect validates)", () => {
+    it("passes unknown inspector selectors through (refineInspect validates)", () => {
         const r = parseArgs(["inspect", "--typo", "-p", SAMPLE_TSCONFIG])
         assert.ok(r && !("help" in r))
         assert.deepEqual(r.inspectorNames, ["typo"])

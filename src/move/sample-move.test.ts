@@ -1,6 +1,6 @@
 // Integration tests built off the sample/move-*-ext fixtures. Each
 // sample is a one-importer-one-library project in a different
-// import-extension era; we copy it to a tmpdir and verify runMove
+// import-extension era; we copy it to a tmpdir and verify refineMove
 // rewrites the import to the new path while keeping that era's
 // extension style untouched.
 
@@ -28,7 +28,7 @@ async function withSampleCopy(name: string, fn: (workdir: string) => Promise<voi
     }
 }
 
-describe("runMove against sample fixtures (one era per sample)", () => {
+describe("refineMove against sample fixtures (one era per sample)", () => {
     it("sample/move-ts-ext: keeps the explicit `.ts` extension", async () => {
         await withSampleCopy("move-ts-ext", async (workdir) => {
             const project = new Project({tsConfigFilePath: path.join(workdir, "tsconfig.json")})

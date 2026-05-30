@@ -6,7 +6,7 @@ import {refineList} from "./run-list.ts"
 
 const SAMPLE_TSCONFIG = path.resolve(import.meta.dirname, "../../sample/basic/tsconfig.json")
 
-describe("runList (sample/basic)", () => {
+describe("refineList (sample/basic)", () => {
     it("reports per-file export / unused / importer counts", async () => {
         const project = new Project({tsConfigFilePath: SAMPLE_TSCONFIG})
         const entries = await refineList(project, {paths: []})

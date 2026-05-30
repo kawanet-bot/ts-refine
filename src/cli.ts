@@ -30,10 +30,10 @@ if ("help" in opts) {
 
 const fileOpts = {paths: opts.paths}
 
-// Swallow the Markdown stream in format mode; runFormat consumes it.
+// Swallow the Markdown stream in format mode; refineFormat consumes it.
 const NULL_SINK = {write: () => {}}
 
-// Report-name validation lives in runReports so typos surface as a named
+// Report-name validation lives in refineReport so typos surface as a named
 // error there. Cast at the boundary (unused by the `list` command).
 const reportNames = opts.reportNames as TsRefineReportName[]
 
@@ -52,7 +52,7 @@ try {
     } else if (opts.command === "move") {
         // Move's positionals arrive in opts.paths as a flat list; the
         // dispatch seam splits the destination (last) from the sources
-        // (rest) and hands them to runMove.
+        // (rest) and hands them to refineMove.
         const sources = opts.paths.slice(0, -1)
         const dest = opts.paths[opts.paths.length - 1]
         // Survey the whole project so the post-move organizeImports follows

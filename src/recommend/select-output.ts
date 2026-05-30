@@ -1,6 +1,6 @@
 // `--output` router. Owns the output-name registry and decides what
-// post-processing each output performs over a TsSurveyReport. Mirrors
-// the runReports router (which owns report-name validation): the CLI
+// post-processing each output performs over a TsRefineReport. Mirrors
+// the refineReport router (which owns report-name validation): the CLI
 // hands off a raw string and the dispatcher validates + dispatches, so a
 // new output slots in by extending `outputNames` and adding a branch.
 //

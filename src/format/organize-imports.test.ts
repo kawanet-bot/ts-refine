@@ -1,4 +1,4 @@
-// organize-imports coverage retargeted at runFormat. The {A} style test
+// organize-imports coverage retargeted at refineFormat. The {A} style test
 // pins the outcome via `--bracket-spacing off`; the old action
 // hard-coded it.
 
@@ -12,7 +12,7 @@ import {refineFormat} from "./run-format.ts"
 const SAMPLE_TSCONFIG = path.resolve(import.meta.dirname, "../../sample/basic/tsconfig.json")
 const INDEX = path.resolve(import.meta.dirname, "../../sample/basic/src/index.ts")
 
-describe("runFormat (organize-imports path, dry-run, sample/basic)", () => {
+describe("refineFormat (organize-imports path, dry-run, sample/basic)", () => {
     it("alphabetises imports in-memory without touching disk", async () => {
         const project = new Project({tsConfigFilePath: SAMPLE_TSCONFIG})
 
@@ -32,7 +32,7 @@ describe("runFormat (organize-imports path, dry-run, sample/basic)", () => {
 
     it("uses braces without surrounding spaces (`{A}` style) when bracket-spacing off is in effect", async () => {
         const project = new Project({tsConfigFilePath: SAMPLE_TSCONFIG})
-        // Old action hard-coded brace-spacing off; runFormat drives it via
+        // Old action hard-coded brace-spacing off; refineFormat drives it via
         // the merged settings, so pin the override here.
         await refineFormat(project, {dryRun: true, paths: [], report: {}, bracketSpacing: "off"})
 

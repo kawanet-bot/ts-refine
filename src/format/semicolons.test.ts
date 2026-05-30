@@ -1,4 +1,4 @@
-// Semicolons-action coverage retargeted at runFormat({semicolons}).
+// Semicolons-action coverage retargeted at refineFormat({semicolons}).
 // hasAsiHazardAfter tests are retired with the detector function itself.
 
 import {strict as assert} from "node:assert"
@@ -32,7 +32,7 @@ function semiLineCount(text: string) {
 // on semicolon handling.
 const SEMI_OFF = {dryRun: true, paths: [] as string[], organizeImports: "off" as const}
 
-describe("runFormat --semicolons off (dry-run, sample/semicolons-mixed)", () => {
+describe("refineFormat --semicolons off (dry-run, sample/semicolons-mixed)", () => {
     it("strips every trailing `;` from ASI-eligible statements in-memory", async () => {
         const project = new Project({tsConfigFilePath: SAMPLE_TSCONFIG})
         await refineFormat(project, {...SEMI_OFF, report: {}, semicolons: "off"})
@@ -52,7 +52,7 @@ describe("runFormat --semicolons off (dry-run, sample/semicolons-mixed)", () => 
     })
 })
 
-describe("runFormat --semicolons on (dry-run, sample/semicolons-mixed)", () => {
+describe("refineFormat --semicolons on (dry-run, sample/semicolons-mixed)", () => {
     it("appends `;` to every ASI-eligible statement lacking one", async () => {
         const project = new Project({tsConfigFilePath: SAMPLE_TSCONFIG})
         await refineFormat(project, {...SEMI_OFF, report: {}, semicolons: "on"})
@@ -72,7 +72,7 @@ describe("runFormat --semicolons on (dry-run, sample/semicolons-mixed)", () => {
     })
 })
 
-describe("runFormat --semicolons off handles nested ASI-eligible statements", () => {
+describe("refineFormat --semicolons off handles nested ASI-eligible statements", () => {
     it("strips `;` from describe/it/assert blocks without overflowing offsets", async () => {
         // Original regression motivation: a parent-before-child visitor
         // with naive reverse iteration over-shifted the file. The LS
@@ -92,7 +92,7 @@ describe("runFormat --semicolons off handles nested ASI-eligible statements", ()
     })
 })
 
-describe("runFormat --semicolons off keeps `;` at ASI-hazard sites", () => {
+describe("refineFormat --semicolons off keeps `;` at ASI-hazard sites", () => {
     it("retains `;` before a method-chain continuation on the next line", async () => {
         // The LS rule isSemicolonDeletionContext is the original source the
         // self-implemented detector was modeled on; this test pins that the
@@ -120,7 +120,7 @@ describe("runFormat --semicolons off keeps `;` at ASI-hazard sites", () => {
     })
 })
 
-describe("runFormat --semicolons off and do-while statements", () => {
+describe("refineFormat --semicolons off and do-while statements", () => {
     it("removes the trailing `;` after `} while (...)` (LS divergence from the old hand-rolled action)", async () => {
         // The LS deletion-context rule does not exempt do-while; the
         // retired hand-rolled filter did. Pinned as the LS outcome.

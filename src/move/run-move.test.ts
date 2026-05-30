@@ -23,7 +23,7 @@ function newProject(): Project {
     })
 }
 
-describe("runMove (in-memory, dry-run)", () => {
+describe("refineMove (in-memory, dry-run)", () => {
     it("rewrites every import form and preserves the `.ts` extension where it was present", async () => {
         const project = newProject()
         project.createSourceFile("/src/a.ts", "export const x = 1\nexport type T = number\n")
@@ -251,7 +251,7 @@ describe("runMove (in-memory, dry-run)", () => {
     })
 })
 
-describe("runMove (on disk)", () => {
+describe("refineMove (on disk)", () => {
     let workdir: string
 
     before(async () => {
@@ -282,7 +282,7 @@ describe("runMove (on disk)", () => {
             await fs.writeFile(path.join(sub, "src/unrelated.ts"), "export const z = 3 // ORIGINAL\n")
 
             const project = new Project({tsConfigFilePath: path.join(sub, "tsconfig.json")})
-            // Caller's pending edit on a file runMove never touches.
+            // Caller's pending edit on a file refineMove never touches.
             project.getSourceFileOrThrow(path.join(sub, "src/unrelated.ts")).replaceWithText("export const z = 999 // CALLER EDIT\n")
             await refineMove(project, {sources: [path.join(sub, "src/a.ts")], dest: path.join(sub, "lib/"), dryRun: false, report: NO_SPACE})
 

@@ -2,7 +2,7 @@
 // report recommendation and the CLI overrides are funneled into it, so
 // the ts-refine command output and the actual apply derive from one
 // value — guaranteeing they agree. The pipeline is:
-//   TsSurveyReport ─reportToFormatOptions─┐
+//   TsRefineReport ─reportToFormatOptions─┐
 //                                          ├─ mergeFormatOptions ─ resolveSettings ─▶ ResolvedSettings
 //   ApplyOverrides ─overridesToFormatOptions┘
 // and buildFormatFlags renders the same FormatOptions back to argv.
@@ -23,8 +23,8 @@ export interface FormatOptions {
     bracketSpacing?: "on" | "off"
 }
 
-// LS settings + runFormat-only concerns (organize gate, newline post-pass).
-// Local-ish shape — runFormat reads it; the CR diagnostic is computed at
+// LS settings + refineFormat-only concerns (organize gate, newline post-pass).
+// Local-ish shape — refineFormat reads it; the CR diagnostic is computed at
 // the apply entry from the report, not carried here.
 export interface ResolvedSettings {
     formatSettings: FormatCodeSettings
@@ -70,7 +70,7 @@ export function mergeFormatOptions(base: FormatOptions, override: FormatOptions)
     }
 }
 
-// FormatOptions → the settings runFormat hands to ts-morph.
+// FormatOptions → the settings refineFormat hands to ts-morph.
 export function resolveSettings(options: FormatOptions): ResolvedSettings {
     const formatSettings: MutableFormatSettings = {}
 

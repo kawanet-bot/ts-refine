@@ -51,7 +51,7 @@ interface ListFilters {
 interface ParsedArgs {
     command: Command
     // For report: the requested selectors or the full registry.
-    // For format: the recommendation-bearing reports runFormat consumes.
+    // For format: the recommendation-bearing reports refineFormat consumes.
     reportNames: string[]
     // inspect-only: the requested inspector selectors, or the full registry.
     inspectorNames?: string[]
@@ -173,7 +173,7 @@ function extractGlobals(argv: string[]): Globals | undefined {
 // `move`: positional args are `<source...> <dest>` — the parser only
 // validates the count and stores them as `paths`; the cli/dispatch layer
 // splits the list (last element → dest, the rest → sources) and hands
-// them to runMove.
+// them to refineMove.
 function parseMove(sub: string[], globals: Globals): ParseArgsResult | undefined {
     const files: string[] = []
     for (const a of sub) {
@@ -239,7 +239,7 @@ function parseRename(sub: string[], globals: Globals): ParseArgsResult | undefin
 
 // `inspect`: per-file analysis. `--<inspector>` flags select which
 // inspectors run (default: all). Unknown `--<name>` becomes a selector
-// and is validated at runtime by runInspect (mirrors parseReport).
+// and is validated at runtime by refineInspect (mirrors parseReport).
 function parseInspect(sub: string[], globals: Globals): ParseArgsResult | undefined {
     const inspectorNames: string[] = []
     const files: string[] = []
@@ -290,7 +290,7 @@ function parseList(sub: string[], globals: Globals): ParseArgsResult | undefined
 
 // `report`: collect report-name selectors (`--<report>`), the optional
 // `--output`, and positional files. Unknown `--<name>` is treated as a
-// report selector (validated later by runReports), matching how the old
+// report selector (validated later by refineReport), matching how the old
 // positional report names behaved.
 function parseReport(sub: string[], globals: Globals): ParseArgsResult | undefined {
     const reportNames: string[] = []

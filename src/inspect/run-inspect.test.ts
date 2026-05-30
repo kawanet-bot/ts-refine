@@ -7,7 +7,7 @@ import {refineInspect} from "./run-inspect.ts"
 
 const SAMPLE_TSCONFIG = path.resolve(import.meta.dirname, "../../sample/basic/tsconfig.json")
 
-describe("runInspect", () => {
+describe("refineInspect", () => {
     it("returns one InspectExport per export with importers count and alphabetical example", async () => {
         const project = new Project({tsConfigFilePath: SAMPLE_TSCONFIG})
         const files = await refineInspect(project, {paths: [], inspectorNames: ["exports"]})

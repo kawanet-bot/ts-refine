@@ -1,5 +1,5 @@
 // Reuses the original indent-action coverage against the unified
-// runFormat entry point. Each it block exercises `runFormat({indent: N})`
+// refineFormat entry point. Each it block exercises `refineFormat({indent: N})`
 // instead of the retired `runIndent`; the assertions are preserved.
 
 import {strict as assert} from "node:assert"
@@ -9,14 +9,14 @@ import {Project} from "ts-morph"
 import type {RefineFormatOpts, TsRefineReport} from "ts-refine"
 import {refineFormat} from "./run-format.ts"
 
-// Builds RunFormatOpts with the indent override pinned and unrelated
+// Builds RefineFormatOpts with the indent override pinned and unrelated
 // passes (organize-imports) silenced so the test exercises only the
 // indent dimension.
 function opts(width: number): Omit<RefineFormatOpts, "report"> & {report: TsRefineReport} {
     return {dryRun: true, paths: [], indent: width, organizeImports: "off", report: {}}
 }
 
-describe("runFormat --indent (dry-run, in-memory)", () => {
+describe("refineFormat --indent (dry-run, in-memory)", () => {
     it("expands 2-space indent to 4-space", async () => {
         const project = new Project({useInMemoryFileSystem: true})
         const sf = project.createSourceFile("a.ts", ["function f() {", "  return 1", "}", ""].join("\n"))

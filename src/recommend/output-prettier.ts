@@ -1,4 +1,4 @@
-// Renders a TsSurveyReport as the JSON body of a .prettierrc file.
+// Renders a TsRefineReport as the JSON body of a .prettierrc file.
 // Only the fields the prettier CLI itself understands are emitted; the
 // caller decides what stream to write to (process.stdout for
 // `report --output prettier`, an in-memory sink for tests, etc.).
@@ -14,7 +14,7 @@
 // member-separators has no Prettier mapping (comma members are
 // unreachable; semi/none is already covered by semi), so it is omitted.
 // Reports that didn't recommend anything contribute no fields, so an
-// empty TsSurveyReport renders as `{}`.
+// empty TsRefineReport renders as `{}`.
 
 import type {Options as PrettierOptions} from "prettier"
 import type {RefineReportOpts, TsRefineReport} from "ts-refine"
