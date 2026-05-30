@@ -53,15 +53,9 @@ export const refineRename: typeof declared.refineRename = async (project, opts) 
     for (const r of refs) targetFiles.add(r.getSourceFile())
 
     // Collision guard: refuse if the target name already exists where the
-    // rename would land. Top-level renames can clash with any touched file's
-    // top-level binding; a namespace member can only clash with another
-    // member of the same namespace (its references are qualified).
-    const collisions =
-        fromT.ns === null
-            ? [...targetFiles].filter((sf) => fileDeclaresTopLevel(sf, toT.name))
-            : // Always project-wide: a namespace is merged across files, so a
-              // colliding `ns.to` can sit in a file other than the renamed one.
-              findNamespaceMembers(project, fromT.ns, toT.name, null).map((n) => n.getSourceFile())
+    // rename would land. Top-level scans touched files only; a namespace
+    // member is project-wide because namespaces merge across files.
+    const collisions = fromT.ns === null ? topLevelCollisions(targetFiles, toT.name) : namespaceCollisions(project, fromT.ns, toT.name)
     if (collisions.length > 0) {
         const where = [...new Set(collisions)].map((sf) => displayPath(sf.getFilePath())).join(", ")
         throw new Error(`rename: \`${to}\` already exists in: ${where} (aliasing on collision is not supported yet)`)
@@ -174,6 +168,19 @@ function nameIdentifier(decl: Node, from: string): Identifier {
     const nameNode = (decl as {getNameNode?: () => Node | undefined}).getNameNode?.()
     if (nameNode && Node.isIdentifier(nameNode)) return nameNode
     throw new Error(`rename: cannot rename \`${from}\` (unsupported export form; default/expression exports are out of scope)`)
+}
+
+// Files that already declare `name` at the top level — every such file
+// is a collision site for a top-level rename.
+function topLevelCollisions(files: Iterable<SourceFile>, name: string): SourceFile[] {
+    return [...files].filter((sf) => fileDeclaresTopLevel(sf, name))
+}
+
+// Files that already declare `<ns>.<name>` — every such file is a
+// collision site for a namespace-member rename. Scanned project-wide
+// because a namespace can merge across files.
+function namespaceCollisions(project: Project, ns: string, name: string): SourceFile[] {
+    return findNamespaceMembers(project, ns, name, null).map((n) => n.getSourceFile())
 }
 
 // True when the file declares `name` at module top level (function, class,
