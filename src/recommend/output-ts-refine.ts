@@ -13,7 +13,7 @@ type Writer = RunReportsOpts["stream"]
 // shape parseArgs consumes. Reads FormatOptions — the same value the
 // `format` command applies — so the printed command and the apply agree;
 // `cr` is already dropped upstream, so --new-line is always runnable.
-function buildReformatFlags(options: FormatOptions): string[] {
+function buildFormatFlags(options: FormatOptions): string[] {
     const flags: string[] = []
     if (options.semicolons) flags.push("--semicolons", options.semicolons)
     if (options.indent !== undefined) flags.push("--indent", String(options.indent))
@@ -26,7 +26,7 @@ function buildReformatFlags(options: FormatOptions): string[] {
 // translates to). Empty recommendations still emit `ts-refine format`,
 // paralleling `--output prettier`'s empty `{}`.
 export function writeFormatCommand(report: TsSurveyReport, stream: Writer): void {
-    const flags = buildReformatFlags(reportToFormatOptions(report))
+    const flags = buildFormatFlags(reportToFormatOptions(report))
     if (flags.length === 0) {
         stream.write("ts-refine format\n")
         return
@@ -38,7 +38,7 @@ export function writeFormatCommand(report: TsSurveyReport, stream: Writer): void
 // `## recommendation` block in the default-survey Markdown. Skipped
 // when no recommendations fired (the empty form carries no information).
 export function writeFormatMarkdown(report: TsSurveyReport, stream: Writer): void {
-    const flags = buildReformatFlags(reportToFormatOptions(report))
+    const flags = buildFormatFlags(reportToFormatOptions(report))
     if (flags.length === 0) return
     stream.write("## recommendation\n")
     stream.write("\n")

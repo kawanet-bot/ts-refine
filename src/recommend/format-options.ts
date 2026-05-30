@@ -5,7 +5,7 @@
 //   TsSurveyReport ─reportToFormatOptions─┐
 //                                          ├─ mergeFormatOptions ─ resolveSettings ─▶ ResolvedSettings
 //   ApplyOverrides ─overridesToFormatOptions┘
-// and buildReformatFlags renders the same FormatOptions back to argv.
+// and buildFormatFlags renders the same FormatOptions back to argv.
 
 import type {TsSurveyReport} from "ts-refine"
 import type {FormatCodeSettings} from "ts-morph"
