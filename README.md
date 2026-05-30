@@ -188,8 +188,8 @@ aliases intact.
 # rename an export and every reference across the project
 npx ts-refine rename --from funcA --to funcB
 
-# scope the lookup to one file when the name isn't unique
-npx ts-refine rename src/lib.ts --from funcA --to funcB
+# rename the export from one file when the name isn't unique
+npx ts-refine rename --from funcA --to funcB src/lib.ts
 
 # preview the rename without writing
 npx ts-refine rename --from funcA --to funcB --dry-run

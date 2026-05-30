@@ -59,7 +59,7 @@ export function usage(): string {
         "rename (write; rename an exported identifier and every reference):",
         "  rename --from <a> --to <b>  Rename the export `a` to `b` project-wide,",
         "                              updating importers and usages (aliases kept).",
-        "  rename <file> --from ...    Scope the lookup to the identifier that <file>",
+        "  rename --from ... <file>    Scope the lookup to the identifier that <file>",
         "                              exports (when the name is not unique).",
         "  --from NS.a --to NS.b       Rename a namespace member (same namespace only).",
         "",
@@ -75,6 +75,6 @@ export function usage(): string {
         "",
         "Command paths:",
         "  move <source...> <dest>     Source and destination paths, not filters",
-        "  rename <file> --from ...    Optional file that disambiguates the export",
+        "  rename --from ... <file>    Optional file that disambiguates the export",
     ].join("\n")
 }
