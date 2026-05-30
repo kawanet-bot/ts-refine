@@ -203,13 +203,13 @@ npx ts-refine rename --from funcA --to funcB --dry-run
 npx ts-refine rename --from funcA --to funcB src/lib.ts
 ```
 
-## Questions
+## FAQ
 
 - **Does it replace Prettier?**
-  - No. Style unification is Prettier's job. `ts-refine` is designed to coexist
-    with your existing formatter; it infers your style and formats small edits
-    only so they blend into the surrounding code without creating unnecessary
-    diffs.
+  - No. Comprehensive style enforcement is typically Prettier's job. While
+    `ts-refine` includes a `format` command, its primary goal is to ensure that
+    automated edits blend into your existing codebase's inferred style rather
+    than providing exhaustive configuration options.
 
 - **What is the core value of `ts-refine`?**
   - The value lies in **semantic, graph-aware refactoring**. Unlike text-based
@@ -218,9 +218,10 @@ npx ts-refine rename --from funcA --to funcB src/lib.ts
     project-wide with high precision.
 
 - **Can it delete unused code like Knip?**
-  - No. Knip excels at finding what to delete. `ts-refine` focuses on safely
-    moving and renaming the code you keep, ensuring all references and styles
-    remain intact.
+  - No. Knip is specialized in finding and removing unused files and
+    dependencies. `ts-refine` can help you **find** and **inspect** unused
+    exports (via `list` and `inspect`), but it focuses on safely moving and
+    renaming the code you keep.
 
 - **Does it require config?**
   - No. `ts-refine` reads your TypeScript project and infers the conventions
