@@ -4,8 +4,8 @@
 // conventions rather than each file's own. Files the command didn't touch
 // are not passed in, so they stay as-is until `format` unifies them.
 
-import type {TsSurveyReport} from "ts-refine"
 import type {SourceFile} from "ts-morph"
+import type {TsSurveyReport} from "ts-refine"
 
 import {reportToFormatOptions, resolveSettings} from "./format-options.ts"
 

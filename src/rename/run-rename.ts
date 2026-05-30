@@ -11,11 +11,11 @@
 // has a top-level `to`) we refuse rather than emit shadowed/broken code;
 // auto-aliasing on collision is left for a follow-up.
 
-import type * as declared from "ts-refine"
 import {Node, type Identifier, type Project, type SourceFile} from "ts-morph"
+import type * as declared from "ts-refine"
 
-import {organizeChangedImports} from "../recommend/organize-changed.ts"
 import {displayPath} from "../lib/source-files.ts"
+import {organizeChangedImports} from "../recommend/organize-changed.ts"
 
 const IDENT = /^[A-Za-z_$][A-Za-z0-9_$]*$/
 

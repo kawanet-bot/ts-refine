@@ -2,11 +2,11 @@
 // pick the file-count majority. Maps to FormatCodeSettings.newLineCharacter
 // and Prettier's `endOfLine`.
 
-import type {RunNewLineOpts} from "ts-refine"
 import type {Project} from "ts-morph"
+import type {RunNewLineOpts} from "ts-refine"
 
-import {pickRecommendByFiles} from "../recommend/pick-recommend.ts"
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
+import {pickRecommendByFiles} from "../recommend/pick-recommend.ts"
 import type {ReportOpts} from "./types.ts"
 
 type NewLine = "lf" | "crlf" | "cr"

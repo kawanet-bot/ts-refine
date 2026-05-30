@@ -14,13 +14,13 @@
 // out of scope — that belongs in a separate subcommand. Each specifier
 // keeps the extension state it had before the move.
 
-import type * as declared from "ts-refine"
 import fs from "node:fs"
 import path from "node:path"
-import {Node, type ExportDeclaration, type ImportDeclaration, type Project, type SourceFile, type StringLiteral, ts} from "ts-morph"
+import {Node, ts, type ExportDeclaration, type ImportDeclaration, type Project, type SourceFile, type StringLiteral} from "ts-morph"
+import type * as declared from "ts-refine"
 
-import {organizeChangedImports} from "../recommend/organize-changed.ts"
 import {displayPath} from "../lib/source-files.ts"
+import {organizeChangedImports} from "../recommend/organize-changed.ts"
 
 // One captured module specifier whose target is moving. Held by AST node
 // reference so it stays valid across sf.move() and can be patched in place.

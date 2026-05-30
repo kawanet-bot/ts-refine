@@ -9,12 +9,12 @@
 // choice is already governed by the semicolons report, so the
 // recommendation is not emitted to either output.
 
-import type {RunMemberSeparatorsOpts} from "ts-refine"
 import type {ClassMemberTypes, Project, TypeElementTypes} from "ts-morph"
 import {Node} from "ts-morph"
+import type {RunMemberSeparatorsOpts} from "ts-refine"
 
-import {pickRecommendByFiles} from "../recommend/pick-recommend.ts"
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
+import {pickRecommendByFiles} from "../recommend/pick-recommend.ts"
 import type {ReportOpts} from "./types.ts"
 
 type Separator = "none" | "," | ";"

@@ -3,8 +3,8 @@ import fs from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
 import {after, before, describe, it} from "node:test"
-import type {TsSurveyReport} from "ts-refine"
 import {Project, ts} from "ts-morph"
+import type {TsSurveyReport} from "ts-refine"
 import {runMove} from "./run-move.ts"
 
 // organizeImports after a move follows the surveyed style; these reports

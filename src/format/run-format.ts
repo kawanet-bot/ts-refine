@@ -2,11 +2,11 @@
 // Order is formatText → organizeImports; the same FormatCodeSettings
 // feeds both so the rebuilt import block matches the file.
 
-import type * as declared from "ts-refine"
 import fs from "node:fs/promises"
+import type * as declared from "ts-refine"
 
-import {mergeFormatOptions, normalizeNewLines, overridesToFormatOptions, reportToFormatOptions, resolveSettings} from "../recommend/format-options.ts"
 import {selectSourceFiles} from "../lib/source-files.ts"
+import {mergeFormatOptions, normalizeNewLines, overridesToFormatOptions, reportToFormatOptions, resolveSettings} from "../recommend/format-options.ts"
 
 export const runFormat: typeof declared.runFormat = async (project, opts) => {
     const {dryRun, paths, report, ...overrides} = opts

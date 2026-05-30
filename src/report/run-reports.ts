@@ -8,13 +8,13 @@
 
 import type * as declared from "ts-refine"
 
-import type {ReportOpts} from "./types.ts"
 import {runReportBracketSpacing} from "./bracket-spacing.ts"
 import {runReportIndent} from "./indent.ts"
 import {runReportMemberSeparators} from "./member-separators.ts"
 import {runReportNewLine} from "./new-line.ts"
 import {reportNames} from "./report-names.ts"
 import {runReportSemicolons} from "./semicolons.ts"
+import type {ReportOpts} from "./types.ts"
 
 export const runReports: typeof declared.runReports = async (project, opts) => {
     const {stream, reportNames: requested, paths} = opts

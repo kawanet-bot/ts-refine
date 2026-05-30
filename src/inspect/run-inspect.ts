@@ -10,8 +10,8 @@
 // suggestion column.
 
 import path from "node:path"
+import {Node, ts, type ImportDeclaration, type SourceFile} from "ts-morph"
 import type * as declared from "ts-refine"
-import {Node, type ImportDeclaration, type SourceFile, ts} from "ts-morph"
 
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
 import {inspectorNames} from "./inspector-names.ts"

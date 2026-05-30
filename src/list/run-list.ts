@@ -7,8 +7,8 @@
 // The export/unused counting mirrors the unused-exports report; the two
 // will be unified in a later pass (that report is left untouched for now).
 
-import type * as declared from "ts-refine"
 import {Node} from "ts-morph"
+import type * as declared from "ts-refine"
 
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
 

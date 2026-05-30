@@ -1,7 +1,7 @@
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
-import type {TsSurveyReport} from "ts-refine"
 import {Project, ts} from "ts-morph"
+import type {TsSurveyReport} from "ts-refine"
 import {runRename} from "./run-rename.ts"
 
 // rename re-sorts the touched files' imports via organizeImports using the

@@ -6,14 +6,14 @@
 
 import type {InspectorName, TsSurveyReportName} from "ts-refine"
 
-import {selectOutput} from "./recommend/select-output.ts"
+import {initProject, runFormat, runInspect, runList, runMove, runRename, runReports} from "./index.ts"
 import {writeInspectFile} from "./inspect/format-inspect.ts"
-import {initProject, runInspect, runList, runMove, runFormat, runRename, runReports} from "./index.ts"
+import {parseArgs} from "./lib/parse-args.ts"
+import {usage} from "./lib/usage.ts"
 import {filterListEntries, writeListTable} from "./list/format-list.ts"
 import {writePrettierMarkdown} from "./recommend/output-prettier.ts"
 import {writeFormatMarkdown} from "./recommend/output-ts-refine.ts"
-import {parseArgs} from "./lib/parse-args.ts"
-import {usage} from "./lib/usage.ts"
+import {selectOutput} from "./recommend/select-output.ts"
 
 const opts = parseArgs(process.argv.slice(2))
 

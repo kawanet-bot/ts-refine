@@ -5,12 +5,12 @@
 // insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces and Prettier's
 // `bracketSpacing`.
 
-import type {RunBracketSpacingOpts} from "ts-refine"
 import type {Project} from "ts-morph"
 import {Node} from "ts-morph"
+import type {RunBracketSpacingOpts} from "ts-refine"
 
-import {pickRecommendByFiles} from "../recommend/pick-recommend.ts"
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
+import {pickRecommendByFiles} from "../recommend/pick-recommend.ts"
 import type {ReportOpts} from "./types.ts"
 
 type Style = "on" | "off"

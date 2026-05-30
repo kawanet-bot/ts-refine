@@ -7,9 +7,9 @@
 //   ApplyOverrides ─overridesToFormatOptions┘
 // and buildFormatFlags renders the same FormatOptions back to argv.
 
-import type {TsSurveyReport} from "ts-refine"
 import type {FormatCodeSettings} from "ts-morph"
 import {ts} from "ts-morph"
+import type {TsSurveyReport} from "ts-refine"
 
 import type {ApplyOverrides} from "../lib/parse-args.ts"
 

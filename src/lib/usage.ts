@@ -1,8 +1,8 @@
 // CLI help text. Name lists come from the report / output registries
 // so help stays in sync with wired-up entries.
 
-import {outputNames} from "../recommend/select-output.ts"
 import {inspectorNames} from "../inspect/inspector-names.ts"
+import {outputNames} from "../recommend/select-output.ts"
 import {reportNames} from "../report/report-names.ts"
 
 export function usage(): string {
