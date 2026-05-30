@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // Thin .ts entry point: forward argv/stdout to refineCLI and exit with the
-// status it resolves to. The built-.mjs twin is bin/ts-refine.cli.js.
+// status it resolves to.
 
 import {refineCLI} from "./cli/refine-cli.ts"
 

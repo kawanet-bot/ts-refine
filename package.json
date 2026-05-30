@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "author": "Kawanet",
   "bin": {
-    "ts-refine": "./dist/ts-refine.cli.mjs"
+    "ts-refine": "./src/cli.ts"
   },
   "bugs": {
     "url": "https://github.com/kawanet/ts-refine/issues"
@@ -33,7 +33,6 @@
     "LICENSE",
     "README.md",
     "dist/ts-refine.mjs",
-    "dist/ts-refine.cli.mjs",
     "src/**/*.ts",
     "!src/**/*.test.ts",
     "types/*.d.ts"

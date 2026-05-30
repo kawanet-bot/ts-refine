@@ -1,8 +1,6 @@
 // refineCLI is the whole CLI as a function: parse argv, dispatch the
 // subcommand, write stdout-bound output to `stream`, and resolve with the
-// process exit status. It never calls process.exit and never rejects, so the
-// thin entry points (src/cli.ts for .ts, bin/ts-refine.cli.js for the built
-// .mjs) just forward argv/stdout and exit with the returned status.
+// process exit status. It never calls process.exit and never rejects.
 //
 // `stream` stands in for stdout (the report Markdown, list/inspect tables,
 // usage, --output bodies). Diagnostics and per-command progress stay on
