@@ -2,8 +2,8 @@
 // so help stays in sync with wired-up entries.
 
 import {inspectorNames} from "../inspect/inspector-names.ts"
-import {outputNames} from "../recommend/select-output.ts"
 import {reportNames} from "../report/report-names.ts"
+import {outputNames} from "./select-output.ts"
 
 export function usage(): string {
     return [

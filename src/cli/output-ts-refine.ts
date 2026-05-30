@@ -4,7 +4,7 @@
 
 import type {RefineReportOpts, TsRefineReport} from "ts-refine"
 
-import {type FormatOptions, reportToFormatOptions} from "./format-options.ts"
+import {type FormatOptions, reportToFormatOptions} from "../recommend/format-options.ts"
 
 // Local alias for readability — not exported.
 type Writer = RefineReportOpts["stream"]
