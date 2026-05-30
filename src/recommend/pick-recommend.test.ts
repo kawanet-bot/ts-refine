@@ -8,7 +8,10 @@ describe("pickRecommendByFiles", () => {
             ["a", {files: 3, lines: 5}],
             ["b", {files: 2, lines: 9}],
         ])
-        assert.equal(pickRecommendByFiles(["a", "b"], (k) => m.get(k)), "a")
+        assert.equal(
+            pickRecommendByFiles(["a", "b"], (k) => m.get(k)),
+            "a",
+        )
     })
 
     it("breaks a file-count tie by the larger line count", () => {
@@ -16,7 +19,10 @@ describe("pickRecommendByFiles", () => {
             ["a", {files: 3, lines: 5}],
             ["b", {files: 3, lines: 9}],
         ])
-        assert.equal(pickRecommendByFiles(["a", "b"], (k) => m.get(k)), "b")
+        assert.equal(
+            pickRecommendByFiles(["a", "b"], (k) => m.get(k)),
+            "b",
+        )
     })
 
     it("returns undefined when both file and line counts tie across distinct keys", () => {
@@ -24,16 +30,25 @@ describe("pickRecommendByFiles", () => {
             ["a", {files: 3, lines: 5}],
             ["b", {files: 3, lines: 5}],
         ])
-        assert.equal(pickRecommendByFiles(["a", "b"], (k) => m.get(k)), undefined)
+        assert.equal(
+            pickRecommendByFiles(["a", "b"], (k) => m.get(k)),
+            undefined,
+        )
     })
 
     it("ignores keys whose getter returns undefined", () => {
         const m = new Map([["a", {files: 2, lines: 4}]])
-        assert.equal(pickRecommendByFiles(["a", "b"], (k) => m.get(k)), "a")
+        assert.equal(
+            pickRecommendByFiles(["a", "b"], (k) => m.get(k)),
+            "a",
+        )
     })
 
     it("returns undefined when no key has any data", () => {
-        assert.equal(pickRecommendByFiles(["a", "b"], () => undefined), undefined)
+        assert.equal(
+            pickRecommendByFiles(["a", "b"], () => undefined),
+            undefined,
+        )
     })
 
     it("a later strictly-bigger entry wins even after a prior tie cleared the recommend", () => {
@@ -42,6 +57,9 @@ describe("pickRecommendByFiles", () => {
             ["b", {files: 2, lines: 5}],
             ["c", {files: 3, lines: 1}],
         ])
-        assert.equal(pickRecommendByFiles(["a", "b", "c"], (k) => m.get(k)), "c")
+        assert.equal(
+            pickRecommendByFiles(["a", "b", "c"], (k) => m.get(k)),
+            "c",
+        )
     })
 })

@@ -324,22 +324,43 @@ describe("parseArgs", () => {
     })
 
     it("rejects --dry-run for a read command, wherever it sits", () => {
-        assert.equal(quiet(() => parseArgs(["report", "--dry-run", "-p", SAMPLE_TSCONFIG])), undefined)
-        assert.equal(quiet(() => parseArgs(["--dry-run", "report", "-p", SAMPLE_TSCONFIG])), undefined)
+        assert.equal(
+            quiet(() => parseArgs(["report", "--dry-run", "-p", SAMPLE_TSCONFIG])),
+            undefined,
+        )
+        assert.equal(
+            quiet(() => parseArgs(["--dry-run", "report", "-p", SAMPLE_TSCONFIG])),
+            undefined,
+        )
     })
 
     it("rejects -p duplicated across either side, like the right-side duplicate", () => {
         // left+right
-        assert.equal(quiet(() => parseArgs(["-p", SAMPLE_TSCONFIG, "report", "-p", SAMPLE_TSCONFIG])), undefined)
+        assert.equal(
+            quiet(() => parseArgs(["-p", SAMPLE_TSCONFIG, "report", "-p", SAMPLE_TSCONFIG])),
+            undefined,
+        )
         // left+left
-        assert.equal(quiet(() => parseArgs(["-p", SAMPLE_TSCONFIG, "-p", SAMPLE_TSCONFIG, "report"])), undefined)
+        assert.equal(
+            quiet(() => parseArgs(["-p", SAMPLE_TSCONFIG, "-p", SAMPLE_TSCONFIG, "report"])),
+            undefined,
+        )
         // right+right
-        assert.equal(quiet(() => parseArgs(["report", "-p", SAMPLE_TSCONFIG, "-p", SAMPLE_TSCONFIG])), undefined)
+        assert.equal(
+            quiet(() => parseArgs(["report", "-p", SAMPLE_TSCONFIG, "-p", SAMPLE_TSCONFIG])),
+            undefined,
+        )
     })
 
     it("treats globals with no subcommand as a usage error, not help", () => {
-        assert.equal(quiet(() => parseArgs(["-p", SAMPLE_TSCONFIG])), undefined)
-        assert.equal(quiet(() => parseArgs(["--dry-run"])), undefined)
+        assert.equal(
+            quiet(() => parseArgs(["-p", SAMPLE_TSCONFIG])),
+            undefined,
+        )
+        assert.equal(
+            quiet(() => parseArgs(["--dry-run"])),
+            undefined,
+        )
     })
 })
 

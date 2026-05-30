@@ -29,10 +29,7 @@ describe("runReportSemicolons (sample/semicolons-mixed)", () => {
 
     it("uses integer bucket boundaries for exact 50% and near-boundary tails", async () => {
         const project = new Project({useInMemoryFileSystem: true})
-        project.createSourceFile(
-            "/sample/tsconfig.json",
-            JSON.stringify({compilerOptions: {}, include: ["*.ts"]}),
-        )
+        project.createSourceFile("/sample/tsconfig.json", JSON.stringify({compilerOptions: {}, include: ["*.ts"]}))
         project.createSourceFile("/sample/ten-percent.ts", statements(1, 10))
         project.createSourceFile("/sample/exact-half.ts", statements(1, 2))
         project.createSourceFile("/sample/ninety-percent.ts", statements(9, 10))
@@ -80,10 +77,7 @@ describe("runReportSemicolons (sample/semicolons-mixed)", () => {
         // counted); the comma member is excluded. No statements at all, so the
         // file is entirely member-driven: 2/3 carry `;` → bucket 51-89%.
         const project = new Project({useInMemoryFileSystem: true})
-        project.createSourceFile(
-            "/sample/iface.ts",
-            ["interface A {", "  a: string;", "  b: number;", "  c: boolean", "  d(): void,", "}"].join("\n"),
-        )
+        project.createSourceFile("/sample/iface.ts", ["interface A {", "  a: string;", "  b: number;", "  c: boolean", "  d(): void,", "}"].join("\n"))
         const lines: string[] = []
         const ret = await runReportSemicolons(project, {
             stream: {write: (l) => lines.push(l)},

@@ -27,10 +27,7 @@ import {organizeChangedImports} from "../recommend/organize-changed.ts"
 // (".ts", ".js", ".mjs", ...) or "" for no extension — whatever the user
 // wrote stays. ts-morph drops the extension during move and we put back
 // exactly what was there originally.
-type SpecRecord =
-    | {kind: "import"; node: ImportDeclaration; originalExt: string}
-    | {kind: "export"; node: ExportDeclaration; originalExt: string}
-    | {kind: "dynamic"; node: StringLiteral; originalExt: string}
+type SpecRecord = {kind: "import"; node: ImportDeclaration; originalExt: string} | {kind: "export"; node: ExportDeclaration; originalExt: string} | {kind: "dynamic"; node: StringLiteral; originalExt: string}
 
 // File extensions TypeScript's module resolution recognizes for source
 // files. We restore whichever of these the user wrote — `.js` etc. is

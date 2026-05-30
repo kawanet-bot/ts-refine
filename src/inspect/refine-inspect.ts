@@ -30,9 +30,7 @@ export const refineInspect: typeof declared.refineInspect = async (project, opts
     // Importers analysis scans every other project source file for import
     // declarations / `export ... from` / dynamic imports pointing here, so
     // build the candidate set once and reuse across targets.
-    const allFiles = requested.includes("importers")
-        ? project.getSourceFiles().filter((sf) => !sf.getFilePath().endsWith(".d.ts"))
-        : []
+    const allFiles = requested.includes("importers") ? project.getSourceFiles().filter((sf) => !sf.getFilePath().endsWith(".d.ts")) : []
 
     const results: TSR.InspectFile[] = []
     for (const sf of targets) {

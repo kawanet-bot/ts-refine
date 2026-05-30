@@ -40,10 +40,7 @@ describe("runReportIndent (sample/indents-mixed)", () => {
         // four-step file has more nested blocks → more transitions at width 4.
         const project = new Project({useInMemoryFileSystem: true})
         project.createSourceFile("/sample/two.ts", "function f() {\n  return 1\n}\n")
-        project.createSourceFile(
-            "/sample/four.ts",
-            "function g() {\n    if (a) {\n        b()\n    }\n}\n",
-        )
+        project.createSourceFile("/sample/four.ts", "function g() {\n    if (a) {\n        b()\n    }\n}\n")
         const lines: string[] = []
         const ret = await runReportIndent(project, {
             stream: {write: (l) => lines.push(l)},

@@ -16,22 +16,34 @@ describe("filterListEntries", () => {
 
     it("--no-exports keeps only files that export nothing", () => {
         const r = filterListEntries(ENTRIES, {noExports: true, noImporters: false, unusedExports: false})
-        assert.deepEqual(r.map((e) => e.file), ["entry.ts"])
+        assert.deepEqual(
+            r.map((e) => e.file),
+            ["entry.ts"],
+        )
     })
 
     it("--no-importers keeps only files no one imports", () => {
         const r = filterListEntries(ENTRIES, {noExports: false, noImporters: true, unusedExports: false})
-        assert.deepEqual(r.map((e) => e.file), ["entry.ts"])
+        assert.deepEqual(
+            r.map((e) => e.file),
+            ["entry.ts"],
+        )
     })
 
     it("--unused-exports keeps only files with unused exports", () => {
         const r = filterListEntries(ENTRIES, {noExports: false, noImporters: false, unusedExports: true})
-        assert.deepEqual(r.map((e) => e.file), ["stale.ts"])
+        assert.deepEqual(
+            r.map((e) => e.file),
+            ["stale.ts"],
+        )
     })
 
     it("combines multiple filters with OR (union of candidates)", () => {
         const r = filterListEntries(ENTRIES, {noExports: true, noImporters: false, unusedExports: true})
-        assert.deepEqual(r.map((e) => e.file), ["entry.ts", "stale.ts"])
+        assert.deepEqual(
+            r.map((e) => e.file),
+            ["entry.ts", "stale.ts"],
+        )
     })
 })
 

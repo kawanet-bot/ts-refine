@@ -44,10 +44,7 @@ describe("refineInspect", () => {
 
     it("rejects an unknown inspector name", async () => {
         const project = new Project({tsConfigFilePath: SAMPLE_TSCONFIG})
-        await assert.rejects(
-            () => refineInspect(project, {paths: [], inspectorNames: ["typo" as unknown as TSR.InspectorName]}),
-            /unknown inspector name: typo/,
-        )
+        await assert.rejects(() => refineInspect(project, {paths: [], inspectorNames: ["typo" as unknown as TSR.InspectorName]}), /unknown inspector name: typo/)
     })
 
     it("classifies each importer form (value / type / namespace / side-effect / re-export / dynamic / mixed)", async () => {
@@ -56,13 +53,13 @@ describe("refineInspect", () => {
             compilerOptions: {allowImportingTsExtensions: true} as any,
         })
         project.createSourceFile("/target.ts", "export const x = 1\nexport type T = number\n")
-        project.createSourceFile("/value.ts", "import {x} from \"./target.ts\"\nconst _ = x\n")
-        project.createSourceFile("/type.ts", "import type {T} from \"./target.ts\"\nconst _: T = 1\n")
-        project.createSourceFile("/ns.ts", "import * as A from \"./target.ts\"\nconst _ = A.x\n")
-        project.createSourceFile("/side.ts", "import \"./target.ts\"\n")
-        project.createSourceFile("/reexp.ts", "export {x} from \"./target.ts\"\nexport * from \"./target.ts\"\n")
-        project.createSourceFile("/dyn.ts", "export const load = () => import(\"./target.ts\")\n")
-        project.createSourceFile("/mixed.ts", "import {x, type T} from \"./target.ts\"\nconst _: T = x\n")
+        project.createSourceFile("/value.ts", 'import {x} from "./target.ts"\nconst _ = x\n')
+        project.createSourceFile("/type.ts", 'import type {T} from "./target.ts"\nconst _: T = 1\n')
+        project.createSourceFile("/ns.ts", 'import * as A from "./target.ts"\nconst _ = A.x\n')
+        project.createSourceFile("/side.ts", 'import "./target.ts"\n')
+        project.createSourceFile("/reexp.ts", 'export {x} from "./target.ts"\nexport * from "./target.ts"\n')
+        project.createSourceFile("/dyn.ts", 'export const load = () => import("./target.ts")\n')
+        project.createSourceFile("/mixed.ts", 'import {x, type T} from "./target.ts"\nconst _: T = x\n')
 
         const files = await refineInspect(project, {paths: ["/target.ts"], inspectorNames: ["importers"]})
         assert.equal(files.length, 1)

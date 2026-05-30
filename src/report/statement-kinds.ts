@@ -26,11 +26,5 @@ export function isSemiEligibleStatement(node: Node): boolean {
 // them too. Comma-separated members are excluded by the caller (the LS
 // leaves them untouched), keeping the count domain == the apply domain.
 export function isTypeMember(node: Node): boolean {
-    return (
-        Node.isPropertySignature(node) ||
-        Node.isMethodSignature(node) ||
-        Node.isIndexSignatureDeclaration(node) ||
-        Node.isCallSignatureDeclaration(node) ||
-        Node.isConstructSignatureDeclaration(node)
-    )
+    return Node.isPropertySignature(node) || Node.isMethodSignature(node) || Node.isIndexSignatureDeclaration(node) || Node.isCallSignatureDeclaration(node) || Node.isConstructSignatureDeclaration(node)
 }

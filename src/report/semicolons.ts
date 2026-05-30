@@ -56,16 +56,7 @@ export async function runReportSemicolons(project: Project, {stream, paths}: Rep
     const aboveFiles = above.length
     const belowStmts = below.reduce((s, f) => s + f.total, 0)
     const aboveStmts = above.reduce((s, f) => s + f.total, 0)
-    const recommend: "on" | "off" | undefined =
-        belowFiles > aboveFiles
-            ? "off"
-            : aboveFiles > belowFiles
-                ? "on"
-                : belowStmts > aboveStmts
-                    ? "off"
-                    : aboveStmts > belowStmts
-                        ? "on"
-                        : undefined
+    const recommend: "on" | "off" | undefined = belowFiles > aboveFiles ? "off" : aboveFiles > belowFiles ? "on" : belowStmts > aboveStmts ? "off" : aboveStmts > belowStmts ? "on" : undefined
 
     stream.write("### semicolons\n")
     stream.write("\n")

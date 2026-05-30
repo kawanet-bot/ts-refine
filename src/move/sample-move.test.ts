@@ -39,7 +39,7 @@ describe("refineMove against sample fixtures (one era per sample)", () => {
                 report: {},
             })
             const cli = await fs.readFile(path.join(workdir, "src/cli.ts"), "utf8")
-            assert.ok(cli.includes("from \"./util/lib.ts\""), `cli.ts should reference ./util/lib.ts; got:\n${cli}`)
+            assert.ok(cli.includes('from "./util/lib.ts"'), `cli.ts should reference ./util/lib.ts; got:\n${cli}`)
         })
     })
 
@@ -53,7 +53,7 @@ describe("refineMove against sample fixtures (one era per sample)", () => {
                 report: {},
             })
             const cli = await fs.readFile(path.join(workdir, "src/cli.ts"), "utf8")
-            assert.ok(cli.includes("from \"./util/lib.js\""), `cli.ts should reference ./util/lib.js; got:\n${cli}`)
+            assert.ok(cli.includes('from "./util/lib.js"'), `cli.ts should reference ./util/lib.js; got:\n${cli}`)
         })
     })
 
@@ -67,7 +67,7 @@ describe("refineMove against sample fixtures (one era per sample)", () => {
                 report: {},
             })
             const cli = await fs.readFile(path.join(workdir, "src/cli.ts"), "utf8")
-            assert.ok(cli.includes("from \"./util/lib\""), `cli.ts should reference ./util/lib; got:\n${cli}`)
+            assert.ok(cli.includes('from "./util/lib"'), `cli.ts should reference ./util/lib; got:\n${cli}`)
             // And explicitly does NOT add `.ts` / `.js`.
             assert.ok(!cli.includes("./util/lib.ts"), `cli.ts should not gain .ts; got:\n${cli}`)
             assert.ok(!cli.includes("./util/lib.js"), `cli.ts should not gain .js; got:\n${cli}`)

@@ -5,13 +5,7 @@
 
 import type {TSR} from "ts-refine"
 
-export const reportNames: readonly TSR.ReportName[] = [
-    "semicolons",
-    "indent",
-    "member-separators",
-    "new-line",
-    "bracket-spacing",
-] as const
+export const reportNames: readonly TSR.ReportName[] = ["semicolons", "indent", "member-separators", "new-line", "bracket-spacing"] as const
 
 // format's default report set is currently the full registry.
 export const applyReportNames: readonly TSR.ReportName[] = reportNames
