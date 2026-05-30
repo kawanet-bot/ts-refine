@@ -25,7 +25,7 @@ function buildReformatFlags(options: FormatOptions): string[] {
 // Always starts with the `format` command (the verb the recommendation
 // translates to). Empty recommendations still emit `ts-refine format`,
 // paralleling `--output prettier`'s empty `{}`.
-export function writeReformatCommand(report: TsSurveyReport, stream: Writer): void {
+export function writeFormatCommand(report: TsSurveyReport, stream: Writer): void {
     const flags = buildReformatFlags(reportToFormatOptions(report))
     if (flags.length === 0) {
         stream.write("ts-refine format\n")

@@ -12,7 +12,7 @@
 import type {RunReportsOpts, TsSurveyReport} from "ts-refine"
 
 import {writePrettierConfig} from "./output-prettier.ts"
-import {writeReformatCommand} from "./output-ts-refine.ts"
+import {writeFormatCommand} from "./output-ts-refine.ts"
 
 // Local alias for readability — not exported.
 type Writer = RunReportsOpts["stream"]
@@ -42,7 +42,7 @@ export function selectOutput(name: string | null, stdout: Writer): OutputDispatc
     if (name === "ts-refine") {
         return {
             reportStream: NULL_SINK,
-            finalize: (report) => writeReformatCommand(report, stdout),
+            finalize: (report) => writeFormatCommand(report, stdout),
         }
     }
     // outputNames is exhaustive — this guards future entries that forget to add a branch.
