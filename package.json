@@ -59,8 +59,9 @@
   "scripts": {
     "build": "make -C builder",
     "fixpack": "fixpack",
-    "format": "prettier --write 'src/**/*.ts'",
+    "format": "node src/cli.ts format",
     "prepack": "make -C builder test",
+    "prettier": "prettier --write 'src/**/*.ts' 'types/**/*.ts'",
     "test": "make -C builder test"
   },
   "type": "module",
