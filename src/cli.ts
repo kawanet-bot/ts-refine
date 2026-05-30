@@ -55,9 +55,13 @@ try {
         // (rest) and hands them to runMove.
         const sources = opts.paths.slice(0, -1)
         const dest = opts.paths[opts.paths.length - 1]
-        await runMove(project, {sources, dest, dryRun: opts.dryRun})
+        // Survey the whole project so the post-move organizeImports follows
+        // the codebase's conventions, not the moved files alone.
+        const report = await runReports(project, {paths: [], reportNames, stream: NULL_SINK})
+        await runMove(project, {sources, dest, dryRun: opts.dryRun, report})
     } else if (opts.command === "rename") {
-        await runRename(project, {from: opts.from!, to: opts.to!, file: opts.renameFile ?? null, dryRun: opts.dryRun})
+        const report = await runReports(project, {paths: [], reportNames, stream: NULL_SINK})
+        await runRename(project, {from: opts.from!, to: opts.to!, file: opts.renameFile ?? null, dryRun: opts.dryRun, report})
     } else if (opts.command === "format") {
         const report = await runReports(project, {...fileOpts, reportNames, stream: NULL_SINK})
         await runFormat(project, {...fileOpts, dryRun: opts.dryRun, report, ...opts.applyOverrides})

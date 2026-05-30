@@ -129,12 +129,13 @@ export interface RunInspectOpts extends TsSurveyOpts {
 // Input to `runMove`. `sources` are absolute paths of existing project
 // source files; `dest` is either an existing directory (multi-source) or
 // a destination file path (single-source rename). After moving, imports of
-// the files whose specifiers changed are re-sorted (organizeImports),
-// preserving each file's own brace-spacing — no report input is required.
+// the files whose specifiers changed are re-sorted (organizeImports) using
+// `report` — the project-wide surveyed style — so they converge on it.
 export interface RunMoveOpts {
     sources: string[]
     dest: string
     dryRun: boolean
+    report: TsSurveyReport
 }
 
 // runMove returns the planned moves (from → to) and the set of in-project
@@ -150,11 +151,14 @@ export interface MoveResult {
 // across the project. `file` (absolute path) restricts the lookup to that
 // file's exports; null means the symbol must be uniquely exported project
 // -wide. Named exports only — default/expression exports are out of scope.
+// After renaming, the touched files' imports are re-sorted (organizeImports)
+// using `report` — the project-wide surveyed style.
 export interface RunRenameOpts {
     from: string
     to: string
     file: string | null
     dryRun: boolean
+    report: TsSurveyReport
 }
 
 // runRename returns the applied rename and the in-project files whose text

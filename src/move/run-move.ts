@@ -5,10 +5,10 @@
 // preserve the `.ts` extension in the rewritten module specifiers, so we
 // snapshot the original `.ts` presence per specifier before the move and
 // restore it after. After the moves, organizeImports re-sorts the import
-// block of each file whose imports actually changed (and only those), so a
-// relocation that shuffles specifier order leaves them tidy. Each file keeps
-// its own brace-spacing style — no project-wide style is imposed, and files
-// with no import change are never reformatted. No full format pass runs.
+// block of each file whose imports actually changed (and only those), using
+// the project-wide surveyed style so the touched files converge on the
+// codebase's conventions. Files with no import change are never reformatted;
+// they get unified later by `format`. No full format pass runs here.
 //
 // Migration ("everyone should use this extension style") is intentionally
 // out of scope — that belongs in a separate subcommand. Each specifier
@@ -19,6 +19,7 @@ import fs from "node:fs"
 import path from "node:path"
 import {Node, type ExportDeclaration, type ImportDeclaration, type Project, type SourceFile, type StringLiteral, ts} from "ts-morph"
 
+import {organizeChangedImports} from "../recommend/organize-changed.ts"
 import {displayPath} from "../lib/source-files.ts"
 
 // One captured module specifier whose target is moving. Held by AST node
@@ -48,25 +49,8 @@ function withExtension(specifier: string, ext: string): string {
     return specifier.replace(KNOWN_EXT, "") + ext
 }
 
-// Per-file brace-spacing for organizeImports: read the file's own named
-// imports and mirror whatever it already uses (`{ x }` vs `{x}`) so the
-// re-sorted block doesn't drift to a different convention. Defaults to no
-// inner space when the file has no single-line named import to learn from
-// (the setting is irrelevant unless braces are emitted).
-function detectImportBraceSpacing(sf: SourceFile): boolean {
-    for (const imp of sf.getImportDeclarations()) {
-        const named = imp.getImportClause()?.getNamedBindings()
-        if (!named || !Node.isNamedImports(named)) continue
-        const text = named.getText()
-        if (text.startsWith("{") && !/[\r\n]/.test(text)) {
-            return text.startsWith("{ ") || text.startsWith("{\t")
-        }
-    }
-    return false
-}
-
 export const runMove: typeof declared.runMove = async (project, opts) => {
-    const {sources, dest, dryRun} = opts
+    const {sources, dest, dryRun, report} = opts
 
     const plan = planMoves(project, sources, dest)
 
@@ -98,17 +82,13 @@ export const runMove: typeof declared.runMove = async (project, opts) => {
     for (const r of records) touchedFiles.add(r.node.getSourceFile())
 
     // organizeImports re-sorts each import-changed file's import block (a
-    // relocation can reorder specifiers). Restricted to the files whose
-    // specifiers actually changed — files with no import change stay
-    // untouched. Each file's own brace-spacing style is detected and
-    // preserved so organizeImports doesn't impose `{ x }` over `{x}`.
-    // Collect the SourceFile set first, since organizeImports invalidates
-    // the recorded declaration nodes as it rewrites the block.
+    // relocation can reorder specifiers), using the project's surveyed style.
+    // Restricted to the files whose specifiers actually changed — files with
+    // no import change stay untouched. Collect the SourceFile set first,
+    // since organizeImports invalidates the recorded nodes as it rewrites.
     const importChangedFiles = new Set<SourceFile>()
     for (const r of records) importChangedFiles.add(r.node.getSourceFile())
-    for (const sf of importChangedFiles) {
-        sf.organizeImports({insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces: detectImportBraceSpacing(sf)})
-    }
+    organizeChangedImports(importChangedFiles, report)
 
     // Dry-run: print planned moves + the importers that would change;
     // never touch disk. Otherwise persist only what we changed — call

@@ -1,9 +1,10 @@
 // `rename`: rename an exported identifier across the whole project. The TS
 // Language Service rename (ts-morph's Node#rename) rewrites the declaration,
 // every importer's binding, and every usage in one pass — and already keeps
-// an importer's local alias intact (`{from as x}` → `{to as x}`). Only the
-// identifier text changes; no formatting or organize-imports pass runs, so
-// files whose imports/usages don't reference the symbol are never touched.
+// an importer's local alias intact (`{from as x}` → `{to as x}`). After the
+// rename, the touched files' import blocks are re-sorted (organizeImports)
+// using the project's surveyed style; files that don't reference the symbol
+// are never touched.
 //
 // Scope: named exports. Converting default <-> named export is a separate
 // concern and out of scope here. On a name collision (an importer already
@@ -13,12 +14,13 @@
 import type * as declared from "ts-refine"
 import {Node, type Identifier, type Project, type SourceFile} from "ts-morph"
 
+import {organizeChangedImports} from "../recommend/organize-changed.ts"
 import {displayPath} from "../lib/source-files.ts"
 
 const IDENT = /^[A-Za-z_$][A-Za-z0-9_$]*$/
 
 export const runRename: typeof declared.runRename = async (project, opts) => {
-    const {from, to, file, dryRun} = opts
+    const {from, to, file, dryRun, report} = opts
 
     if (!IDENT.test(from)) throw new Error(`rename: not a valid identifier: ${from}`)
     if (!IDENT.test(to)) throw new Error(`rename: not a valid identifier: ${to}`)
@@ -41,6 +43,10 @@ export const runRename: typeof declared.runRename = async (project, opts) => {
     }
 
     nameNode.rename(to)
+
+    // Re-sort imports in every file the rename edited, so a changed import
+    // binding leaves a tidy, conventionally-ordered block (#183).
+    organizeChangedImports(targetFiles, report)
 
     const touched = [...targetFiles]
     if (dryRun) {

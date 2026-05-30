@@ -1,7 +1,12 @@
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
+import type {TsSurveyReport} from "ts-refine"
 import {Project, ts} from "ts-morph"
 import {runRename} from "./run-rename.ts"
+
+// rename re-sorts the touched files' imports via organizeImports using the
+// surveyed style; pin no-space spacing for deterministic expected text.
+const NO_SPACE: TsSurveyReport = {bracketSpacing: {bracketSpacing: "off"}}
 
 function newProject(): Project {
     return new Project({
@@ -19,7 +24,7 @@ describe("runRename", () => {
         const project = newProject()
         const libs = project.createSourceFile("/libs.ts", "export function funcA() { return 1 }\n")
         const imp = project.createSourceFile("/imp.ts", "import {funcA} from \"./libs.ts\"\nconst _ = funcA()\n")
-        const result = await runRename(project, {from: "funcA", to: "funcB", file: null, dryRun: true})
+        const result = await runRename(project, {from: "funcA", to: "funcB", file: null, dryRun: true, report: NO_SPACE})
         assert.equal(libs.getFullText(), "export function funcB() { return 1 }\n")
         assert.equal(imp.getFullText(), "import {funcB} from \"./libs.ts\"\nconst _ = funcB()\n")
         assert.deepEqual([...result.touched].sort(), ["/imp.ts", "/libs.ts"])
@@ -29,7 +34,7 @@ describe("runRename", () => {
         const project = newProject()
         project.createSourceFile("/libs.ts", "export function funcA() { return 1 }\n")
         const imp = project.createSourceFile("/imp.ts", "import {funcA as fx} from \"./libs.ts\"\nconst _ = fx()\n")
-        await runRename(project, {from: "funcA", to: "funcB", file: null, dryRun: true})
+        await runRename(project, {from: "funcA", to: "funcB", file: null, dryRun: true, report: NO_SPACE})
         assert.equal(imp.getFullText(), "import {funcB as fx} from \"./libs.ts\"\nconst _ = fx()\n")
     })
 
@@ -39,7 +44,7 @@ describe("runRename", () => {
         const b = project.createSourceFile("/b.ts", "export function funcA() { return 2 }\n")
         const ia = project.createSourceFile("/ia.ts", "import {funcA} from \"./a.ts\"\nconst _ = funcA()\n")
         const ib = project.createSourceFile("/ib.ts", "import {funcA} from \"./b.ts\"\nconst _ = funcA()\n")
-        await runRename(project, {from: "funcA", to: "funcB", file: "/a.ts", dryRun: true})
+        await runRename(project, {from: "funcA", to: "funcB", file: "/a.ts", dryRun: true, report: NO_SPACE})
         assert.equal(a.getFullText(), "export function funcB() { return 1 }\n")
         assert.equal(ia.getFullText(), "import {funcB} from \"./a.ts\"\nconst _ = funcB()\n")
         // b and its importer are untouched.
@@ -51,7 +56,7 @@ describe("runRename", () => {
         const project = newProject()
         project.createSourceFile("/libs.ts", "export default function main() {}\nexport function funcA() { return 1 }\n")
         const imp = project.createSourceFile("/imp.ts", "import main, {funcA} from \"./libs.ts\"\nmain()\nconst _ = funcA()\n")
-        await runRename(project, {from: "funcA", to: "funcB", file: null, dryRun: true})
+        await runRename(project, {from: "funcA", to: "funcB", file: null, dryRun: true, report: NO_SPACE})
         assert.equal(imp.getFullText(), "import main, {funcB} from \"./libs.ts\"\nmain()\nconst _ = funcB()\n")
     })
 
@@ -59,7 +64,7 @@ describe("runRename", () => {
         const project = newProject()
         project.createSourceFile("/libs.ts", "export function funcA() { return 1 }\n")
         project.createSourceFile("/imp.ts", "import {funcA} from \"./libs.ts\"\nconst funcB = () => null\nfuncA()\nfuncB()\n")
-        await assert.rejects(runRename(project, {from: "funcA", to: "funcB", file: null, dryRun: true}), /already exists/)
+        await assert.rejects(runRename(project, {from: "funcA", to: "funcB", file: null, dryRun: true, report: NO_SPACE}), /already exists/)
     })
 
     it("never touches files that do not reference the symbol", async () => {
@@ -67,7 +72,7 @@ describe("runRename", () => {
         project.createSourceFile("/libs.ts", "export function funcA() { return 1 }\n")
         project.createSourceFile("/imp.ts", "import {funcA} from \"./libs.ts\"\nconst _ = funcA()\n")
         const other = project.createSourceFile("/other.ts", "export const z = 3\n")
-        const result = await runRename(project, {from: "funcA", to: "funcB", file: null, dryRun: true})
+        const result = await runRename(project, {from: "funcA", to: "funcB", file: null, dryRun: true, report: NO_SPACE})
         assert.ok(!result.touched.includes("/other.ts"))
         assert.equal(other.getFullText(), "export const z = 3\n")
     })
@@ -76,19 +81,29 @@ describe("runRename", () => {
         const project = newProject()
         project.createSourceFile("/a.ts", "export function funcA() { return 1 }\n")
         project.createSourceFile("/b.ts", "export function funcA() { return 2 }\n")
-        await assert.rejects(runRename(project, {from: "funcA", to: "funcB", file: null, dryRun: true}), /multiple places/)
+        await assert.rejects(runRename(project, {from: "funcA", to: "funcB", file: null, dryRun: true, report: NO_SPACE}), /multiple places/)
     })
 
     it("errors when the identifier is not exported", async () => {
         const project = newProject()
         project.createSourceFile("/libs.ts", "export function funcA() { return 1 }\n")
-        await assert.rejects(runRename(project, {from: "nope", to: "funcB", file: null, dryRun: true}), /no exported identifier/)
+        await assert.rejects(runRename(project, {from: "nope", to: "funcB", file: null, dryRun: true, report: NO_SPACE}), /no exported identifier/)
     })
 
     it("rejects an invalid target identifier and a no-op rename", async () => {
         const project = newProject()
         project.createSourceFile("/libs.ts", "export function funcA() { return 1 }\n")
-        await assert.rejects(runRename(project, {from: "funcA", to: "1bad", file: null, dryRun: true}), /valid identifier/)
-        await assert.rejects(runRename(project, {from: "funcA", to: "funcA", file: null, dryRun: true}), /same/)
+        await assert.rejects(runRename(project, {from: "funcA", to: "1bad", file: null, dryRun: true, report: NO_SPACE}), /valid identifier/)
+        await assert.rejects(runRename(project, {from: "funcA", to: "funcA", file: null, dryRun: true, report: NO_SPACE}), /same/)
+    })
+
+    it("re-sorts the touched file's imports after the rename", async () => {
+        const project = newProject()
+        project.createSourceFile("/libs.ts", "export const aaa = 1\nexport const mmm = 2\n")
+        const imp = project.createSourceFile("/imp.ts", "import {aaa, mmm} from \"./libs.ts\"\nconst _ = aaa + mmm\n")
+        await runRename(project, {from: "aaa", to: "zzz", file: null, dryRun: true, report: NO_SPACE})
+        // aaa -> zzz pushes it past mmm, so organizeImports re-sorts the
+        // named specifiers to {mmm, zzz}.
+        assert.equal(imp.getFullText(), "import {mmm, zzz} from \"./libs.ts\"\nconst _ = zzz + mmm\n")
     })
 })

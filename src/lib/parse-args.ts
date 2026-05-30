@@ -190,7 +190,8 @@ function parseMove(sub: string[], globals: Globals): ParseArgsResult | undefined
     }
 
     const {absTsconfig, paths} = resolvePaths(globals.tsconfigPath, files)
-    return {command: "move", reportNames: [], output: null, applyOverrides: {}, surveyDefault: false, tsconfigPath: absTsconfig, dryRun: globals.dryRun, paths}
+    // move surveys the project to drive its post-move organizeImports.
+    return {command: "move", reportNames: [...applyReportNames], output: null, applyOverrides: {}, surveyDefault: false, tsconfigPath: absTsconfig, dryRun: globals.dryRun, paths}
 }
 
 // `rename`: rename an exported identifier. --from / --to are required; an
@@ -232,7 +233,8 @@ function parseRename(sub: string[], globals: Globals): ParseArgsResult | undefin
     }
 
     const {absTsconfig, paths} = resolvePaths(globals.tsconfigPath, files)
-    return {command: "rename", from, to, renameFile: paths[0] ?? null, reportNames: [], output: null, applyOverrides: {}, surveyDefault: false, tsconfigPath: absTsconfig, dryRun: globals.dryRun, paths: []}
+    // rename surveys the project to drive its post-rename organizeImports.
+    return {command: "rename", from, to, renameFile: paths[0] ?? null, reportNames: [...applyReportNames], output: null, applyOverrides: {}, surveyDefault: false, tsconfigPath: absTsconfig, dryRun: globals.dryRun, paths: []}
 }
 
 // `inspect`: per-file analysis. `--<inspector>` flags select which
