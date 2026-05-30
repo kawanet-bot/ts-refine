@@ -9,6 +9,9 @@ BUILDER_SRC := $(wildcard ./*.ts)
 MJS_DST := ../dist/ts-refine.mjs
 MJS_CONFIG := ./rollup-mjs.config.ts
 
+CLI_DST := ../dist/ts-refine.cli.mjs
+CLI_CONFIG := ./rollup-cli.config.ts
+
 # Public runtime named exports the smoke target must find in the bundle.
 # Derived from `export declare function <name>(...)` lines in the
 # published .d.ts so adding a new entry there is enough — no parallel
@@ -20,11 +23,18 @@ NAMED_EXPORTS := $(shell sed -nE 's/^export declare function ([a-zA-Z_$$]+).*/\1
 # of a transitive dep; fail the build so it cannot slip in.
 MAX_BYTES := 70000
 
-ALL := $(MJS_DST)
+ALL := $(MJS_DST) $(CLI_DST)
 
 all: $(ALL)
 
 $(MJS_DST): $(MJS_CONFIG) $(SRC) $(BUILDER_SRC)
+	@mkdir -p $(dir $@)
+	../node_modules/.bin/rollup -c $<
+	@ls -l $@
+	@test "$$(wc -c < $@)" -le $(MAX_BYTES) || { echo "ERROR: $@ exceeds $(MAX_BYTES) byte cap" >&2; exit 1; }
+	@echo ""
+
+$(CLI_DST): $(CLI_CONFIG) $(SRC) $(BUILDER_SRC)
 	@mkdir -p $(dir $@)
 	../node_modules/.bin/rollup -c $<
 	@ls -l $@
@@ -40,6 +50,7 @@ smoke: $(MJS_DST)
 	cd .. && node --input-type=module -e 'const m = await import("ts-refine"); for (const k of process.argv.slice(1)) { if (typeof m[k] !== "function") { console.error("missing MJS export:", k); process.exit(1); } console.log("MJS export OK:", k); }' $(NAMED_EXPORTS)
 
 test: all smoke
+	cd .. && node dist/ts-refine.cli.mjs | grep '^Usage: ts-refine'
 	cd .. && ./node_modules/.bin/tsc --noEmit
 	cd .. && node --test 'src/**/*.test.ts'
 
