@@ -239,5 +239,7 @@ npx ts-refine rename --from funcA --to funcB src/lib.ts
 - **What happens to import aliases?**
   - Aliases are kept while the exported name and references are updated.
 
+## Links
 
-MIT
+- https://github.com/kawanet/ts-refine
+- https://www.npmjs.com/package/ts-refine
