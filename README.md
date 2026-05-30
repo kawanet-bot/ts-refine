@@ -172,11 +172,11 @@ npx ts-refine format --organize-imports off
 # move a file; every import of it is rewritten
 npx ts-refine move src/old/util.ts src/lib/util.ts
 
-# move several files into a directory
-npx ts-refine move src/a.ts src/b.ts src/lib/
-
 # preview the moves without writing
 npx ts-refine move src/old/util.ts src/lib/util.ts --dry-run
+
+# move several files into a directory
+npx ts-refine move src/a.ts src/b.ts src/lib/
 ```
 
 ## Rename
@@ -188,11 +188,11 @@ aliases intact.
 # rename an export and every reference across the project
 npx ts-refine rename --from funcA --to funcB
 
-# rename the export from one file when the name isn't unique
-npx ts-refine rename --from funcA --to funcB src/lib.ts
-
 # preview the rename without writing
 npx ts-refine rename --from funcA --to funcB --dry-run
+
+# rename the export from one file when the name isn't unique
+npx ts-refine rename --from funcA --to funcB src/lib.ts
 ```
 
 ## Why not just Prettier?
