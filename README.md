@@ -52,18 +52,18 @@ For one-off use, run it with `npx`:
 npx ts-refine help
 ```
 
-For frequent command-line use, install it globally:
-
-```sh
-npm install -g ts-refine
-ts-refine help
-```
-
 For reproducible project-local use, install it as a dev dependency:
 
 ```sh
 npm install --save-dev ts-refine
 npx ts-refine help
+```
+
+For frequent command-line use, install it globally:
+
+```sh
+npm install -g ts-refine
+ts-refine help
 ```
 
 ## Commands
