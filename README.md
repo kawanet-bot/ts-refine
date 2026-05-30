@@ -201,10 +201,6 @@ blend into the surrounding file rather than fighting it.
 **Does it require config?** No. `ts-refine` reads your TypeScript project and
 infers the conventions already present in the selected files.
 
-**Does it replace Prettier?** No. It does not try to impose a print width or a
-global style. Use Prettier when you want a formatter; use `ts-refine` when you
-want project-aware refactoring plus convention-following cleanup.
-
 **What should I try first?** Start with `list`, `report`, or `inspect`. For
 write commands, use `format --dry-run`, `move ... --dry-run`, or
 `rename ... --dry-run` before writing.
