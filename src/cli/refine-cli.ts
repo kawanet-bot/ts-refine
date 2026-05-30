@@ -12,20 +12,20 @@
 import type * as declared from "ts-refine"
 import type {InspectorName, TsRefineReportName} from "ts-refine"
 
-import {writeInspectFile} from "../cli/format-inspect.ts"
-import {filterListEntries, writeListTable} from "../cli/format-list.ts"
-import {writePrettierMarkdown} from "../cli/output-prettier.ts"
-import {writeFormatMarkdown} from "../cli/output-ts-refine.ts"
-import {parseArgs} from "../cli/parse-args.ts"
-import {selectOutput} from "../cli/select-output.ts"
-import {usage} from "../cli/usage.ts"
 import {refineFormat} from "../format/refine-format.ts"
 import {refineInspect} from "../inspect/refine-inspect.ts"
+import {initProject} from "../lib/init-project.ts"
 import {refineList} from "../list/refine-list.ts"
 import {refineMove} from "../move/refine-move.ts"
 import {refineRename} from "../rename/refine-rename.ts"
 import {refineReport} from "../report/refine-report.ts"
-import {initProject} from "./init-project.ts"
+import {writeInspectFile} from "./format-inspect.ts"
+import {filterListEntries, writeListTable} from "./format-list.ts"
+import {writePrettierMarkdown} from "./output-prettier.ts"
+import {writeFormatMarkdown} from "./output-ts-refine.ts"
+import {parseArgs} from "./parse-args.ts"
+import {selectOutput} from "./select-output.ts"
+import {usage} from "./usage.ts"
 
 export const refineCLI: typeof declared.refineCLI = async (args, stream) => {
     const opts = parseArgs(args)
