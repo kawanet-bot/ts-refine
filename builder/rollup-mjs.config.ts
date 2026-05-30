@@ -7,7 +7,7 @@ const rollupConfig: RollupOptions = {
     input: "../src/index.ts",
 
     output: {
-        file: "../dist/ts-survey.mjs",
+        file: "../dist/ts-refine.mjs",
         format: "esm",
     },
 

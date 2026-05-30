@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
 // argv → Project, then dispatch the subcommand: `list` lists files, `report`
-// prints Markdown (+ optional output finalizer), `reformat` writes the
+// prints Markdown (+ optional output finalizer), `format` writes the
 // recommendations to disk. parseArgs routes and keeps the paths separate.
 
-import type {InspectorName, TsSurveyReportName} from "@kawanet/ts-survey"
+import type {InspectorName, TsSurveyReportName} from "ts-refine"
 
 import {selectOutput} from "./recommend/select-output.ts"
 import {writeInspectFile} from "./inspect/format-inspect.ts"
@@ -30,7 +30,7 @@ if ("help" in opts) {
 
 const fileOpts = {paths: opts.paths}
 
-// Swallow the Markdown stream in reformat mode; runReformat consumes it.
+// Swallow the Markdown stream in format mode; runReformat consumes it.
 const NULL_SINK = {write: () => {}}
 
 // Report-name validation lives in runReports so typos surface as a named
@@ -56,7 +56,7 @@ try {
         const sources = opts.paths.slice(0, -1)
         const dest = opts.paths[opts.paths.length - 1]
         await runMove(project, {sources, dest, dryRun: opts.dryRun})
-    } else if (opts.command === "reformat") {
+    } else if (opts.command === "format") {
         const report = await runReports(project, {...fileOpts, reportNames, stream: NULL_SINK})
         await runReformat(project, {...fileOpts, dryRun: opts.dryRun, report, ...opts.applyOverrides})
     } else {

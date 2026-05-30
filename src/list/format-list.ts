@@ -1,7 +1,7 @@
 // Renders ListEntry rows as a Markdown table, and applies the `list` filters.
 // The caller writes any `### ...` header; this writes just the table.
 
-import type {ListEntry, RunReportsOpts} from "@kawanet/ts-survey"
+import type {ListEntry, RunReportsOpts} from "ts-refine"
 
 // Local alias for readability — not exported.
 type Writer = RunReportsOpts["stream"]

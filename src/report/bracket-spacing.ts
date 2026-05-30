@@ -5,7 +5,7 @@
 // insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces and Prettier's
 // `bracketSpacing`.
 
-import type {RunBracketSpacingOpts} from "@kawanet/ts-survey"
+import type {RunBracketSpacingOpts} from "ts-refine"
 import type {Project} from "ts-morph"
 import {Node} from "ts-morph"
 

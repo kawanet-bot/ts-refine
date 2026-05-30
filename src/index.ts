@@ -1,7 +1,7 @@
 // Public library entry. cli.ts also routes through here so subcommand
 // runner modules stay internal.
 
-import type * as declared from "@kawanet/ts-survey"
+import type * as declared from "ts-refine"
 import {Project} from "ts-morph"
 
 export {runReformat} from "./format/run-format.ts"

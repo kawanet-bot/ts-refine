@@ -1,6 +1,6 @@
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
-import type {InspectFile} from "@kawanet/ts-survey"
+import type {InspectFile} from "ts-refine"
 import {writeInspectFile} from "./format-inspect.ts"
 
 function capture(file: InspectFile): string {

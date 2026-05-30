@@ -2,7 +2,7 @@ import {strict as assert} from "node:assert"
 import path from "node:path"
 import {describe, it} from "node:test"
 import {Project} from "ts-morph"
-import type {InspectorName} from "@kawanet/ts-survey"
+import type {InspectorName} from "ts-refine"
 import {runInspect} from "./run-inspect.ts"
 
 const SAMPLE_TSCONFIG = path.resolve(import.meta.dirname, "../../sample/basic/tsconfig.json")

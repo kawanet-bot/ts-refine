@@ -1,6 +1,6 @@
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
-import type {ListEntry} from "@kawanet/ts-survey"
+import type {ListEntry} from "ts-refine"
 import {filterListEntries, writeListTable} from "./format-list.ts"
 
 const ENTRIES: ListEntry[] = [

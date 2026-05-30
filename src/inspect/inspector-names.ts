@@ -2,6 +2,6 @@
 // src/inspect/run-inspect.ts (dispatch). Kept separate so parse-args can
 // import the list without dragging in ts-morph.
 
-import type {InspectorName} from "@kawanet/ts-survey"
+import type {InspectorName} from "ts-refine"
 
 export const inspectorNames: readonly InspectorName[] = ["exports", "importers"] as const

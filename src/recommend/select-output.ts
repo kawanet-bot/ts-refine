@@ -9,7 +9,7 @@
 // swaps the report stream for a sink so the Markdown body doesn't mix
 // into the rendered output.
 
-import type {RunReportsOpts, TsSurveyReport} from "@kawanet/ts-survey"
+import type {RunReportsOpts, TsSurveyReport} from "ts-refine"
 
 import {writePrettierConfig} from "./output-prettier.ts"
 import {writeReformatCommand} from "./output-ts-refine.ts"
@@ -17,7 +17,7 @@ import {writeReformatCommand} from "./output-ts-refine.ts"
 // Local alias for readability — not exported.
 type Writer = RunReportsOpts["stream"]
 
-export const outputNames = ["prettier", "reformat"] as const
+export const outputNames = ["prettier", "ts-refine"] as const
 
 interface OutputDispatch {
     reportStream: Writer
@@ -39,7 +39,7 @@ export function selectOutput(name: string | null, stdout: Writer): OutputDispatc
             finalize: (report) => writePrettierConfig(report, stdout),
         }
     }
-    if (name === "reformat") {
+    if (name === "ts-refine") {
         return {
             reportStream: NULL_SINK,
             finalize: (report) => writeReformatCommand(report, stdout),

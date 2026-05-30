@@ -1,5 +1,5 @@
 /**
- * https://github.com/kawanet/ts-survey
+ * https://github.com/kawanet/ts-refine
  */
 
 import type {Project} from "ts-morph";

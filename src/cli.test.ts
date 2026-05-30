@@ -16,9 +16,9 @@ describe("cli", () => {
         for (const args of [["help"], ["-h"], ["--help"], []]) {
             const r = run(args)
             assert.equal(r.status, 0, `args: ${args.join(" ")}`)
-            assert.match(r.stdout, /Usage: ts-survey <command>/)
+            assert.match(r.stdout, /Usage: ts-refine <command>/)
             assert.match(r.stdout, /report \[reports\.\.\.\]/)
-            assert.match(r.stdout, /^  reformat /m)
+            assert.match(r.stdout, /^  format /m)
             assert.match(r.stdout, /^  list /m)
             assert.match(r.stdout, /^  inspect /m)
             assert.match(r.stdout, /^  move /m)
@@ -41,8 +41,8 @@ describe("cli", () => {
         assert.match(r.stdout, /^\{/)
     })
 
-    it("applies via the reformat subcommand (dry-run)", () => {
-        const r = run(["reformat", "--dry-run", "-p", SAMPLE])
+    it("applies via the format subcommand (dry-run)", () => {
+        const r = run(["format", "--dry-run", "-p", SAMPLE])
         assert.equal(r.status, 0)
         assert.match(r.stderr, /apply: would change/)
     })

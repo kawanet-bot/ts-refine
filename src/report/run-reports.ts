@@ -6,7 +6,7 @@
 // router merges those into a single TsSurveyReport so a caller can
 // chain them into action calls (or render them via report --output).
 
-import type * as declared from "@kawanet/ts-survey"
+import type * as declared from "ts-refine"
 
 import type {ReportOpts} from "./types.ts"
 import {runReportBracketSpacing} from "./bracket-spacing.ts"

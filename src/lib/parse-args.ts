@@ -1,16 +1,16 @@
 // argv → ParsedArgs. Subcommand grammar (git-style):
-//   ts-survey [global...] <command> [command args...] [global...]
+//   ts-refine [global...] <command> [command args...] [global...]
 //
 // Global options may appear on either side of the subcommand:
 //   -p / --project <path>   shared by every command
-//   --dry-run               applies to the write commands (reformat, move)
+//   --dry-run               applies to the write commands (format, move)
 //   -h / --help             shown anywhere
 // Command-specific options (--output, --semicolons, --no-exports, report /
 // inspector selectors, ...) stay to the RIGHT of the subcommand.
 //
 // Per command, after the globals are pulled out:
 //   report   [--<report>...] [files...] [--output <name>]
-//   reformat [--indent N|tab ...] [files...]
+//   format [--indent N|tab ...] [files...]
 //   list     [--no-exports] [--no-importers] [--unused-exports] [files...]
 //   inspect  [--<inspector>...] [files...]
 //   move     <source...> <dest>
@@ -32,9 +32,9 @@ export interface ApplyOverrides {
     bracketSpacing?: "on" | "off"
 }
 
-type Command = "report" | "reformat" | "list" | "inspect" | "move"
+type Command = "report" | "format" | "list" | "inspect" | "move"
 
-const COMMANDS: readonly Command[] = ["report", "reformat", "list", "inspect", "move"] as const
+const COMMANDS: readonly Command[] = ["report", "format", "list", "inspect", "move"] as const
 
 // `list` filter flags; OR-combined when more than one is set.
 interface ListFilters {
@@ -46,7 +46,7 @@ interface ListFilters {
 interface ParsedArgs {
     command: Command
     // For report: the requested selectors or the full registry.
-    // For reformat: the recommendation-bearing reports runReformat consumes.
+    // For format: the recommendation-bearing reports runReformat consumes.
     reportNames: string[]
     // inspect-only: the requested inspector selectors, or the full registry.
     inspectorNames?: string[]
@@ -90,7 +90,7 @@ export function parseArgs(argv: string[]): ParseArgsResult | undefined {
     if (command === undefined) {
         // Bare invocation is help; globals with no subcommand is a usage error.
         if (globals.tsconfigPath !== null || globals.dryRun) {
-            console.error("expected a subcommand: report, reformat, list, inspect, move, or help")
+            console.error("expected a subcommand: report, format, list, inspect, move, or help")
             return undefined
         }
         return {help: true}
@@ -98,23 +98,23 @@ export function parseArgs(argv: string[]): ParseArgsResult | undefined {
     if (command === "help") return {help: true}
     if (!(COMMANDS as readonly string[]).includes(command)) {
         if (command.startsWith("-")) {
-            console.error("expected a subcommand: report, reformat, list, inspect, move, or help")
+            console.error("expected a subcommand: report, format, list, inspect, move, or help")
         } else {
-            console.error(`unknown command: ${command} (expected: report, reformat, list, inspect, move, help)`)
+            console.error(`unknown command: ${command} (expected: report, format, list, inspect, move, help)`)
         }
         return undefined
     }
 
     // --dry-run only means something for the write commands.
-    if (globals.dryRun && command !== "reformat" && command !== "move") {
-        console.error("--dry-run is only valid with reformat or move")
+    if (globals.dryRun && command !== "format" && command !== "move") {
+        console.error("--dry-run is only valid with format or move")
         return undefined
     }
 
     switch (command as Command) {
         case "report":
             return parseReport(sub, globals)
-        case "reformat":
+        case "format":
             return parseReformat(sub, globals)
         case "list":
             return parseList(sub, globals)
@@ -267,7 +267,7 @@ function parseReport(sub: string[], globals: Globals): ParseArgsResult | undefin
     return {command: "report", reportNames: effectiveReports, output, applyOverrides: {}, surveyDefault, tsconfigPath: absTsconfig, dryRun: false, paths}
 }
 
-// `reformat`: a fixed set of override options plus positional files.
+// `format`: a fixed set of override options plus positional files.
 function parseReformat(sub: string[], globals: Globals): ParseArgsResult | undefined {
     const overrides: ApplyOverrides = {}
     const files: string[] = []
@@ -329,7 +329,7 @@ function parseReformat(sub: string[], globals: Globals): ParseArgsResult | undef
     }
 
     const {absTsconfig, paths} = resolvePaths(globals.tsconfigPath, files)
-    return {command: "reformat", reportNames: [...applyReportNames], output: null, applyOverrides: overrides, surveyDefault: false, tsconfigPath: absTsconfig, dryRun: globals.dryRun, paths}
+    return {command: "format", reportNames: [...applyReportNames], output: null, applyOverrides: overrides, surveyDefault: false, tsconfigPath: absTsconfig, dryRun: globals.dryRun, paths}
 }
 
 // Resolve the tsconfig path and the positional files. Files are resolved

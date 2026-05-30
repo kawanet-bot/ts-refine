@@ -7,7 +7,7 @@ import {displayPath} from "./source-files.ts"
 
 describe("displayPath", () => {
     it("keeps a single leading parent segment as useful context", () => {
-        const root = fs.mkdtempSync(path.join(os.tmpdir(), "ts-survey-display-"))
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), "ts-refine-display-"))
         const prev = process.cwd()
         try {
             const cwd = path.join(root, "work")
@@ -21,7 +21,7 @@ describe("displayPath", () => {
     })
 
     it("strips everything through the last parent segment in long relative paths", () => {
-        const root = fs.mkdtempSync(path.join(os.tmpdir(), "ts-survey-display-"))
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), "ts-refine-display-"))
         const prev = process.cwd()
         try {
             const cwd = path.join(root, "batch", "runner")

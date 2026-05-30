@@ -1,8 +1,8 @@
-// `--output reformat`: re-emit the recommendation as a runnable CLI.
+// `--output ts-refine`: re-emit the recommendation as a runnable CLI.
 // Two-line layout (`\` continuation + 2-space indent) lets
 // `grep -E '^ +--'` extract just the flags.
 
-import type {RunReportsOpts, TsSurveyReport} from "@kawanet/ts-survey"
+import type {RunReportsOpts, TsSurveyReport} from "ts-refine"
 
 import {type FormatOptions, reportToFormatOptions} from "./format-options.ts"
 
@@ -11,7 +11,7 @@ type Writer = RunReportsOpts["stream"]
 
 // Returns argv-style tokens (flag and value pushed separately), the same
 // shape parseArgs consumes. Reads FormatOptions — the same value the
-// `reformat` command applies — so the printed command and the apply agree;
+// `format` command applies — so the printed command and the apply agree;
 // `cr` is already dropped upstream, so --new-line is always runnable.
 function buildReformatFlags(options: FormatOptions): string[] {
     const flags: string[] = []
@@ -22,16 +22,16 @@ function buildReformatFlags(options: FormatOptions): string[] {
     return flags
 }
 
-// Always starts with the `reformat` command (the verb the recommendation
-// translates to). Empty recommendations still emit `ts-survey reformat`,
+// Always starts with the `format` command (the verb the recommendation
+// translates to). Empty recommendations still emit `ts-refine format`,
 // paralleling `--output prettier`'s empty `{}`.
 export function writeReformatCommand(report: TsSurveyReport, stream: Writer): void {
     const flags = buildReformatFlags(reportToFormatOptions(report))
     if (flags.length === 0) {
-        stream.write("ts-survey reformat\n")
+        stream.write("ts-refine format\n")
         return
     }
-    stream.write("ts-survey reformat \\\n")
+    stream.write("ts-refine format \\\n")
     stream.write(`  ${flags.join(" ")}\n`)
 }
 
@@ -43,7 +43,7 @@ export function writeReformatMarkdown(report: TsSurveyReport, stream: Writer): v
     stream.write("## recommendation\n")
     stream.write("\n")
     stream.write("```sh\n")
-    stream.write("ts-survey reformat \\\n")
+    stream.write("ts-refine format \\\n")
     stream.write(`  ${flags.join(" ")}\n`)
     stream.write("```\n")
     stream.write("\n")

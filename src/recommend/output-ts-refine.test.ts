@@ -11,37 +11,37 @@ function capture(fn: (s: {write: (chunk: string) => void}) => void): string {
 describe("writeReformatCommand", () => {
     it("maps semicolons.semicolons=off → --semicolons off", () => {
         const out = capture((s) => writeReformatCommand({semicolons: {semicolons: "off"}}, s))
-        assert.equal(out, "ts-survey reformat \\\n  --semicolons off\n")
+        assert.equal(out, "ts-refine format \\\n  --semicolons off\n")
     })
 
     it("maps semicolons.semicolons=on → --semicolons on", () => {
         const out = capture((s) => writeReformatCommand({semicolons: {semicolons: "on"}}, s))
-        assert.equal(out, "ts-survey reformat \\\n  --semicolons on\n")
+        assert.equal(out, "ts-refine format \\\n  --semicolons on\n")
     })
 
     it("maps indent.width → --indent N", () => {
         const out = capture((s) => writeReformatCommand({indent: {width: 4}}, s))
-        assert.equal(out, "ts-survey reformat \\\n  --indent 4\n")
+        assert.equal(out, "ts-refine format \\\n  --indent 4\n")
     })
 
     it("maps indent.width=tab → --indent tab", () => {
         const out = capture((s) => writeReformatCommand({indent: {width: "tab"}}, s))
-        assert.equal(out, "ts-survey reformat \\\n  --indent tab\n")
+        assert.equal(out, "ts-refine format \\\n  --indent tab\n")
     })
 
-    it("omits memberSeparators (report-only; the reformat command does not consume it)", () => {
+    it("omits memberSeparators (report-only; the format command does not consume it)", () => {
         const out = capture((s) => writeReformatCommand({memberSeparators: {separator: "none"}}, s))
-        assert.equal(out, "ts-survey reformat\n")
+        assert.equal(out, "ts-refine format\n")
     })
 
     it("maps newLine.newLine → --new-line V", () => {
         const out = capture((s) => writeReformatCommand({newLine: {newLine: "lf"}}, s))
-        assert.equal(out, "ts-survey reformat \\\n  --new-line lf\n")
+        assert.equal(out, "ts-refine format \\\n  --new-line lf\n")
     })
 
     it("maps bracketSpacing.bracketSpacing → --bracket-spacing V", () => {
         const out = capture((s) => writeReformatCommand({bracketSpacing: {bracketSpacing: "on"}}, s))
-        assert.equal(out, "ts-survey reformat \\\n  --bracket-spacing on\n")
+        assert.equal(out, "ts-refine format \\\n  --bracket-spacing on\n")
     })
 
     it("combines all recommendations in a fixed order, omitting member-separators", () => {
@@ -52,13 +52,13 @@ describe("writeReformatCommand", () => {
                 s,
             ),
         )
-        assert.equal(out, "ts-survey reformat \\\n  --semicolons off --indent 4 --new-line lf --bracket-spacing on\n")
+        assert.equal(out, "ts-refine format \\\n  --semicolons off --indent 4 --new-line lf --bracket-spacing on\n")
     })
 
-    it("emits a bare `ts-survey reformat` when nothing was recommended", () => {
+    it("emits a bare `ts-refine format` when nothing was recommended", () => {
         // Symmetric with `--output prettier` emitting an empty `{}` for the same case.
         const out = capture((s) => writeReformatCommand({}, s))
-        assert.equal(out, "ts-survey reformat\n")
+        assert.equal(out, "ts-refine format\n")
     })
 
     it("keeps the args on a separate line so `grep '^ +--'` extracts flags only", () => {
@@ -71,7 +71,7 @@ describe("writeReformatCommand", () => {
 describe("writeReformatMarkdown", () => {
     it("wraps the command in a `## recommendation` fenced block", () => {
         const out = capture((s) => writeReformatMarkdown({semicolons: {semicolons: "off"}, indent: {width: 4}}, s))
-        assert.match(out, /^## recommendation\n\n```sh\nts-survey reformat \\\n/)
+        assert.match(out, /^## recommendation\n\n```sh\nts-refine format \\\n/)
         assert.match(out, /\n {2}--semicolons off --indent 4\n```\n\n$/)
     })
 

@@ -1,20 +1,20 @@
 // FormatOptions is the canonical per-field formatting intent. Both the
 // report recommendation and the CLI overrides are funneled into it, so
-// the ts-survey command output and the actual apply derive from one
+// the ts-refine command output and the actual apply derive from one
 // value — guaranteeing they agree. The pipeline is:
 //   TsSurveyReport ─reportToFormatOptions─┐
 //                                          ├─ mergeFormatOptions ─ resolveSettings ─▶ ResolvedSettings
 //   ApplyOverrides ─overridesToFormatOptions┘
 // and buildReformatFlags renders the same FormatOptions back to argv.
 
-import type {TsSurveyReport} from "@kawanet/ts-survey"
+import type {TsSurveyReport} from "ts-refine"
 import type {FormatCodeSettings} from "ts-morph"
 import {ts} from "ts-morph"
 
 import type {ApplyOverrides} from "../lib/parse-args.ts"
 
 // `newLine` is lf|crlf only: a `cr` recommendation is neither a runnable
-// ts-survey flag nor an LS setting, so it never enters FormatOptions.
+// ts-refine flag nor an LS setting, so it never enters FormatOptions.
 export interface FormatOptions {
     organizeImports?: "on" | "off"
     indent?: number | "tab"

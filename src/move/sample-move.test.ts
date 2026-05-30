@@ -19,7 +19,7 @@ async function copySampleTo(name: string, dest: string): Promise<void> {
 }
 
 async function withSampleCopy(name: string, fn: (workdir: string) => Promise<void>): Promise<void> {
-    const workdir = await fs.mkdtemp(path.join(os.tmpdir(), `ts-survey-${name}-`))
+    const workdir = await fs.mkdtemp(path.join(os.tmpdir(), `ts-refine-${name}-`))
     try {
         await copySampleTo(name, workdir)
         await fn(workdir)

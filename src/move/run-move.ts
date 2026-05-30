@@ -6,13 +6,13 @@
 // snapshot the original `.ts` presence per specifier before the move and
 // restore it after. No format pass runs — sf.move() is format-preserving
 // on its own, and any cleanup (organize-imports, etc.) is the user's
-// follow-up call to reformat.
+// follow-up call to format.
 //
 // Migration ("everyone should use this extension style") is intentionally
 // out of scope — that belongs in a separate subcommand. Each specifier
 // keeps the extension state it had before the move.
 
-import type * as declared from "@kawanet/ts-survey"
+import type * as declared from "ts-refine"
 import fs from "node:fs"
 import path from "node:path"
 import {Node, type ExportDeclaration, type ImportDeclaration, type Project, type SourceFile, type StringLiteral, ts} from "ts-morph"

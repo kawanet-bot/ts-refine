@@ -202,7 +202,7 @@ describe("runMove (on disk)", () => {
     let workdir: string
 
     before(async () => {
-        workdir = await fs.mkdtemp(path.join(os.tmpdir(), "ts-survey-move-"))
+        workdir = await fs.mkdtemp(path.join(os.tmpdir(), "ts-refine-move-"))
         await fs.mkdir(path.join(workdir, "src"))
         await fs.writeFile(path.join(workdir, "tsconfig.json"), JSON.stringify({
             compilerOptions: {target: "ES2022", module: "ESNext", moduleResolution: "bundler", strict: true, allowImportingTsExtensions: true, noEmit: true},
@@ -217,7 +217,7 @@ describe("runMove (on disk)", () => {
     })
 
     it("does not persist unrelated pending edits on the project (selective save)", async () => {
-        const sub = await fs.mkdtemp(path.join(os.tmpdir(), "ts-survey-move-save-"))
+        const sub = await fs.mkdtemp(path.join(os.tmpdir(), "ts-refine-move-save-"))
         try {
             await fs.mkdir(path.join(sub, "src"))
             await fs.writeFile(path.join(sub, "tsconfig.json"), JSON.stringify({

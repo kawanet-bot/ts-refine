@@ -2,7 +2,7 @@
 // pick the file-count majority. Maps to FormatCodeSettings.newLineCharacter
 // and Prettier's `endOfLine`.
 
-import type {RunNewLineOpts} from "@kawanet/ts-survey"
+import type {RunNewLineOpts} from "ts-refine"
 import type {Project} from "ts-morph"
 
 import {pickRecommendByFiles} from "../recommend/pick-recommend.ts"

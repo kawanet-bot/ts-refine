@@ -3,7 +3,7 @@
 // interface/type-literal members (comma-separated members excluded).
 // Helps decide which direction minimizes churn when standardizing.
 
-import type {RunSemicolonsOpts} from "@kawanet/ts-survey"
+import type {RunSemicolonsOpts} from "ts-refine"
 import type {Project} from "ts-morph"
 
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"

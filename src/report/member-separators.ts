@@ -9,7 +9,7 @@
 // choice is already governed by the semicolons report, so the
 // recommendation is not emitted to either output.
 
-import type {RunMemberSeparatorsOpts} from "@kawanet/ts-survey"
+import type {RunMemberSeparatorsOpts} from "ts-refine"
 import type {ClassMemberTypes, Project, TypeElementTypes} from "ts-morph"
 import {Node} from "ts-morph"
 

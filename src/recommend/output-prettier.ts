@@ -16,7 +16,7 @@
 // Reports that didn't recommend anything contribute no fields, so an
 // empty TsSurveyReport renders as `{}`.
 
-import type {RunReportsOpts, TsSurveyReport} from "@kawanet/ts-survey"
+import type {RunReportsOpts, TsSurveyReport} from "ts-refine"
 import type {Options as PrettierOptions} from "prettier"
 
 // Local alias derived from the published shape — not exported, kept

@@ -2,7 +2,7 @@
 // inspector sections that ran. The caller decides the stream; this writes
 // just one file's block (the CLI calls it per InspectFile entry).
 
-import type {InspectExport, InspectFile, InspectImporter, RunReportsOpts} from "@kawanet/ts-survey"
+import type {InspectExport, InspectFile, InspectImporter, RunReportsOpts} from "ts-refine"
 
 // Local alias for readability — not exported.
 type Writer = RunReportsOpts["stream"]

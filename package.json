@@ -1,13 +1,13 @@
 {
-  "name": "@kawanet/ts-survey",
-  "description": "Survey a TypeScript codebase and apply lightweight fixes.",
+  "name": "ts-refine",
+  "description": "Zero-config TypeScript refactoring that follows your codebase's own conventions: move files, organize imports, and format.",
   "version": "0.0.0",
   "author": "Kawanet",
   "bin": {
-    "ts-survey": "./src/cli.ts"
+    "ts-refine": "./src/cli.ts"
   },
   "bugs": {
-    "url": "https://github.com/kawanet/ts-survey/issues"
+    "url": "https://github.com/kawanet/ts-refine/issues"
   },
   "dependencies": {
     "ts-morph": "^28.0.0"
@@ -25,24 +25,36 @@
   },
   "exports": {
     ".": {
-      "types": "./types/ts-survey.d.ts",
-      "import": "./dist/ts-survey.mjs"
+      "types": "./types/ts-refine.d.ts",
+      "import": "./dist/ts-refine.mjs"
     }
   },
   "files": [
     "LICENSE",
     "README.md",
-    "dist/ts-survey.mjs",
+    "dist/ts-refine.mjs",
     "src/**/*.ts",
     "!src/**/*.test.ts",
     "types/*.d.ts"
   ],
-  "homepage": "https://github.com/kawanet/ts-survey#readme",
+  "homepage": "https://github.com/kawanet/ts-refine#readme",
+  "keywords": [
+    "cli",
+    "codemod",
+    "formatter",
+    "imports",
+    "language-service",
+    "move",
+    "organize-imports",
+    "refactor",
+    "ts-morph",
+    "typescript"
+  ],
   "license": "MIT",
-  "main": "./dist/ts-survey.mjs",
+  "main": "./dist/ts-refine.mjs",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kawanet/ts-survey.git"
+    "url": "git+https://github.com/kawanet/ts-refine.git"
   },
   "scripts": {
     "build": "make -C builder all",
@@ -52,5 +64,5 @@
     "test": "node --test 'src/**/*.test.ts'"
   },
   "type": "module",
-  "types": "./types/ts-survey.d.ts"
+  "types": "./types/ts-refine.d.ts"
 }

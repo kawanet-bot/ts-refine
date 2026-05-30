@@ -10,7 +10,7 @@
 // suggestion column.
 
 import path from "node:path"
-import type * as declared from "@kawanet/ts-survey"
+import type * as declared from "ts-refine"
 import {Node, type ImportDeclaration, type SourceFile, ts} from "ts-morph"
 
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"

@@ -1,9 +1,9 @@
 // reportNames is the registry of report-name selectors. Every entry is
-// also a reformat input (recommendation-bearing), so the reformat command
+// also a format input (recommendation-bearing), so the format command
 // runs the same set. Kept as a `reportNames` export so future split-out
 // (Markdown-only vs apply-bearing) is a one-line change here.
 
-import type {TsSurveyReportName} from "@kawanet/ts-survey"
+import type {TsSurveyReportName} from "ts-refine"
 
 export const reportNames: readonly TsSurveyReportName[] = [
     "semicolons",
@@ -13,5 +13,5 @@ export const reportNames: readonly TsSurveyReportName[] = [
     "bracket-spacing",
 ] as const
 
-// reformat's default report set is currently the full registry.
+// format's default report set is currently the full registry.
 export const applyReportNames: readonly TsSurveyReportName[] = reportNames

@@ -1,8 +1,8 @@
-// `reformat` command: resolve report + overrides → LS formatter + organizeImports.
+// `format` command: resolve report + overrides → LS formatter + organizeImports.
 // Order is formatText → organizeImports; the same FormatCodeSettings
 // feeds both so the rebuilt import block matches the file.
 
-import type * as declared from "@kawanet/ts-survey"
+import type * as declared from "ts-refine"
 import fs from "node:fs/promises"
 
 import {mergeFormatOptions, normalizeNewLines, overridesToFormatOptions, reportToFormatOptions, resolveSettings} from "../recommend/format-options.ts"

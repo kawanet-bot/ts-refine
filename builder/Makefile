@@ -6,7 +6,7 @@ SRC := $(shell find ../src -name '*.ts' -not -name '*.test.ts')
 TYPES := $(wildcard ../types/*.d.ts)
 BUILDER_SRC := $(wildcard ./*.ts)
 
-MJS_DST := ../dist/ts-survey.mjs
+MJS_DST := ../dist/ts-refine.mjs
 MJS_CONFIG := ./rollup-mjs.config.ts
 
 # Public runtime named exports the smoke target must find in the bundle.
@@ -37,7 +37,7 @@ $(MJS_DST): $(MJS_CONFIG) $(SRC) $(BUILDER_SRC)
 # regex stops matching, so guard against it explicitly.
 smoke: $(MJS_DST)
 	@test -n "$(NAMED_EXPORTS)" || { echo "ERROR: NAMED_EXPORTS empty — check the sed pattern against $(TYPES)" >&2; exit 1; }
-	cd .. && node --input-type=module -e 'const m = await import("@kawanet/ts-survey"); for (const k of process.argv.slice(1)) { if (typeof m[k] !== "function") { console.error("missing MJS export:", k); process.exit(1); } console.log("MJS export OK:", k); }' $(NAMED_EXPORTS)
+	cd .. && node --input-type=module -e 'const m = await import("ts-refine"); for (const k of process.argv.slice(1)) { if (typeof m[k] !== "function") { console.error("missing MJS export:", k); process.exit(1); } console.log("MJS export OK:", k); }' $(NAMED_EXPORTS)
 
 test: all smoke
 
