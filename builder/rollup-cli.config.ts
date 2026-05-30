@@ -1,7 +1,9 @@
+import alias from "@rollup/plugin-alias"
 import nodeResolve from "@rollup/plugin-node-resolve"
 import sucrase from "@rollup/plugin-sucrase"
 import type {RollupOptions} from "rollup"
 import {isExternal} from "./externals.ts"
+import {showFiles} from "./show-files.ts"
 
 const rollupConfig: RollupOptions = {
     input: "../src/cli.ts",
@@ -14,10 +16,22 @@ const rollupConfig: RollupOptions = {
     external: isExternal,
 
     plugins: [
+        alias({
+            entries: [
+                {
+                    find: /^(\.\.?\/)+index.ts$/,
+                    replacement: "ts-refine",
+                },
+            ],
+        }),
+
         nodeResolve({
             extensions: [".ts", ".js"],
             preferBuiltins: true,
         }),
+
+        // show files imported from outside /cli/
+        showFiles({test: (path) => !path.includes("/cli")}),
 
         sucrase({
             exclude: ["node_modules/**"],
