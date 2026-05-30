@@ -27,7 +27,7 @@ npx ts-refine <command> [options] [files...]
 ## Synopsis
 
 ```sh
-# list the available commands
+# print usage for every command
 npx ts-refine help
 
 # show each file's exports and how they're used
@@ -57,8 +57,6 @@ npx ts-refine rename --from funcA --to funcB
 | `move`   | Move `.ts` files and rewrite every import that references them      |
 | `rename` | Rename an exported identifier and every reference across the project |
 
-`inspect` adds per-file export / importer analysis; see `npx ts-refine --help`.
-
 Global options may appear on either side of the command:
 
 - `-p, --project <path>` — a `tsconfig.json` or a directory containing one
@@ -69,36 +67,118 @@ Global options may appear on either side of the command:
 
 ## List
 
-`list` prints every file with its export, unused-export, and importer counts.
-Narrow the listing (filters combine with OR): `--no-exports`, `--no-importers`,
-`--unused-exports`.
+`list` reports each file's export, unused-export, and importer counts. Filters
+combine with OR.
+
+```sh
+# every file with its export / unused / importer counts
+npx ts-refine list
+
+# only files that export nothing
+npx ts-refine list --no-exports
+
+# only files no other file imports
+npx ts-refine list --no-importers
+
+# only files that have unused exports
+npx ts-refine list --unused-exports
+
+# any file matching at least one of the filters
+npx ts-refine list --no-exports --no-importers --unused-exports
+```
 
 ## Report
 
-`report` surveys the code style and prints a Markdown table per dimension
-(semicolons, indent, member-separators, new-line, bracket-spacing) with a
-recommendation. `--output prettier` emits a `.prettierrc`, and
-`--output ts-refine` emits a runnable `format` command, instead of Markdown.
+`report` surveys the code style and prints a recommendation per dimension —
+semicolons, indent, member-separators, new-line, bracket-spacing.
+
+```sh
+# survey every dimension and print the recommendation tables
+npx ts-refine report
+
+# restrict to specific dimensions
+npx ts-refine report --semicolons --indent
+
+# emit a .prettierrc from the survey instead of Markdown
+npx ts-refine report --output prettier
+
+# emit a runnable `format` command instead of Markdown
+npx ts-refine report --output ts-refine
+```
 
 ## Format
 
 `format` rewrites every file to the surveyed conventions and organizes imports.
-Override any field instead of following the survey: `--indent <N|tab>`,
-`--semicolons on|off`, `--new-line lf|crlf`, `--bracket-spacing on|off`,
-`--organize-imports on|off`.
+Any field can be pinned instead of following the survey.
+
+```sh
+# apply the surveyed style and organize imports
+npx ts-refine format
+
+# preview the changes without writing
+npx ts-refine format --dry-run
+
+# pin the indent width (a number, or `tab`)
+npx ts-refine format --indent 2
+
+# pin semicolon insertion
+npx ts-refine format --semicolons off
+
+# pin the end-of-line
+npx ts-refine format --new-line lf
+
+# pin inner-brace spacing
+npx ts-refine format --bracket-spacing off
+
+# skip organizing imports (on by default)
+npx ts-refine format --organize-imports off
+```
 
 ## Move
 
-`move <source...> <dest>` relocates `.ts` files and rewrites every import that
-references them. `dest` may be a directory (for multiple sources) or a target
-filename (to rename a single file). Imports of the touched files are re-sorted
-afterward.
+`move` relocates `.ts` files and rewrites every import that references them.
+
+```sh
+# move a file; every import of it is rewritten
+npx ts-refine move src/old/util.ts src/lib/util.ts
+
+# move several files into a directory
+npx ts-refine move src/a.ts src/b.ts src/lib/
+
+# preview the moves without writing
+npx ts-refine move src/old/util.ts src/lib/util.ts --dry-run
+```
 
 ## Rename
 
-`rename --from <a> --to <b>` renames an exported identifier and every reference
-across the project, keeping importer aliases intact. Pass a file
-(`rename <file> --from ...`) to scope the lookup when the name isn't unique.
+`rename` renames an exported identifier and every reference, keeping importer
+aliases intact.
+
+```sh
+# rename an export and every reference across the project
+npx ts-refine rename --from funcA --to funcB
+
+# scope the lookup to one file when the name isn't unique
+npx ts-refine rename src/lib.ts --from funcA --to funcB
+
+# preview the rename without writing
+npx ts-refine rename --from funcA --to funcB --dry-run
+```
+
+## Inspect
+
+`inspect` prints per-file analysis — what a file exports and who imports it.
+
+```sh
+# run every inspector on the given file
+npx ts-refine inspect src/foo.ts
+
+# only the exports table
+npx ts-refine inspect --exports src/foo.ts
+
+# only the importers table
+npx ts-refine inspect --importers src/foo.ts
+```
 
 ## Why not just Prettier?
 
