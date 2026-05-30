@@ -39,7 +39,7 @@ export interface RefineBracketSpacingOpts {
 }
 
 // Every report refineReport knows about. Pair with src/report/report-names.ts
-// (runtime list) and src/report/run-reports.ts (dispatch).
+// (runtime list) and src/report/refine-report.ts (dispatch).
 export type TsRefineReportName =
     | "semicolons"
     | "indent"
@@ -119,7 +119,7 @@ export interface InspectImporter {
 }
 
 // Every inspector refineInspect knows about. Pair with src/inspect/inspector-names.ts
-// (runtime list) and src/inspect/run-inspect.ts (dispatch).
+// (runtime list) and src/inspect/refine-inspect.ts (dispatch).
 export type InspectorName = "exports" | "importers"
 
 export interface RefineInspectOpts extends TsRefineOpts {
