@@ -17,22 +17,6 @@ No `.prettierrc`, no rule config: the codebase is the spec.
 - Safe, low-friction cleanup after code changes — start with read commands or
   `--dry-run`, then apply the same recommendation.
 
-## Install
-
-Requires Node.js >= 22.18.
-
-For one-off use, run it with `npx`:
-
-```sh
-npx ts-refine help
-```
-
-For regular use in a project, install it as a dev dependency:
-
-```sh
-npm install --save-dev ts-refine
-```
-
 ## Synopsis
 
 ```sh
@@ -56,6 +40,30 @@ npx ts-refine move fileA.ts fileB.ts --dry-run
 
 # rename an export across the whole project
 npx ts-refine rename --from funcA --to funcB --dry-run
+```
+
+## Install
+
+Requires Node.js >= 22.18.
+
+For one-off use, run it with `npx`:
+
+```sh
+npx ts-refine help
+```
+
+For frequent command-line use, install it globally:
+
+```sh
+npm install -g ts-refine
+ts-refine help
+```
+
+For reproducible project-local use, install it as a dev dependency:
+
+```sh
+npm install --save-dev ts-refine
+npx ts-refine help
 ```
 
 ## Commands
@@ -214,6 +222,10 @@ blend into the surrounding file rather than fighting it.
   - Start with `list`, `report`, or `inspect`. For write commands, use
     `format --dry-run`, `move ... --dry-run`, or `rename ... --dry-run` before
     writing.
+
+- **Can it delete unused code like Knip?**
+  - No. Knip finds and removes unused files, dependencies, and exports.
+    `ts-refine` helps inspect, move, rename, and rewrite TypeScript code safely.
 
 - **What does `rename` rename?**
   - Exported identifiers and their references across the project. It is not a
