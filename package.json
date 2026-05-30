@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "author": "Kawanet",
   "bin": {
-    "ts-refine": "./src/cli.ts"
+    "ts-refine": "./dist/ts-refine.cli.mjs"
   },
   "bugs": {
     "url": "https://github.com/kawanet/ts-refine/issues"
@@ -13,6 +13,7 @@
     "ts-morph": "^28.0.0"
   },
   "devDependencies": {
+    "@rollup/plugin-alias": "^6.0.0",
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-sucrase": "^5.1.0",
     "@types/node": "^24.10.0",
@@ -33,6 +34,7 @@
     "LICENSE",
     "README.md",
     "dist/ts-refine.mjs",
+    "dist/ts-refine.cli.mjs",
     "src/**/*.ts",
     "!src/**/*.test.ts",
     "types/*.d.ts"

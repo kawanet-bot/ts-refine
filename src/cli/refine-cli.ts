@@ -7,8 +7,7 @@
 // console.error / the runners' own console output, which already target the
 // process's stderr/stdout.
 
-import type {TSR} from "ts-refine"
-import {initProject, refineFormat, refineInspect, refineList, refineMove, refineRename, refineReport} from "../index.ts"
+import {initProject, refineFormat, refineInspect, refineList, refineMove, refineRename, refineReport, type TSR} from "../index.ts"
 import {writeInspectFile} from "./format-inspect.ts"
 import {filterListEntries, writeListTable} from "./format-list.ts"
 import {writePrettierMarkdown} from "./output-prettier.ts"

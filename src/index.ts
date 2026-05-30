@@ -1,5 +1,6 @@
 // Public library entry.
 
+export type {TSR} from "../types/ts-refine.d.ts"
 export {refineFormat} from "./format/refine-format.ts"
 export {refineInspect} from "./inspect/refine-inspect.ts"
 export {initProject} from "./lib/init-project.ts"
