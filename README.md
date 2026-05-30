@@ -37,6 +37,9 @@ npx ts-refine list
 # survey the code style and print recommendations
 npx ts-refine report
 
+# inspect one file's exports and importers
+npx ts-refine inspect src/foo.ts
+
 # apply the surveyed style and organize imports
 npx ts-refine format --dry-run
 
