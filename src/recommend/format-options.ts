@@ -2,7 +2,7 @@
 // report recommendation and the CLI overrides are funneled into it, so
 // the ts-refine command output and the actual apply derive from one
 // value — guaranteeing they agree. The pipeline is:
-//   TsRefineReport ─reportToFormatOptions─┐
+//   ReportResult ─reportToFormatOptions─┐
 //                                          ├─ mergeFormatOptions ─ resolveSettings ─▶ ResolvedSettings
 //   FormatOptions ─overridesToFormatOptions┘
 // and buildFormatFlags renders the same FormatOptions back to argv.

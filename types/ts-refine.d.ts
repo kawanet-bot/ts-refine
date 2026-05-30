@@ -15,7 +15,7 @@ export declare namespace TSR {
     }
 
     // Recommendation shapes. Not runtime inputs — they describe the value
-    // type of each `TsRefineReport` slot.
+    // type of each `ReportResult` slot.
 
     interface SemicolonsOpts {
         semicolons: "on" | "off"

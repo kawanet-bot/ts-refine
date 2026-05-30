@@ -3,7 +3,7 @@
 // dragging in ts-morph) and runs requested reports in a fixed order.
 // Each report function returns the action params its recommendation
 // would drive (or an empty partial when nothing strict was found); the
-// router merges those into a single TsRefineReport so a caller can
+// router merges those into a single ReportResult so a caller can
 // chain them into action calls (or render them via report --output).
 
 import type * as declared from "ts-refine"

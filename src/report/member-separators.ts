@@ -28,7 +28,7 @@ const SEP_LABEL: Record<Separator, string> = {
     ";": "`;`",
 }
 
-// Maps internal Separator symbols to RefineMemberSeparatorsOpts.separator's
+// Maps internal Separator symbols to MemberSeparatorsOpts.separator's
 // value space (semi / comma / none).
 const SEP_FLAG_VALUE: Record<Separator, TSR.MemberSeparatorsOpts["separator"]> = {
     none: "none",
