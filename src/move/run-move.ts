@@ -4,9 +4,11 @@
 // and preserves the surrounding text untouched; what it doesn't do is
 // preserve the `.ts` extension in the rewritten module specifiers, so we
 // snapshot the original `.ts` presence per specifier before the move and
-// restore it after. No format pass runs — sf.move() is format-preserving
-// on its own, and any cleanup (organize-imports, etc.) is the user's
-// follow-up call to format.
+// restore it after. After the moves, organizeImports re-sorts the import
+// block of each file whose imports actually changed (and only those), so a
+// relocation that shuffles specifier order leaves them tidy. Each file keeps
+// its own brace-spacing style — no project-wide style is imposed, and files
+// with no import change are never reformatted. No full format pass runs.
 //
 // Migration ("everyone should use this extension style") is intentionally
 // out of scope — that belongs in a separate subcommand. Each specifier
@@ -46,6 +48,23 @@ function withExtension(specifier: string, ext: string): string {
     return specifier.replace(KNOWN_EXT, "") + ext
 }
 
+// Per-file brace-spacing for organizeImports: read the file's own named
+// imports and mirror whatever it already uses (`{ x }` vs `{x}`) so the
+// re-sorted block doesn't drift to a different convention. Defaults to no
+// inner space when the file has no single-line named import to learn from
+// (the setting is irrelevant unless braces are emitted).
+function detectImportBraceSpacing(sf: SourceFile): boolean {
+    for (const imp of sf.getImportDeclarations()) {
+        const named = imp.getImportClause()?.getNamedBindings()
+        if (!named || !Node.isNamedImports(named)) continue
+        const text = named.getText()
+        if (text.startsWith("{") && !/[\r\n]/.test(text)) {
+            return text.startsWith("{ ") || text.startsWith("{\t")
+        }
+    }
+    return false
+}
+
 export const runMove: typeof declared.runMove = async (project, opts) => {
     const {sources, dest, dryRun} = opts
 
@@ -77,6 +96,19 @@ export const runMove: typeof declared.runMove = async (project, opts) => {
         if (sf) touchedFiles.add(sf)
     }
     for (const r of records) touchedFiles.add(r.node.getSourceFile())
+
+    // organizeImports re-sorts each import-changed file's import block (a
+    // relocation can reorder specifiers). Restricted to the files whose
+    // specifiers actually changed — files with no import change stay
+    // untouched. Each file's own brace-spacing style is detected and
+    // preserved so organizeImports doesn't impose `{ x }` over `{x}`.
+    // Collect the SourceFile set first, since organizeImports invalidates
+    // the recorded declaration nodes as it rewrites the block.
+    const importChangedFiles = new Set<SourceFile>()
+    for (const r of records) importChangedFiles.add(r.node.getSourceFile())
+    for (const sf of importChangedFiles) {
+        sf.organizeImports({insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces: detectImportBraceSpacing(sf)})
+    }
 
     // Dry-run: print planned moves + the importers that would change;
     // never touch disk. Otherwise persist only what we changed — call

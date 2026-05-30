@@ -28,8 +28,11 @@ describe("runMove (in-memory, dry-run)", () => {
         const result = await runMove(project, {sources: ["/src/a.ts"], dest: "/src/sub/", dryRun: true})
 
         assert.deepEqual(result.moves, [{from: "/src/a.ts", to: "/src/sub/a.ts"}])
+        // organizeImports re-sorts the import declarations (type, namespace,
+        // named); the re-export and dynamic import keep their place. Each
+        // specifier still carries its restored `.ts` extension.
         assert.equal(b.getFullText(),
-            ["import {x} from \"./sub/a.ts\"", "import type {T} from \"./sub/a.ts\"", "import * as A from \"./sub/a.ts\"", "export {x as y} from \"./sub/a.ts\"", "const _d = import(\"./sub/a.ts\")", "const _t: T = x", "const _a = A.x", ""].join("\n"))
+            ["import type {T} from \"./sub/a.ts\"", "import * as A from \"./sub/a.ts\"", "import {x} from \"./sub/a.ts\"", "export {x as y} from \"./sub/a.ts\"", "const _d = import(\"./sub/a.ts\")", "const _t: T = x", "const _a = A.x", ""].join("\n"))
     })
 
     it("does not add `.ts` to importers that omitted it", async () => {
@@ -73,8 +76,10 @@ describe("runMove (in-memory, dry-run)", () => {
         )
         await runMove(project, {sources: ["/src/a.ts"], dest: "/src/sub/", dryRun: true})
         // Each row keeps its own era's extension; nothing is migrated.
+        // organizeImports sorts by specifier, so the bare-then-.js-then-.ts
+        // order follows from string ordering of the rewritten paths.
         assert.equal(b.getFullText(),
-            ["import {x as x1} from \"./sub/a.ts\"", "import {x as x2} from \"./sub/a.js\"", "import {x as x3} from \"./sub/a\"", "const _ = x1 + x2 + x3", ""].join("\n"))
+            ["import {x as x3} from \"./sub/a\"", "import {x as x2} from \"./sub/a.js\"", "import {x as x1} from \"./sub/a.ts\"", "const _ = x1 + x2 + x3", ""].join("\n"))
     })
 
     it("rewrites the moved file's own outgoing relative imports too", async () => {
@@ -195,6 +200,48 @@ describe("runMove (in-memory, dry-run)", () => {
         const result = await runMove(project, {sources: ["/src/a.ts"], dest: "/lib/", dryRun: true})
         assert.deepEqual(result.moves, [{from: "/src/a.ts", to: "/lib/a.ts"}])
         assert.deepEqual([...result.touched].sort(), ["/lib/a.ts", "/src/b.ts"])
+    })
+
+    it("re-sorts the import block of an import-changed file", async () => {
+        const project = newProject()
+        project.createSourceFile("/src/m.ts", "export const m = 1\n")
+        project.createSourceFile("/src/z.ts", "export const z = 1\n")
+        const imp = project.createSourceFile("/src/imp.ts", ["import {z} from \"./z.ts\"", "import {m} from \"./m.ts\"", "const _ = z + m", ""].join("\n"))
+        await runMove(project, {sources: ["/src/m.ts"], dest: "/src/sub/", dryRun: true})
+        // m moved under sub/, so "./sub/m.ts" sorts before "./z.ts" and the
+        // two import lines swap — organizeImports ran on the changed file.
+        assert.equal(imp.getFullText(), ["import {m} from \"./sub/m.ts\"", "import {z} from \"./z.ts\"", "const _ = z + m", ""].join("\n"))
+    })
+
+    it("preserves a no-space brace style while organizing", async () => {
+        const project = newProject()
+        project.createSourceFile("/src/a.ts", "export const x = 1\nexport const w = 2\n")
+        const ns = project.createSourceFile("/src/ns.ts", ["import {x,w} from \"./a.ts\"", "const _ = x + w", ""].join("\n"))
+        await runMove(project, {sources: ["/src/a.ts"], dest: "/src/sub/", dryRun: true})
+        // Named specifiers get sorted, but the file's `{x}` (no inner space)
+        // convention is kept rather than rewritten to `{ x }`.
+        assert.equal(ns.getFullText(), ["import {w, x} from \"./sub/a.ts\"", "const _ = x + w", ""].join("\n"))
+    })
+
+    it("preserves a spaced brace style while organizing", async () => {
+        const project = newProject()
+        project.createSourceFile("/src/a.ts", "export const x = 1\nexport const w = 2\n")
+        const sp = project.createSourceFile("/src/sp.ts", ["import { x, w } from \"./a.ts\"", "const _ = x + w", ""].join("\n"))
+        await runMove(project, {sources: ["/src/a.ts"], dest: "/src/sub/", dryRun: true})
+        assert.equal(sp.getFullText(), ["import { w, x } from \"./sub/a.ts\"", "const _ = x + w", ""].join("\n"))
+    })
+
+    it("never reformats a file that does not import the moved file", async () => {
+        const project = newProject()
+        project.createSourceFile("/src/a.ts", "export const x = 1\n")
+        project.createSourceFile("/src/p.ts", "export const p = 1\n")
+        project.createSourceFile("/src/q.ts", "export const q = 1\n")
+        // Deliberately unsorted imports, none of them targeting the moved file.
+        const u = project.createSourceFile("/src/u.ts", ["import {q} from \"./q.ts\"", "import {p} from \"./p.ts\"", "const _ = p + q", ""].join("\n"))
+        const result = await runMove(project, {sources: ["/src/a.ts"], dest: "/src/sub/", dryRun: true})
+        assert.ok(!result.touched.includes("/src/u.ts"))
+        // Its unsorted import block is left exactly as written.
+        assert.equal(u.getFullText(), ["import {q} from \"./q.ts\"", "import {p} from \"./p.ts\"", "const _ = p + q", ""].join("\n"))
     })
 })
 
