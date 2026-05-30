@@ -171,6 +171,11 @@ export interface RenameResult {
 
 export declare function initProject(tsconfigPath: string): Project
 
+// The whole CLI as a function: parse `args` (argv minus node/script),
+// dispatch the subcommand writing stdout-bound output to `stream`, and
+// resolve with the process exit status (0 ok, 1 on error). Never throws.
+export declare function refineCLI(args: string[], stream: {write: (line: string) => void}): Promise<number>
+
 export declare function refineReport(project: Project, opts: RefineReportOpts): Promise<TsRefineReport>
 
 export declare function refineFormat(project: Project, opts: RefineFormatOpts): Promise<void>
