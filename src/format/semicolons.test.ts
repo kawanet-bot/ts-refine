@@ -5,7 +5,7 @@ import {strict as assert} from "node:assert"
 import path from "node:path"
 import {describe, it} from "node:test"
 import {Project} from "ts-morph"
-import {refineFormat} from "./run-format.ts"
+import {refineFormat} from "./refine-format.ts"
 
 const SAMPLE_TSCONFIG = path.resolve(import.meta.dirname, "../../sample/semicolons-mixed/tsconfig.json")
 

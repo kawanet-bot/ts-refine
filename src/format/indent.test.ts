@@ -7,7 +7,7 @@ import {describe, it} from "node:test"
 import {Project} from "ts-morph"
 
 import type {RefineFormatOpts, TsRefineReport} from "ts-refine"
-import {refineFormat} from "./run-format.ts"
+import {refineFormat} from "./refine-format.ts"
 
 // Builds RefineFormatOpts with the indent override pinned and unrelated
 // passes (organize-imports) silenced so the test exercises only the

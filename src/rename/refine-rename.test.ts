@@ -2,7 +2,7 @@ import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
 import {Project, ts} from "ts-morph"
 import type {TsRefineReport} from "ts-refine"
-import {refineRename} from "./run-rename.ts"
+import {refineRename} from "./refine-rename.ts"
 
 // rename re-sorts the touched files' imports via organizeImports using the
 // surveyed style; pin no-space spacing for deterministic expected text.

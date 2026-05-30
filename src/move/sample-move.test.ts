@@ -10,7 +10,7 @@ import os from "node:os"
 import path from "node:path"
 import {describe, it} from "node:test"
 import {Project} from "ts-morph"
-import {refineMove} from "./run-move.ts"
+import {refineMove} from "./refine-move.ts"
 
 const SAMPLE_ROOT = path.resolve(import.meta.dirname, "../../sample")
 

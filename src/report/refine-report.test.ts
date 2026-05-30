@@ -3,7 +3,7 @@ import path from "node:path"
 import {describe, it} from "node:test"
 import {Project} from "ts-morph"
 import type {TsRefineReportName} from "ts-refine"
-import {refineReport} from "./run-reports.ts"
+import {refineReport} from "./refine-report.ts"
 
 const SAMPLE_TSCONFIG = path.resolve(import.meta.dirname, "../../sample/basic/tsconfig.json")
 
