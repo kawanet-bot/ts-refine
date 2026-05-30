@@ -4,7 +4,6 @@
 
 import fs from "node:fs/promises"
 import type * as declared from "ts-refine"
-
 import {selectSourceFiles} from "../lib/source-files.ts"
 import {mergeFormatOptions, normalizeNewLines, overridesToFormatOptions, reportToFormatOptions, resolveSettings} from "../recommend/format-options.ts"
 

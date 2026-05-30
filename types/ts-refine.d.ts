@@ -169,7 +169,7 @@ export interface RenameResult {
     touched: string[]
 }
 
-export declare function initProject(tsconfigPath: string): Project
+export declare function initProject(opts: {tsConfigFilePath: string}): Project
 
 export declare function refineReport(project: Project, opts: RefineReportOpts): Promise<TsRefineReport>
 

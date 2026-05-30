@@ -9,7 +9,6 @@
 
 import {Node} from "ts-morph"
 import type * as declared from "ts-refine"
-
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
 
 export const refineList: typeof declared.refineList = async (project, {paths}) => {

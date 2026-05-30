@@ -9,7 +9,6 @@
 
 import type {Project} from "ts-morph"
 import type {RefineIndentOpts} from "ts-refine"
-
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
 import {pickRecommendByFiles} from "../recommend/pick-recommend.ts"
 import {detectIndent, type IndentCounts, type IndentWidth, primaryIndentWidth} from "./detect-indent.ts"

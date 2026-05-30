@@ -7,7 +7,6 @@
 // chain them into action calls (or render them via report --output).
 
 import type * as declared from "ts-refine"
-
 import {runReportBracketSpacing} from "./bracket-spacing.ts"
 import {runReportIndent} from "./indent.ts"
 import {runReportMemberSeparators} from "./member-separators.ts"

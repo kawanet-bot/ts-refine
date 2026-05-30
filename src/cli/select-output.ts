@@ -10,7 +10,6 @@
 // into the rendered output.
 
 import type {RefineReportOpts, TsRefineReport} from "ts-refine"
-
 import {writePrettierConfig} from "./output-prettier.ts"
 import {writeFormatCommand} from "./output-ts-refine.ts"
 

@@ -1,7 +1,6 @@
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
 import {ts} from "ts-morph"
-
 import {mergeFormatOptions, normalizeNewLines, overridesToFormatOptions, reportToFormatOptions, resolveSettings} from "./format-options.ts"
 
 describe("reportToFormatOptions", () => {

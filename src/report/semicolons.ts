@@ -5,7 +5,6 @@
 
 import type {Project} from "ts-morph"
 import type {RefineSemicolonsOpts} from "ts-refine"
-
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
 import {isSemiEligibleStatement, isTypeMember} from "./statement-kinds.ts"
 import type {ReportOpts} from "./types.ts"

@@ -6,7 +6,7 @@ import type {ListEntry, RefineReportOpts} from "ts-refine"
 // Local alias for readability — not exported.
 type Writer = RefineReportOpts["stream"]
 
-export interface ListFilters {
+interface ListFilters {
     noExports: boolean
     noImporters: boolean
     unusedExports: boolean

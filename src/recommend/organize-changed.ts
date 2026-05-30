@@ -6,7 +6,6 @@
 
 import type {SourceFile} from "ts-morph"
 import type {TsRefineReport} from "ts-refine"
-
 import {reportToFormatOptions, resolveSettings} from "./format-options.ts"
 
 export function organizeChangedImports(files: Iterable<SourceFile>, report: TsRefineReport): void {

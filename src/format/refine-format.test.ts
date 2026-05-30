@@ -1,7 +1,6 @@
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
 import {Project} from "ts-morph"
-
 import {refineFormat} from "./refine-format.ts"
 
 // Silences the "updated:" / summary writes for clean test output.

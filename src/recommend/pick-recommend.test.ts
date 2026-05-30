@@ -1,6 +1,5 @@
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
-
 import {pickRecommendByFiles} from "./pick-recommend.ts"
 
 describe("pickRecommendByFiles", () => {
