@@ -11,20 +11,17 @@ export interface CommonArgs {
 }
 
 // Consumes a global option at argv[index], writing it into `args`. Returns the
-// number of tokens consumed, 0 if argv[index] is not a global, or -1 if it is
-// a global but malformed (a duplicate -p, or a missing value) — in which case
-// the specific error is already on stderr.
+// number of tokens consumed, or 0 if argv[index] is not a global. A malformed
+// global (a duplicate -p, or a missing value) throws.
 export function parseCommonArgs(args: CommonArgs, argv: string[], index: number): number {
     const a = argv[index]
     if (a === "-p" || a === "--project") {
         const v = argv[index + 1]
         if (!v || v.startsWith("-")) {
-            console.error(`${a} requires a path (e.g. ${a} tsconfig.json)`)
-            return -1
+            throw new Error(`${a} requires a path (e.g. ${a} tsconfig.json)`)
         }
         if (args.tsconfigPath !== null) {
-            console.error(`${a} cannot be combined with another tsconfig path`)
-            return -1
+            throw new Error(`${a} cannot be combined with another tsconfig path`)
         }
         args.tsconfigPath = v
         return 2

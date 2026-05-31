@@ -11,17 +11,6 @@ function fresh(): CommonArgs {
     return {tsconfigPath: null, dryRun: false, help: false}
 }
 
-// Silences the expected stderr writes so the test output stays clean.
-function quiet<T>(fn: () => T): T {
-    const orig = console.error
-    console.error = () => {}
-    try {
-        return fn()
-    } finally {
-        console.error = orig
-    }
-}
-
 describe("parseCommonArgs", () => {
     it("consumes -p <path> into tsconfigPath and reports two tokens", () => {
         const c = fresh()
@@ -62,23 +51,14 @@ describe("parseCommonArgs", () => {
         assert.equal(c.tsconfigPath, "x.json")
     })
 
-    it("rejects -p without a value (-1)", () => {
-        assert.equal(
-            quiet(() => parseCommonArgs(fresh(), ["-p"], 0)),
-            -1,
-        )
-        assert.equal(
-            quiet(() => parseCommonArgs(fresh(), ["-p", "--dry-run"], 0)),
-            -1,
-        )
+    it("throws on -p without a value", () => {
+        assert.throws(() => parseCommonArgs(fresh(), ["-p"], 0), /requires a path/)
+        assert.throws(() => parseCommonArgs(fresh(), ["-p", "--dry-run"], 0), /requires a path/)
     })
 
-    it("rejects a duplicate -p, even across separate calls (-1)", () => {
+    it("throws on a duplicate -p, even across separate calls", () => {
         const c = fresh()
         parseCommonArgs(c, ["-p", "a.json"], 0)
-        assert.equal(
-            quiet(() => parseCommonArgs(c, ["-p", "b.json"], 0)),
-            -1,
-        )
+        assert.throws(() => parseCommonArgs(c, ["-p", "b.json"], 0), /cannot be combined with another tsconfig path/)
     })
 })
