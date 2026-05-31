@@ -6,7 +6,6 @@ import {initProject, refineList, refineReport, type TSR} from "../../index.ts"
 import type {CommandGlobals} from "../args-common.ts"
 import type {CLIStream} from "../cli-io.ts"
 import {filterListEntries, writeListTable} from "../list/format-list.ts"
-import {usage} from "../usage.ts"
 import {parseReport} from "./report-args.ts"
 import {writePrettierMarkdown} from "./output-prettier.ts"
 import {writeFormatMarkdown} from "./output-ts-refine.ts"
@@ -14,10 +13,7 @@ import {selectOutput} from "./select-output.ts"
 
 export async function runReport(sub: string[], globals: CommandGlobals, stream: CLIStream): Promise<number> {
     const args = parseReport(sub, globals)
-    if (args === undefined) {
-        console.error(usage())
-        return 1
-    }
+    if (!args) return 1
     const project = initProject({tsConfigFilePath: args.tsconfigPath})
 
     // Report-name validation lives in refineReport so typos surface there.

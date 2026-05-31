@@ -6,15 +6,11 @@ import {initProject, refineMove, refineReport, type TSR} from "../../index.ts"
 import {applyReportNames} from "../../report/report-names.ts"
 import type {CommandGlobals} from "../args-common.ts"
 import {NULL_SINK} from "../cli-io.ts"
-import {usage} from "../usage.ts"
 import {parseMove} from "./move-args.ts"
 
 export async function runMove(sub: string[], globals: CommandGlobals): Promise<number> {
     const args = parseMove(sub, globals)
-    if (args === undefined) {
-        console.error(usage())
-        return 1
-    }
+    if (!args) return 1
     const project = initProject({tsConfigFilePath: args.tsconfigPath})
     const sources = args.paths.slice(0, -1)
     const dest = args.paths[args.paths.length - 1]

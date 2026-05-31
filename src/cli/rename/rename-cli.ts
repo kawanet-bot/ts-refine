@@ -5,15 +5,11 @@ import {initProject, refineRename, refineReport, type TSR} from "../../index.ts"
 import {applyReportNames} from "../../report/report-names.ts"
 import type {CommandGlobals} from "../args-common.ts"
 import {NULL_SINK} from "../cli-io.ts"
-import {usage} from "../usage.ts"
 import {parseRename} from "./rename-args.ts"
 
 export async function runRename(sub: string[], globals: CommandGlobals): Promise<number> {
     const args = parseRename(sub, globals)
-    if (args === undefined) {
-        console.error(usage())
-        return 1
-    }
+    if (!args) return 1
     const project = initProject({tsConfigFilePath: args.tsconfigPath})
     const reportNames = applyReportNames as TSR.ReportName[]
     const report = await refineReport(project, {paths: [], reportNames, stream: NULL_SINK})

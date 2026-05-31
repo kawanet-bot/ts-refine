@@ -4,16 +4,12 @@
 import {initProject, refineInspect, type TSR} from "../../index.ts"
 import type {CommandGlobals} from "../args-common.ts"
 import type {CLIStream} from "../cli-io.ts"
-import {usage} from "../usage.ts"
 import {writeInspectFile} from "./format-inspect.ts"
 import {parseInspect} from "./inspect-args.ts"
 
 export async function runInspect(sub: string[], globals: CommandGlobals, stream: CLIStream): Promise<number> {
     const args = parseInspect(sub, globals)
-    if (args === undefined) {
-        console.error(usage())
-        return 1
-    }
+    if (!args) return 1
     const project = initProject({tsConfigFilePath: args.tsconfigPath})
     const inspectorNames = args.inspectorNames as TSR.InspectorName[]
     const files = await refineInspect(project, {paths: args.paths, inspectorNames})
