@@ -5,10 +5,10 @@
 import type {Project} from "ts-morph"
 import {refineList, refineReport, type TSR} from "../../index.ts"
 import type {CLIStream} from "../cli-io.ts"
-import {filterListEntries, writeListTable} from "../format-list.ts"
-import {writePrettierMarkdown} from "../output-prettier.ts"
-import {writeFormatMarkdown} from "../output-ts-refine.ts"
-import {selectOutput} from "../select-output.ts"
+import {filterListEntries, writeListTable} from "../list/format-list.ts"
+import {writePrettierMarkdown} from "./output-prettier.ts"
+import {writeFormatMarkdown} from "./output-ts-refine.ts"
+import {selectOutput} from "./select-output.ts"
 import type {ReportArgs} from "./report-args.ts"
 
 export async function runReport(project: Project, args: ReportArgs, stream: CLIStream): Promise<void> {

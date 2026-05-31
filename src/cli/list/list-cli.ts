@@ -4,7 +4,7 @@
 import type {Project} from "ts-morph"
 import {refineList} from "../../index.ts"
 import type {CLIStream} from "../cli-io.ts"
-import {filterListEntries, writeListTable} from "../format-list.ts"
+import {filterListEntries, writeListTable} from "./format-list.ts"
 import type {ListArgs} from "./list-args.ts"
 
 export async function runList(project: Project, args: ListArgs, stream: CLIStream): Promise<void> {

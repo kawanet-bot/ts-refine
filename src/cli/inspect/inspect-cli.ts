@@ -4,7 +4,7 @@
 import type {Project} from "ts-morph"
 import {refineInspect, type TSR} from "../../index.ts"
 import type {CLIStream} from "../cli-io.ts"
-import {writeInspectFile} from "../format-inspect.ts"
+import {writeInspectFile} from "./format-inspect.ts"
 import type {InspectArgs} from "./inspect-args.ts"
 
 export async function runInspect(project: Project, args: InspectArgs, stream: CLIStream): Promise<void> {
