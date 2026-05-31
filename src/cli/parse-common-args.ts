@@ -1,12 +1,13 @@
 // CommonArgs holds the position-independent global options every command
 // shares. parseCommonArgs fills it incrementally rather than pre-scanning all
 // of argv: the router consumes the leading globals with it, and each command
-// parser calls it inside its own loop, so -p / --dry-run work on either side
-// of the subcommand.
+// parser calls it inside its own loop, so -p / --dry-run / --help work on
+// either side of the subcommand.
 
 export interface CommonArgs {
     tsconfigPath: string | null
     dryRun: boolean
+    help: boolean
 }
 
 // Consumes a global option at argv[index], writing it into `args`. Returns the
@@ -32,5 +33,18 @@ export function parseCommonArgs(args: CommonArgs, argv: string[], index: number)
         args.dryRun = true
         return 1
     }
+    if (a === "-h" || a === "--help") {
+        args.help = true
+        return 1
+    }
     return 0
+}
+
+// A subcommand combined with --help is unsupported until per-command help
+// exists, so the runner rejects it after parsing (the `<command> --help` and
+// `--help <command>` cases). When a command later grows its own help, replace
+// this call site with that command's usage instead.
+export function helpUnsupported(command: string): number {
+    console.error(`--help is not supported for the ${command} command`)
+    return 1
 }

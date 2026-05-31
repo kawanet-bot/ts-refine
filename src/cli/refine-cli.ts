@@ -45,16 +45,10 @@ function acceptedSubcommands(): string {
 type refineCLI = (args: string[], stream: CLIStream) => Promise<number>
 
 export const refineCLI: refineCLI = async (args, stream) => {
-    // -h / --help win wherever they appear; `help` and a bare invocation also
-    // print usage.
-    if (args.includes("--help") || args.includes("-h")) {
-        stream.write(usage() + "\n")
-        return 0
-    }
-
-    // Consume the leading globals; the first token that isn't one is the
-    // subcommand, and the tokens to its right go to that command's handler.
-    const common: CommonArgs = {tsconfigPath: null, dryRun: false}
+    // Consume the leading globals (including -h/--help); the first token that
+    // isn't one is the subcommand, and the tokens to its right go to that
+    // command's handler.
+    const common: CommonArgs = {tsconfigPath: null, dryRun: false, help: false}
     let i = 0
     let command: string | undefined
     while (i < args.length) {
@@ -72,31 +66,25 @@ export const refineCLI: refineCLI = async (args, stream) => {
         i += consumed
     }
 
-    if (command === undefined) {
-        // Bare invocation is help; globals with no subcommand is a usage error.
-        if (common.tsconfigPath !== null || common.dryRun) {
-            console.error(`expected a subcommand: ${acceptedSubcommands()}`)
-            console.error(usage())
-            return 1
-        }
-        stream.write(usage() + "\n")
-        return 0
-    }
-    if (command === "help") {
+    // The `help` command, a no-argument invocation, and --help with no
+    // subcommand all print usage. Globals without a subcommand fall through to
+    // "expected a subcommand"; a subcommand combined with --help is left to the
+    // handler, which currently rejects it (see helpUnsupported).
+    if (command === "help" || args.length === 0 || (command === undefined && common.help)) {
         stream.write(usage() + "\n")
         return 0
     }
 
-    const handler = COMMAND_TABLE.get(command)
-    if (handler === undefined) {
-        // A leading dash means the user gave an option where the subcommand
-        // belongs; otherwise it's just an unrecognized command name.
-        if (command.startsWith("-")) {
+    const handler = command === undefined ? undefined : COMMAND_TABLE.get(command)
+    if (!handler) {
+        // Only globals and no subcommand reads as "expected a subcommand";
+        // anything else — including a leading-dash token — is named back as an
+        // unknown command so the offending token is visible.
+        if (!command) {
             console.error(`expected a subcommand: ${acceptedSubcommands()}`)
         } else {
             console.error(`unknown command: ${command} (expected: ${acceptedSubcommands()})`)
         }
-        console.error(usage())
         return 1
     }
 
