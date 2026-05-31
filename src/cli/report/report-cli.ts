@@ -12,7 +12,7 @@ import {parseReportArgs} from "./parse-report-args.ts"
 import {selectOutput} from "./select-output.ts"
 
 export async function runReport(ctx: Context): Promise<number> {
-    const {args: common, tokens, stream} = ctx
+    const {args: common, tokens, stream, log} = ctx
     const args = parseReportArgs(tokens, common)
     if (!args) return 1
     if (common.help) throw new Error("--help is not supported for the report command")
@@ -24,12 +24,12 @@ export async function runReport(ctx: Context): Promise<number> {
     const output = selectOutput(args.output, stream)
 
     if (args.surveyDefault) {
-        const entries = await refineList(project, {paths})
+        const entries = await refineList(project, {paths, log})
         const candidates = filterListEntries(entries, {noExports: true, noImporters: true, unusedExports: true})
         stream.write("### list --no-exports --no-importers --unused-exports\n\n")
         writeListTable(candidates, stream)
     }
-    const report = await refineReport(project, {paths, reportNames, stream: output.reportStream})
+    const report = await refineReport(project, {paths, reportNames, stream: output.reportStream, log})
     if (args.surveyDefault) {
         writeFormatMarkdown(report, stream)
         writePrettierMarkdown(report, stream)

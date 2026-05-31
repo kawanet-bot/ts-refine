@@ -6,8 +6,8 @@
 // success; on failure it rejects with an Error for the caller to display and
 // turn into a non-zero exit. It never calls process.exit.
 //
-// Diagnostics and per-command progress stay on console.error / the runners'
-// own console output, which already target the process's stderr/stdout.
+// Per-command progress and diagnostics go to `ctx.log` (the entry point wires
+// it to stderr); the library never writes to the console itself.
 
 import type {Context} from "./cli-io.ts"
 import {runFormat} from "./format/format-cli.ts"
