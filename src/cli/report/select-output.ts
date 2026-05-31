@@ -10,8 +10,8 @@
 // into the rendered output.
 
 import type {TSR} from "ts-refine"
-import {writePrettierConfig} from "./output-prettier.ts"
-import {writeFormatCommand} from "./output-ts-refine.ts"
+import {writePrettierConfig} from "./emit-prettier.ts"
+import {writeFormatCommand} from "./emit-ts-refine.ts"
 
 // Local alias for readability — not exported.
 type Writer = TSR.ReportOpts["stream"]

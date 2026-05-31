@@ -1,6 +1,6 @@
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
-import {writePrettierConfig, writePrettierMarkdown} from "./output-prettier.ts"
+import {writePrettierConfig, writePrettierMarkdown} from "./emit-prettier.ts"
 
 function capture(report: Parameters<typeof writePrettierConfig>[0]): string {
     let out = ""
