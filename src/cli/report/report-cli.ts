@@ -3,7 +3,7 @@
 // Named reports and `--output` paths skip those survey-only blocks.
 
 import {initProject, refineList, refineReport, type TSR} from "../../index.ts"
-import type {CommandGlobals} from "../args-common.ts"
+import {type CommandGlobals, resolvePaths} from "../args-common.ts"
 import type {CLIStream} from "../cli-io.ts"
 import {filterListEntries, writeListTable} from "../list/format-list.ts"
 import {parseReport} from "./report-args.ts"
@@ -14,19 +14,20 @@ import {selectOutput} from "./select-output.ts"
 export async function runReport(sub: string[], globals: CommandGlobals, stream: CLIStream): Promise<number> {
     const args = parseReport(sub, globals)
     if (!args) return 1
-    const project = initProject({tsConfigFilePath: args.tsconfigPath})
+    const {absTsconfig, paths} = resolvePaths(args.tsconfigPath, args.paths)
+    const project = initProject({tsConfigFilePath: absTsconfig})
 
     // Report-name validation lives in refineReport so typos surface there.
     const reportNames = args.reportNames as TSR.ReportName[]
     const output = selectOutput(args.output, stream)
 
     if (args.surveyDefault) {
-        const entries = await refineList(project, {paths: args.paths})
+        const entries = await refineList(project, {paths})
         const candidates = filterListEntries(entries, {noExports: true, noImporters: true, unusedExports: true})
         stream.write("### list --no-exports --no-importers --unused-exports\n\n")
         writeListTable(candidates, stream)
     }
-    const report = await refineReport(project, {paths: args.paths, reportNames, stream: output.reportStream})
+    const report = await refineReport(project, {paths, reportNames, stream: output.reportStream})
     if (args.surveyDefault) {
         writeFormatMarkdown(report, stream)
         writePrettierMarkdown(report, stream)

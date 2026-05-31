@@ -4,7 +4,6 @@ import {describe, it} from "node:test"
 import {parseInspect} from "./inspect-args.ts"
 
 const SAMPLE_TSCONFIG = path.resolve(import.meta.dirname, "../../../sample/basic/tsconfig.json")
-const SAMPLE_DIR = path.dirname(SAMPLE_TSCONFIG)
 const G = {tsconfigPath: SAMPLE_TSCONFIG, dryRun: false}
 
 describe("parseInspect", () => {
@@ -26,9 +25,9 @@ describe("parseInspect", () => {
         assert.deepEqual(r.inspectorNames, ["typo"])
     })
 
-    it("accepts positional files", () => {
+    it("keeps positional files raw for the runner to resolve", () => {
         const r = parseInspect(["a.ts"], G)
         assert.ok(r)
-        assert.deepEqual(r.paths, [path.join(SAMPLE_DIR, "a.ts")])
+        assert.deepEqual(r.paths, ["a.ts"])
     })
 })

@@ -4,7 +4,6 @@ import {describe, it} from "node:test"
 import {parseList} from "./list-args.ts"
 
 const SAMPLE_TSCONFIG = path.resolve(import.meta.dirname, "../../../sample/basic/tsconfig.json")
-const SAMPLE_DIR = path.dirname(SAMPLE_TSCONFIG)
 const G = {tsconfigPath: SAMPLE_TSCONFIG, dryRun: false}
 
 // Silences the expected stderr writes so the test output stays clean.
@@ -31,10 +30,10 @@ describe("parseList", () => {
         assert.deepEqual(r.listFilters, {noExports: true, noImporters: false, unusedExports: true})
     })
 
-    it("accepts positional files", () => {
+    it("keeps positional files raw for the runner to resolve", () => {
         const r = parseList(["a.ts"], G)
         assert.ok(r)
-        assert.deepEqual(r.paths, [path.join(SAMPLE_DIR, "a.ts")])
+        assert.deepEqual(r.paths, ["a.ts"])
     })
 
     it("returns undefined on an unknown option", () => {

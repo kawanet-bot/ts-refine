@@ -4,10 +4,11 @@
 // positional report names behaved.
 
 import {reportNames as knownReportNames} from "../../report/report-names.ts"
-import {type CommandGlobals, resolvePaths} from "../args-common.ts"
+import type {CommandGlobals} from "../args-common.ts"
 
+// Raw values only: the runner resolves tsconfigPath/paths into absolute paths.
 export interface ReportArgs {
-    tsconfigPath: string
+    tsconfigPath: string | null
     paths: string[]
     // The requested selectors, or the full registry when none are given.
     reportNames: string[]
@@ -20,7 +21,7 @@ export interface ReportArgs {
 
 export function parseReport(sub: string[], globals: CommandGlobals): ReportArgs | undefined {
     const reportNames: string[] = []
-    const files: string[] = []
+    const paths: string[] = []
     let output: string | null = null
 
     for (let i = 0; i < sub.length; i++) {
@@ -39,12 +40,11 @@ export function parseReport(sub: string[], globals: CommandGlobals): ReportArgs 
             console.error(`unknown option: ${a}`)
             return undefined
         } else {
-            files.push(a)
+            paths.push(a)
         }
     }
 
     const surveyDefault = reportNames.length === 0 && output === null
     const effectiveReports = reportNames.length > 0 ? reportNames : [...knownReportNames]
-    const {absTsconfig, paths} = resolvePaths(globals.tsconfigPath, files)
-    return {tsconfigPath: absTsconfig, paths, reportNames: effectiveReports, output, surveyDefault}
+    return {tsconfigPath: globals.tsconfigPath, paths, reportNames: effectiveReports, output, surveyDefault}
 }

@@ -4,7 +4,6 @@ import {describe, it} from "node:test"
 import {parseMove} from "./move-args.ts"
 
 const SAMPLE_TSCONFIG = path.resolve(import.meta.dirname, "../../../sample/basic/tsconfig.json")
-const SAMPLE_DIR = path.dirname(SAMPLE_TSCONFIG)
 const G = {tsconfigPath: SAMPLE_TSCONFIG, dryRun: false}
 
 // Silences the expected stderr writes so the test output stays clean.
@@ -19,11 +18,11 @@ function quiet<T>(fn: () => T): T {
 }
 
 describe("parseMove", () => {
-    it("parses positionals as a flat path list (split happens in the runner)", () => {
+    it("keeps positionals raw as a flat list (resolve + split happen in the runner)", () => {
         const r = parseMove(["a.ts", "b.ts", "dest/"], G)
         assert.ok(r)
-        // resolvePaths preserves the trailing `/` so the runner can detect a directory dest.
-        assert.deepEqual(r.paths, [path.join(SAMPLE_DIR, "a.ts"), path.join(SAMPLE_DIR, "b.ts"), path.join(SAMPLE_DIR, "dest") + path.sep])
+        // Trailing `/` is preserved verbatim so the runner can detect a directory dest.
+        assert.deepEqual(r.paths, ["a.ts", "b.ts", "dest/"])
     })
 
     it("passes the dry-run flag through from the globals", () => {

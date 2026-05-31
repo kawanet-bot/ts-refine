@@ -4,7 +4,6 @@ import {describe, it} from "node:test"
 import {parseFormat} from "./format-args.ts"
 
 const SAMPLE_TSCONFIG = path.resolve(import.meta.dirname, "../../../sample/basic/tsconfig.json")
-const SAMPLE_DIR = path.dirname(SAMPLE_TSCONFIG)
 const G = {tsconfigPath: SAMPLE_TSCONFIG, dryRun: false}
 
 // Silences the expected stderr writes so the test output stays clean.
@@ -26,10 +25,10 @@ describe("parseFormat", () => {
         assert.equal(r.tsconfigPath, SAMPLE_TSCONFIG)
     })
 
-    it("accepts positional files", () => {
+    it("keeps positional files raw for the runner to resolve", () => {
         const r = parseFormat(["a.ts", "b.ts"], G)
         assert.ok(r)
-        assert.deepEqual(r.paths, [path.join(SAMPLE_DIR, "a.ts"), path.join(SAMPLE_DIR, "b.ts")])
+        assert.deepEqual(r.paths, ["a.ts", "b.ts"])
     })
 
     it("returns undefined on an unknown option", () => {

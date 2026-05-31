@@ -1,10 +1,11 @@
 // `format`: a fixed set of override options plus positional files.
 
 import type {FormatOptions} from "../../recommend/format-options.ts"
-import {type CommandGlobals, resolvePaths} from "../args-common.ts"
+import type {CommandGlobals} from "../args-common.ts"
 
+// Raw values only: the runner resolves tsconfigPath/paths into absolute paths.
 export interface FormatArgs {
-    tsconfigPath: string
+    tsconfigPath: string | null
     paths: string[]
     dryRun: boolean
     applyOverrides: FormatOptions
@@ -12,7 +13,7 @@ export interface FormatArgs {
 
 export function parseFormat(sub: string[], globals: CommandGlobals): FormatArgs | undefined {
     const overrides: FormatOptions = {}
-    const files: string[] = []
+    const paths: string[] = []
 
     for (let i = 0; i < sub.length; i++) {
         const a = sub[i]
@@ -66,10 +67,9 @@ export function parseFormat(sub: string[], globals: CommandGlobals): FormatArgs 
             console.error(`unknown option: ${a}`)
             return undefined
         } else {
-            files.push(a)
+            paths.push(a)
         }
     }
 
-    const {absTsconfig, paths} = resolvePaths(globals.tsconfigPath, files)
-    return {tsconfigPath: absTsconfig, paths, dryRun: globals.dryRun, applyOverrides: overrides}
+    return {tsconfigPath: globals.tsconfigPath, paths, dryRun: globals.dryRun, applyOverrides: overrides}
 }

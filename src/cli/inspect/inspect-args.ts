@@ -3,10 +3,11 @@
 // and is validated at runtime by refineInspect (mirrors parseReport).
 
 import {inspectorNames as knownInspectorNames} from "../../inspect/inspector-names.ts"
-import {type CommandGlobals, resolvePaths} from "../args-common.ts"
+import type {CommandGlobals} from "../args-common.ts"
 
+// Raw values only: the runner resolves tsconfigPath/paths into absolute paths.
 export interface InspectArgs {
-    tsconfigPath: string
+    tsconfigPath: string | null
     paths: string[]
     // The requested inspector selectors, or the full registry.
     inspectorNames: string[]
@@ -14,7 +15,7 @@ export interface InspectArgs {
 
 export function parseInspect(sub: string[], globals: CommandGlobals): InspectArgs | undefined {
     const inspectorNames: string[] = []
-    const files: string[] = []
+    const paths: string[] = []
 
     for (const a of sub) {
         if (a.startsWith("--")) {
@@ -24,11 +25,10 @@ export function parseInspect(sub: string[], globals: CommandGlobals): InspectArg
             console.error(`unknown option: ${a}`)
             return undefined
         } else {
-            files.push(a)
+            paths.push(a)
         }
     }
 
     const effective = inspectorNames.length > 0 ? inspectorNames : [...knownInspectorNames]
-    const {absTsconfig, paths} = resolvePaths(globals.tsconfigPath, files)
-    return {tsconfigPath: absTsconfig, paths, inspectorNames: effective}
+    return {tsconfigPath: globals.tsconfigPath, paths, inspectorNames: effective}
 }

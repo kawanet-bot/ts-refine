@@ -4,7 +4,6 @@ import {describe, it} from "node:test"
 import {parseRename} from "./rename-args.ts"
 
 const SAMPLE_TSCONFIG = path.resolve(import.meta.dirname, "../../../sample/basic/tsconfig.json")
-const SAMPLE_DIR = path.dirname(SAMPLE_TSCONFIG)
 const G = {tsconfigPath: SAMPLE_TSCONFIG, dryRun: false}
 
 // Silences the expected stderr writes so the test output stays clean.
@@ -19,19 +18,19 @@ function quiet<T>(fn: () => T): T {
 }
 
 describe("parseRename", () => {
-    it("parses --from / --to as a project-wide rename", () => {
+    it("parses --from / --to as a project-wide rename (no scope file)", () => {
         const r = parseRename(["--from", "funcA", "--to", "funcB"], G)
         assert.ok(r)
         assert.equal(r.from, "funcA")
         assert.equal(r.to, "funcB")
-        assert.equal(r.renameFile, null)
+        assert.deepEqual(r.paths, [])
         assert.equal(r.dryRun, false)
     })
 
-    it("scopes rename to a file, resolved against the tsconfig dir", () => {
+    it("keeps the scope file raw for the runner to resolve", () => {
         const r = parseRename(["libs.ts", "--from", "funcA", "--to", "funcB"], G)
         assert.ok(r)
-        assert.equal(r.renameFile, path.resolve(SAMPLE_DIR, "libs.ts"))
+        assert.deepEqual(r.paths, ["libs.ts"])
     })
 
     it("passes the dry-run flag through from the globals", () => {
