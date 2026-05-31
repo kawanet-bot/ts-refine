@@ -12,10 +12,10 @@ const SAMPLE = path.resolve(import.meta.dirname, "../../sample/basic/tsconfig.js
 async function run(args: string[]): Promise<{status: number; stdout: string; stderr: string}> {
     const out: string[] = []
     const errs: string[] = []
-    const stream = {write: (s: string): void => void out.push(s)}
+    const output = {write: (s: string): void => void out.push(s)}
     const log = {write: (s: string): void => void errs.push(s)}
     try {
-        const status = await refineCLI({args: {}, tokens: args, stream, log})
+        const status = await refineCLI({args: {}, tokens: args, output, log})
         return {status, stdout: out.join(""), stderr: errs.join("")}
     } catch (e) {
         errs.push(e instanceof Error ? e.message : String(e))

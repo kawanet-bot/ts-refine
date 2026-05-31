@@ -11,7 +11,7 @@ import type {CommonArgs} from "./parse-common-args.ts"
 export interface Context {
     args: CommonArgs
     tokens: string[]
-    stream: TSR.Writer
+    output: TSR.Writer
     log: TSR.Writer
 }
 

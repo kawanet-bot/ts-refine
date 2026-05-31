@@ -8,7 +8,7 @@ import {parseInspectArgs} from "./parse-inspect-args.ts"
 import {writeInspectFile} from "./write-inspect-file.ts"
 
 export async function runInspect(ctx: Context): Promise<number> {
-    const {args: common, tokens, stream, log} = ctx
+    const {args: common, tokens, output, log} = ctx
     const args = parseInspectArgs(tokens, common)
     if (!args) return 1
     if (common.help) throw new Error("--help is not supported for the inspect command")
@@ -16,6 +16,6 @@ export async function runInspect(ctx: Context): Promise<number> {
     const project = initProject({tsConfigFilePath: absTsconfig})
     const inspectorNames = args.inspectorNames as TSR.InspectorName[]
     const files = await refineInspect(project, {paths, inspectorNames, log})
-    for (const file of files) writeInspectFile(file, stream)
+    for (const file of files) writeInspectFile(file, output)
     return 0
 }

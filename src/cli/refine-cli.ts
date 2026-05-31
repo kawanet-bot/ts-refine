@@ -47,7 +47,7 @@ function acceptedSubcommands(): string {
 type refineCLI = (ctx: Context) => Promise<number>
 
 export const refineCLI: refineCLI = async (ctx) => {
-    const {args: common, tokens, stream} = ctx
+    const {args: common, tokens, output} = ctx
     // Consume the leading globals (including -h/--help); the first token that
     // isn't one is the subcommand, and the tokens to its right go to that
     // command's handler.
@@ -68,7 +68,7 @@ export const refineCLI: refineCLI = async (ctx) => {
     // "expected a subcommand"; a subcommand combined with --help is left to the
     // handler, which currently throws to reject it.
     if (command === "help" || tokens.length === 0 || (command === undefined && common.help)) {
-        stream.write(usage() + "\n")
+        output.write(usage() + "\n")
         return 0
     }
 

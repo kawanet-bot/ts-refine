@@ -12,7 +12,7 @@ import {parseReportArgs} from "./parse-report-args.ts"
 import {selectEmitter} from "./select-emitter.ts"
 
 export async function runReport(ctx: Context): Promise<number> {
-    const {args: common, tokens, stream, log} = ctx
+    const {args: common, tokens, output, log} = ctx
     const args = parseReportArgs(tokens, common)
     if (!args) return 1
     if (common.help) throw new Error("--help is not supported for the report command")
@@ -21,18 +21,18 @@ export async function runReport(ctx: Context): Promise<number> {
 
     // Report-name validation lives in refineReport so typos surface there.
     const reportNames = args.reportNames as TSR.ReportName[]
-    const emitter = selectEmitter(args.emit, stream)
+    const emitter = selectEmitter(args.emit, output)
 
     if (args.surveyDefault) {
         const entries = await refineList(project, {paths, log})
         const candidates = filterListEntries(entries, {noExports: true, noImporters: true, unusedExports: true})
-        stream.write("### list --no-exports --no-importers --unused-exports\n\n")
-        writeListTable(candidates, stream)
+        output.write("### list --no-exports --no-importers --unused-exports\n\n")
+        writeListTable(candidates, output)
     }
     const report = await refineReport(project, {paths, reportNames, output: emitter.reportStream, log})
     if (args.surveyDefault) {
-        writeFormatMarkdown(report, stream)
-        writePrettierMarkdown(report, stream)
+        writeFormatMarkdown(report, output)
+        writePrettierMarkdown(report, output)
     }
     emitter.finalize(report)
     return 0
