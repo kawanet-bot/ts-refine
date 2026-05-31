@@ -13,7 +13,7 @@ import type {TSR} from "ts-refine"
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
 
 export const refineList: typeof declared.refineList = async (project, {paths, log}) => {
-    const sourceFiles = selectSourceFiles(project, {paths}).filter((sf) => !sf.getFilePath().endsWith(".d.ts"))
+    const sourceFiles = selectSourceFiles(project, {paths})
 
     const entries: TSR.ListEntry[] = []
     for (const sf of sourceFiles) {
@@ -41,7 +41,7 @@ export const refineList: typeof declared.refineList = async (project, {paths, lo
 
         // Importers = other in-project files that reference this one. Skip
         // .d.ts referrers to match the file scope used everywhere else.
-        const importers = sf.getReferencingSourceFiles().filter((r) => r !== sf && !r.getFilePath().endsWith(".d.ts")).length
+        const importers = sf.getReferencingSourceFiles().filter((r) => r !== sf).length
 
         entries.push({file: displayPath(sf.getFilePath()), exports, unused, importers})
     }

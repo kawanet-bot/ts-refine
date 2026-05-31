@@ -56,13 +56,12 @@ describe("refineFormat", () => {
         assert.match(sf.getFullText(), /unused/)
     })
 
-    it("excludes .d.ts files from rewrite (matching report scope)", async () => {
+    it("formats .d.ts files too (no longer excluded)", async () => {
         const project = new Project({useInMemoryFileSystem: true})
-        const before = "interface I { x:number }\n"
-        const sf = project.createSourceFile("a.d.ts", before)
+        const sf = project.createSourceFile("a.d.ts", "interface I { x:number }\n")
         await refineFormat(project, {log, dryRun: true, paths: [], format: {bracketSpacing: "on"}})
-        // .d.ts excluded → text unchanged.
-        assert.equal(sf.getFullText(), before)
+        // .d.ts is now in scope; formatText tidies the member spacing.
+        assert.equal(sf.getFullText(), "interface I { x: number }\n")
     })
 
     it("dryRun does not call fs.writeFile (verified by using an in-memory project that would error on real-fs writes)", async () => {
