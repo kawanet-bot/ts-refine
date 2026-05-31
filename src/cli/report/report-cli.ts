@@ -8,8 +8,8 @@ import type {CLIStream} from "../cli-io.ts"
 import {filterListEntries, writeListTable} from "../list/format-list.ts"
 import {writePrettierMarkdown} from "./output-prettier.ts"
 import {writeFormatMarkdown} from "./output-ts-refine.ts"
-import {selectOutput} from "./select-output.ts"
 import type {ReportArgs} from "./report-args.ts"
+import {selectOutput} from "./select-output.ts"
 
 export async function runReport(project: Project, args: ReportArgs, stream: CLIStream): Promise<void> {
     // Report-name validation lives in refineReport so typos surface there.

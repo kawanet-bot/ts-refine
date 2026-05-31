@@ -9,7 +9,7 @@
 
 import type {Project} from "ts-morph"
 import {initProject} from "../index.ts"
-import {type CommandGlobals, type Command} from "./args-common.ts"
+import {type Command, type CommandGlobals} from "./args-common.ts"
 import type {CLIStream} from "./cli-io.ts"
 import {parseFormat} from "./format/format-args.ts"
 import {runFormat} from "./format/format-cli.ts"
