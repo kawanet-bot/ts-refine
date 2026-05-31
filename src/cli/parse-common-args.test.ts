@@ -8,7 +8,7 @@ import {describe, it} from "node:test"
 import {type CommonArgs, parseCommonArgs} from "./parse-common-args.ts"
 
 function fresh(): CommonArgs {
-    return {tsconfigPath: null, dryRun: false}
+    return {tsconfigPath: null, dryRun: false, help: false}
 }
 
 // Silences the expected stderr writes so the test output stays clean.
@@ -39,6 +39,15 @@ describe("parseCommonArgs", () => {
         const c = fresh()
         assert.equal(parseCommonArgs(c, ["--dry-run"], 0), 1)
         assert.equal(c.dryRun, true)
+    })
+
+    it("consumes -h / --help into help and reports one token", () => {
+        const long = fresh()
+        assert.equal(parseCommonArgs(long, ["--help"], 0), 1)
+        assert.equal(long.help, true)
+        const short = fresh()
+        assert.equal(parseCommonArgs(short, ["-h"], 0), 1)
+        assert.equal(short.help, true)
     })
 
     it("reports zero for a token that is not a global", () => {

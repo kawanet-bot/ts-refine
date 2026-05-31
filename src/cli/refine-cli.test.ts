@@ -120,14 +120,16 @@ describe("refineCLI", () => {
         assert.match(r.stderr, /unknown command/)
     })
 
-    it("treats -h / --help as help even after a subcommand", async () => {
+    it("rejects --help combined with a subcommand (until per-command help exists)", async () => {
+        // Both trailing `<command> --help` and leading `--help <command>` reach
+        // the handler, which reports the flag as unsupported rather than help.
         for (const args of [
             ["report", "--help"],
-            ["format", "-h"],
+            ["-h", "format", "-p", SAMPLE],
         ]) {
             const r = await run(args)
-            assert.equal(r.status, 0, `args: ${args.join(" ")}`)
-            assert.match(r.stdout, /Usage: ts-refine <command>/)
+            assert.notEqual(r.status, 0, `args: ${args.join(" ")}`)
+            assert.match(r.stderr, /--help is not supported/)
         }
     })
 
