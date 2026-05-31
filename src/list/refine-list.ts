@@ -1,6 +1,7 @@
-// `list`: per-file export / usage snapshot. For each file (in scope, .d.ts
-// excluded) it counts exported declarations, how many of those have no
-// external reference (unused), and how many other files import it. The
+// `list`: per-file export / usage snapshot. For each in-project file (external
+// library declarations aside, .d.ts included) it counts exported declarations,
+// how many of those have no external reference (unused), and how many other
+// files import it. The
 // full set is returned unfiltered so later commands can reuse it; the CLI
 // applies the --no-exports / --no-importers / --unused-exports filters.
 //
@@ -13,7 +14,7 @@ import type {TSR} from "ts-refine"
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
 
 export const refineList: typeof declared.refineList = async (project, {paths, log}) => {
-    const sourceFiles = selectSourceFiles(project, {paths}).filter((sf) => !sf.getFilePath().endsWith(".d.ts"))
+    const sourceFiles = selectSourceFiles(project, {paths})
 
     const entries: TSR.ListEntry[] = []
     for (const sf of sourceFiles) {
@@ -39,9 +40,9 @@ export const refineList: typeof declared.refineList = async (project, {paths, lo
             }
         }
 
-        // Importers = other in-project files that reference this one. Skip
-        // .d.ts referrers to match the file scope used everywhere else.
-        const importers = sf.getReferencingSourceFiles().filter((r) => r !== sf && !r.getFilePath().endsWith(".d.ts")).length
+        // Importers = other in-project files (including .d.ts) that reference
+        // this one. External declarations are not project files, so drop them.
+        const importers = sf.getReferencingSourceFiles().filter((r) => r !== sf && !r.isFromExternalLibrary()).length
 
         entries.push({file: displayPath(sf.getFilePath()), exports, unused, importers})
     }

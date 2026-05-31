@@ -16,7 +16,7 @@ import type {ReportOpts} from "./types.ts"
 const BUCKET_LABELS = ["0%", "1-10%", "11-49%", "50%", "51-89%", "90-99%", "100%"] as const
 
 export async function runReportSemicolons(project: Project, {output, paths, log}: ReportOpts): Promise<Partial<TSR.SemicolonsOpts>> {
-    const sourceFiles = selectSourceFiles(project, {paths}).filter((sf) => !sf.getFilePath().endsWith(".d.ts"))
+    const sourceFiles = selectSourceFiles(project, {paths})
 
     type PerFile = {path: string; total: number; withSemi: number}
     const perFile: PerFile[] = []

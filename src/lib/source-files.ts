@@ -7,7 +7,11 @@ import type {Project, SourceFile} from "ts-morph"
 import type {TSR} from "ts-refine"
 
 export function selectSourceFiles(project: Project, {paths}: Pick<TSR.ReportOpts, "paths">): SourceFile[] {
-    return paths.length > 0 ? project.getSourceFiles(paths) : project.getSourceFiles()
+    const files = paths.length > 0 ? project.getSourceFiles(paths) : project.getSourceFiles()
+    // Never a command target: external declarations (TS lib, @types/* pulled in
+    // via tsconfig) the program loads for type-checking. The project's own .d.ts
+    // stays — it is not external — which is the point of including .d.ts at all.
+    return files.filter((sf) => !sf.isFromExternalLibrary())
 }
 
 // Shortens long paths by dropping everything through the last interior

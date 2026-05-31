@@ -13,8 +13,7 @@ export const refineFormat: typeof declared.refineFormat = async (project, opts) 
     const {dryRun, paths, format, log} = opts
     const resolved = resolveSettings(format)
 
-    // .d.ts excluded — same scope every report uses for measurement.
-    const sourceFiles = selectSourceFiles(project, {paths}).filter((sf) => !sf.getFilePath().endsWith(".d.ts"))
+    const sourceFiles = selectSourceFiles(project, {paths})
 
     // Absolute paths of the files whose text changed; returned so callers
     // (e.g. `--check`) can act on whether anything would be rewritten.

@@ -35,4 +35,15 @@ describe("refineList (sample/basic)", () => {
             ["used.ts"],
         )
     })
+
+    it("includes in-project .d.ts files", async () => {
+        const project = new Project({useInMemoryFileSystem: true})
+        project.createSourceFile("/src/a.ts", "export const x = 1\n")
+        project.createSourceFile("/src/types.d.ts", 'import {x} from "./a.ts"\nexport type T = typeof x\n')
+        const entries = await refineList(project, {log, paths: []})
+        // The .d.ts is listed, and counts as an importer of a.ts.
+        assert.ok(entries.some((e) => path.basename(e.file) === "types.d.ts"))
+        const a = entries.find((e) => path.basename(e.file) === "a.ts")!
+        assert.equal(a.importers, 1)
+    })
 })

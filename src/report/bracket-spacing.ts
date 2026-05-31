@@ -22,7 +22,7 @@ const STYLE_LABEL: Record<Style, string> = {
 type Bucket = {lines: number; files: number; topPath: string; topLines: number}
 
 export async function runReportBracketSpacing(project: Project, {output, paths, log}: ReportOpts): Promise<Partial<TSR.BracketSpacingOpts>> {
-    const sourceFiles = selectSourceFiles(project, {paths}).filter((sf) => !sf.getFilePath().endsWith(".d.ts"))
+    const sourceFiles = selectSourceFiles(project, {paths})
 
     type PerFile = {path: string; counts: Map<Style, number>; primary: Style}
     const perFile: PerFile[] = []

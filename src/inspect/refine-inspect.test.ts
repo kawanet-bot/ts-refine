@@ -85,4 +85,12 @@ describe("refineInspect", () => {
         const files = await refineInspect(project, {log, paths: ["/orphan.ts"], inspectorNames: ["importers"]})
         assert.deepEqual(files[0].importers, [])
     })
+
+    it("counts an in-project .d.ts as an importer", async () => {
+        const project = new Project({useInMemoryFileSystem: true})
+        project.createSourceFile("/target.ts", "export const x = 1\n")
+        project.createSourceFile("/ambient.d.ts", 'import {x} from "./target.ts"\ndeclare const _: typeof x\n')
+        const files = await refineInspect(project, {log, paths: ["/target.ts"], inspectorNames: ["importers"]})
+        assert.ok(files[0].importers!.some((i) => i.file.endsWith("ambient.d.ts")))
+    })
 })
