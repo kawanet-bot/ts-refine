@@ -21,26 +21,26 @@ function buildFormatFlags(options: FormatOptions): string[] {
 // Always starts with the `format` command (the verb the recommendation
 // translates to). Empty recommendations still emit `ts-refine format`,
 // paralleling `--emit prettier`'s empty `{}`.
-export function writeFormatCommand(report: TSR.ReportResult, stream: TSR.Writer): void {
+export function writeFormatCommand(report: TSR.ReportResult, output: TSR.Writer): void {
     const flags = buildFormatFlags(reportToFormatOptions(report))
     if (flags.length === 0) {
-        stream.write("ts-refine format\n")
+        output.write("ts-refine format\n")
         return
     }
-    stream.write("ts-refine format \\\n")
-    stream.write(`  ${flags.join(" ")}\n`)
+    output.write("ts-refine format \\\n")
+    output.write(`  ${flags.join(" ")}\n`)
 }
 
 // `## recommendation` block in the default-survey Markdown. Skipped
 // when no recommendations fired (the empty form carries no information).
-export function writeFormatMarkdown(report: TSR.ReportResult, stream: TSR.Writer): void {
+export function writeFormatMarkdown(report: TSR.ReportResult, output: TSR.Writer): void {
     const flags = buildFormatFlags(reportToFormatOptions(report))
     if (flags.length === 0) return
-    stream.write("## recommendation\n")
-    stream.write("\n")
-    stream.write("```sh\n")
-    stream.write("ts-refine format \\\n")
-    stream.write(`  ${flags.join(" ")}\n`)
-    stream.write("```\n")
-    stream.write("\n")
+    output.write("## recommendation\n")
+    output.write("\n")
+    output.write("```sh\n")
+    output.write("ts-refine format \\\n")
+    output.write(`  ${flags.join(" ")}\n`)
+    output.write("```\n")
+    output.write("\n")
 }

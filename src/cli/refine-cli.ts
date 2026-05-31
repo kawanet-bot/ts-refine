@@ -2,7 +2,7 @@
 // up to the subcommand, then hand the remaining tokens to the matching command
 // handler in COMMAND_TABLE. Each handler parses its own options (calling
 // parseCommonArgs for any trailing globals), opens the project, and runs.
-// refineCLI writes stdout-bound output to `stream` and resolves with 0 on
+// refineCLI writes stdout-bound output stream and resolves with 0 on
 // success; on failure it rejects with an Error for the caller to display and
 // turn into a non-zero exit. It never calls process.exit.
 //
@@ -20,7 +20,7 @@ import {runReport} from "./report/report-cli.ts"
 import {usage} from "./usage.ts"
 
 // Every command runner takes the same Context box: `args` carries the parsed
-// globals, `tokens` are the command's own remaining tokens, and `stream` is the
+// globals, `tokens` are the command's own remaining tokens, and `output` is the
 // stdout sink. The uniform shape lets refineCLI and the runners share a type.
 type CommandHandler = (ctx: Context) => Promise<number>
 
@@ -42,7 +42,7 @@ function acceptedSubcommands(): string {
 
 // The whole CLI as a function: parse the leading globals out of `ctx.tokens`
 // into `ctx.args`, dispatch the subcommand writing stdout-bound output to
-// `ctx.stream`, and resolve with 0 on success, or reject with an Error for the
+// `ctx.output`, and resolve with 0 on success, or reject with an Error for the
 // caller to display.
 type refineCLI = (ctx: Context) => Promise<number>
 

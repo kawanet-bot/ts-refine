@@ -38,21 +38,21 @@ function buildPrettierOptions(report: TSR.ReportResult): PrettierOptions {
     return opts
 }
 
-export function writePrettierConfig(report: TSR.ReportResult, stream: TSR.Writer): void {
-    stream.write(JSON.stringify(buildPrettierOptions(report), null, 4) + "\n")
+export function writePrettierConfig(report: TSR.ReportResult, output: TSR.Writer): void {
+    output.write(JSON.stringify(buildPrettierOptions(report), null, 4) + "\n")
 }
 
 // The `.prettierrc` fence appended at the end of the default-survey
 // Markdown output. The whole block is skipped when no recommendations
 // fired — an empty `{}` block would be pure noise. The trailing blank
 // line matches the convention every other report block follows.
-export function writePrettierMarkdown(report: TSR.ReportResult, stream: TSR.Writer): void {
+export function writePrettierMarkdown(report: TSR.ReportResult, output: TSR.Writer): void {
     const opts = buildPrettierOptions(report)
     if (Object.keys(opts).length === 0) return
-    stream.write("### .prettierrc\n")
-    stream.write("\n")
-    stream.write("```json\n")
-    stream.write(JSON.stringify(opts, null, 4) + "\n")
-    stream.write("```\n")
-    stream.write("\n")
+    output.write("### .prettierrc\n")
+    output.write("\n")
+    output.write("```json\n")
+    output.write(JSON.stringify(opts, null, 4) + "\n")
+    output.write("```\n")
+    output.write("\n")
 }

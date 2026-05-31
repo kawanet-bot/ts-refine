@@ -3,9 +3,6 @@
 
 import type {TSR} from "ts-refine"
 
-// Local alias for readability — not exported.
-type Writer = TSR.ReportOpts["output"]
-
 interface ListFilters {
     noExports: boolean
     noImporters: boolean
@@ -20,11 +17,11 @@ export function filterListEntries(entries: TSR.ListEntry[], f: ListFilters): TSR
     return entries.filter((e) => (f.noExports && e.exports === 0) || (f.noImporters && e.importers === 0) || (f.unusedExports && e.unused > 0))
 }
 
-export function writeListTable(entries: TSR.ListEntry[], stream: Writer): void {
-    stream.write("| file | exports | unused | importers |\n")
-    stream.write("| --- | --- | --- | --- |\n")
+export function writeListTable(entries: TSR.ListEntry[], output: TSR.Writer): void {
+    output.write("| file | exports | unused | importers |\n")
+    output.write("| --- | --- | --- | --- |\n")
     for (const e of entries) {
-        stream.write(`| ${e.file} | ${e.exports} | ${e.unused} | ${e.importers} |\n`)
+        output.write(`| ${e.file} | ${e.exports} | ${e.unused} | ${e.importers} |\n`)
     }
-    stream.write("\n")
+    output.write("\n")
 }
