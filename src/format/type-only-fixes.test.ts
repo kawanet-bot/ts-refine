@@ -38,10 +38,11 @@ describe("applyTypeOnlyFixes via refineFormat (verbatimModuleSyntax on)", () => 
         assert.match(reexport, /export\s*\{\s*VERSION\s*\}/, `reexport: ${reexport}`)
 
         // splitTypeOnlyImport: the illegal default+named type-only import is
-        // split into two declarations.
+        // split into two declarations, and the original combined form is gone.
         const split = read(project, VERBATIM_TSCONFIG, "src/split.ts")
         assert.match(split, /import type Registry/, `split: ${split}`)
         assert.match(split, /import type\s*\{\s*Shape\s*\}/, `split: ${split}`)
+        assert.doesNotMatch(split, /import type Registry\s*,/, `illegal combined form should be removed: ${split}`)
     })
 })
 
