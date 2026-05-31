@@ -195,7 +195,9 @@ npx ts-refine move src/a.ts src/b.ts src/lib/
 ## Rename
 
 `rename` renames an exported identifier and every reference, keeping importer
-aliases intact.
+aliases intact. A dotted name reaches inside a container — a namespace member,
+or a property of an interface or class — and `from`/`to` must keep that
+container (the member is renamed in place, never moved).
 
 ```sh
 # rename an export and every reference across the project
@@ -206,6 +208,15 @@ npx ts-refine rename --from funcA --to funcB --dry-run
 
 # rename the export from one file when the name isn't unique
 npx ts-refine rename --from funcA --to funcB src/lib.ts
+
+# rename a member of a namespace
+npx ts-refine rename --from nsA.funcB --to nsA.funcC
+
+# rename a property of an exported interface or class
+npx ts-refine rename --from typeA.propB --to typeA.propC
+
+# rename a property of a namespace-nested interface or class
+npx ts-refine rename --from nsA.typeB.propC --to nsA.typeB.propD
 ```
 
 ## FAQ
