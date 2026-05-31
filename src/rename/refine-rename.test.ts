@@ -6,7 +6,7 @@ import {refineRename} from "./refine-rename.ts"
 
 // rename re-sorts the touched files' imports via organizeImports using the
 // surveyed style; pin no-space spacing for deterministic expected text.
-const NO_SPACE: TSR.FormatOptions = {bracketSpacing: "off"}
+const NO_SPACE: TSR.FormatStyle = {bracketSpacing: "off"}
 
 function newProject(): Project {
     return new Project({

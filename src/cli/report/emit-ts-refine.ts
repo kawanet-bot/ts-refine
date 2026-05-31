@@ -6,10 +6,10 @@ import type {TSR} from "ts-refine"
 import {reportToFormatOptions} from "../../recommend/format-options.ts"
 
 // Returns argv-style tokens (flag and value pushed separately), the same
-// shape parseArgs consumes. Reads FormatOptions — the same value the
+// shape parseArgs consumes. Reads FormatStyle — the same value the
 // `format` command applies — so the printed command and the apply agree;
 // `cr` is already dropped upstream, so --new-line is always runnable.
-function buildFormatFlags(options: TSR.FormatOptions): string[] {
+function buildFormatFlags(options: TSR.FormatStyle): string[] {
     const flags: string[] = []
     if (options.semicolons) flags.push("--semicolons", options.semicolons)
     if (options.indent !== undefined) flags.push("--indent", String(options.indent))

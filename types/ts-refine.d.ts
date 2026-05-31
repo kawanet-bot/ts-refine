@@ -67,7 +67,7 @@ export declare namespace TSR {
     // and what the CLI overrides feed. `newLine` is lf|crlf only — a `cr`
     // recommendation is neither a runnable flag nor an LS setting, so it never
     // enters here. refineMove/refineRename take this directly to organize imports.
-    interface FormatOptions {
+    interface FormatStyle {
         organizeImports?: "on" | "off"
         indent?: number | "tab"
         semicolons?: "on" | "off"
@@ -80,7 +80,7 @@ export declare namespace TSR {
     interface FormatOpts extends CommonOpts {
         paths: string[]
         dryRun: boolean
-        format: FormatOptions
+        format: FormatStyle
     }
 
     // refineFormat returns the in-project files whose text was rewritten, so a
@@ -152,7 +152,7 @@ export declare namespace TSR {
         sources: string[]
         dest: string
         dryRun: boolean
-        format: FormatOptions
+        format: FormatStyle
     }
 
     // refineMove returns the planned moves (from → to) and the set of in-project
@@ -173,7 +173,7 @@ export declare namespace TSR {
         to: string
         file: string | null
         dryRun: boolean
-        format: FormatOptions
+        format: FormatStyle
     }
 
     // refineRename returns the applied rename and the in-project files whose text

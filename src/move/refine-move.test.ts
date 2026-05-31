@@ -9,8 +9,8 @@ import {refineMove} from "./refine-move.ts"
 
 // organizeImports after a move follows the surveyed style; these pin the
 // bracket-spacing so the expected import text is deterministic.
-const NO_SPACE: TSR.FormatOptions = {bracketSpacing: "off"}
-const SPACED: TSR.FormatOptions = {bracketSpacing: "on"}
+const NO_SPACE: TSR.FormatStyle = {bracketSpacing: "off"}
+const SPACED: TSR.FormatStyle = {bracketSpacing: "on"}
 
 function newProject(): Project {
     return new Project({

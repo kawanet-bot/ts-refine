@@ -1,4 +1,4 @@
-// `format` command: apply a resolved FormatOptions → LS formatter + organizeImports.
+// `format` command: apply a resolved FormatStyle → LS formatter + organizeImports.
 // Order is formatText → organizeImports; the same FormatCodeSettings
 // feeds both so the rebuilt import block matches the file. The caller merges the
 // survey recommendation with CLI overrides; refineFormat just applies the result.

@@ -9,7 +9,7 @@ import type {TSR} from "ts-refine"
 import {applyTypeOnlyFixes} from "../lib/type-only-fixes.ts"
 import {resolveSettings} from "./format-options.ts"
 
-export function organizeChangedImports(files: Iterable<SourceFile>, format: TSR.FormatOptions): void {
+export function organizeChangedImports(files: Iterable<SourceFile>, format: TSR.FormatStyle): void {
     const resolved = resolveSettings(format)
     // Honor the organize-imports gate the same way refineFormat does: a
     // `{organizeImports: "off"}` caller keeps its rewritten paths but skips the

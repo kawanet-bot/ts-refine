@@ -8,12 +8,12 @@ import {type CommonArgs, parseCommonArgs} from "../parse-common-args.ts"
 // what `check` implies (dry-run plus a non-zero exit when anything would change).
 export interface FormatArgs {
     paths: string[]
-    applyOverrides: TSR.FormatOptions
+    applyOverrides: TSR.FormatStyle
     check: boolean
 }
 
 export function parseFormatArgs(sub: string[], common: CommonArgs): FormatArgs | undefined {
-    const overrides: TSR.FormatOptions = {}
+    const overrides: TSR.FormatStyle = {}
     const paths: string[] = []
     let check = false
     let i = 0

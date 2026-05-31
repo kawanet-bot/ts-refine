@@ -1,11 +1,11 @@
-// FormatOptions is the canonical per-field formatting intent. Both the
+// FormatStyle is the canonical per-field formatting intent. Both the
 // report recommendation and the CLI overrides are funneled into it, so
 // the ts-refine command output and the actual apply derive from one
 // value — guaranteeing they agree. The pipeline is:
 //   ReportResult ─reportToFormatOptions─┐
 //                                          ├─ mergeFormatOptions ─ resolveSettings ─▶ ResolvedSettings
-//   FormatOptions ─overridesToFormatOptions┘
-// and buildFormatFlags renders the same FormatOptions back to argv.
+//   FormatStyle ─overridesToFormatOptions┘
+// and buildFormatFlags renders the same FormatStyle back to argv.
 
 import type {FormatCodeSettings} from "ts-morph"
 import {ts} from "ts-morph"
@@ -15,14 +15,14 @@ import {applyReportNames} from "../report/report-names.ts"
 // A CLI override pins a field, so surveying the matching report is redundant;
 // organizeImports has no report. reportNamesForFormat trims the apply set to
 // the reports still worth running — a fully-pinned format skips the survey.
-const reportByOverride: {field: keyof TSR.FormatOptions; report: TSR.ReportName}[] = [
+const reportByOverride: {field: keyof TSR.FormatStyle; report: TSR.ReportName}[] = [
     {field: "semicolons", report: "semicolons"},
     {field: "indent", report: "indent"},
     {field: "newLine", report: "new-line"},
     {field: "bracketSpacing", report: "bracket-spacing"},
 ]
 
-export function reportNamesForFormat(overrides: TSR.FormatOptions): TSR.ReportName[] {
+export function reportNamesForFormat(overrides: TSR.FormatStyle): TSR.ReportName[] {
     const skip = new Set(reportByOverride.filter((m) => overrides[m.field] !== undefined).map((m) => m.report))
     return applyReportNames.filter((name) => !skip.has(name))
 }
@@ -39,10 +39,10 @@ export interface ResolvedSettings {
 // FormatCodeSettings is readonly; build mutably and cast at the return.
 type MutableFormatSettings = {-readonly [K in keyof FormatCodeSettings]: FormatCodeSettings[K]}
 
-// Recommendation → options. `cr` is read and discarded (see FormatOptions);
+// Recommendation → options. `cr` is read and discarded (see FormatStyle);
 // member-separators has no actionable mapping and is dropped too.
-export function reportToFormatOptions(report: TSR.ReportResult): TSR.FormatOptions {
-    const options: TSR.FormatOptions = {}
+export function reportToFormatOptions(report: TSR.ReportResult): TSR.FormatStyle {
+    const options: TSR.FormatStyle = {}
     if (report.semicolons?.semicolons) options.semicolons = report.semicolons.semicolons
     if (report.indent?.width !== undefined) options.indent = report.indent.width
     const newLine = report.newLine?.newLine
@@ -52,8 +52,8 @@ export function reportToFormatOptions(report: TSR.ReportResult): TSR.FormatOptio
 }
 
 // CLI overrides → options. A typed seam keeping parseArgs decoupled from
-// the FormatOptions vocabulary; the shapes happen to line up today.
-export function overridesToFormatOptions(overrides: TSR.FormatOptions): TSR.FormatOptions {
+// the FormatStyle vocabulary; the shapes happen to line up today.
+export function overridesToFormatOptions(overrides: TSR.FormatStyle): TSR.FormatStyle {
     return {
         organizeImports: overrides.organizeImports,
         indent: overrides.indent,
@@ -64,7 +64,7 @@ export function overridesToFormatOptions(overrides: TSR.FormatOptions): TSR.Form
 }
 
 // Per-field precedence: override wins over base, else base, else unset.
-export function mergeFormatOptions(base: TSR.FormatOptions, override: TSR.FormatOptions): TSR.FormatOptions {
+export function mergeFormatOptions(base: TSR.FormatStyle, override: TSR.FormatStyle): TSR.FormatStyle {
     return {
         organizeImports: override.organizeImports ?? base.organizeImports,
         indent: override.indent ?? base.indent,
@@ -74,8 +74,8 @@ export function mergeFormatOptions(base: TSR.FormatOptions, override: TSR.Format
     }
 }
 
-// FormatOptions → the settings refineFormat hands to ts-morph.
-export function resolveSettings(options: TSR.FormatOptions): ResolvedSettings {
+// FormatStyle → the settings refineFormat hands to ts-morph.
+export function resolveSettings(options: TSR.FormatStyle): ResolvedSettings {
     const formatSettings: MutableFormatSettings = {}
 
     // "tab" turns convertTabsToSpaces off (LS then indents with tabs);

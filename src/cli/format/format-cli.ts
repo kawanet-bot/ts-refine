@@ -23,7 +23,7 @@ export const formatCLI: CLI = async (ctx) => {
     // Merge the survey recommendation (base) with the CLI overrides (win per
     // field) here, so refineFormat just applies the result.
     const format = mergeFormatOptions(reportToFormatOptions(report), overridesToFormatOptions(args.applyOverrides))
-    // `cr` is dropped from FormatOptions, so flag it from the report: the survey
+    // `cr` is dropped from FormatStyle, so flag it from the report: the survey
     // recommended CR-only newlines but no override forced an applicable value.
     if (args.applyOverrides.newLine === undefined && report.newLine?.newLine === "cr") {
         log.write("note: report recommends CR-only newlines; not applied (LS formatter supports LF/CRLF only)\n")
