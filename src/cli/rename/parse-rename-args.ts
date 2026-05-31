@@ -19,6 +19,12 @@ export function parseRenameArgs(sub: string[], common: CommonArgs): RenameArgs |
     let i = 0
 
     while (i < sub.length) {
+        const consumed = parseCommonArgs(common, sub, i)
+        if (consumed > 0) {
+            i += consumed
+            continue
+        }
+
         const a = sub[i]
         if (a === "--from") {
             from = sub[i + 1]
@@ -32,17 +38,11 @@ export function parseRenameArgs(sub: string[], common: CommonArgs): RenameArgs |
                 throw new Error("--to requires an identifier (e.g. --to newName)")
             }
             i += 2
+        } else if (a.startsWith("-")) {
+            throw new Error(`unknown option: ${a}`)
         } else {
-            const consumed = parseCommonArgs(common, sub, i)
-            if (consumed < 0) return undefined
-            if (consumed > 0) {
-                i += consumed
-            } else if (a.startsWith("-")) {
-                throw new Error(`unknown option: ${a}`)
-            } else {
-                paths.push(a)
-                i++
-            }
+            paths.push(a)
+            i++
         }
     }
 

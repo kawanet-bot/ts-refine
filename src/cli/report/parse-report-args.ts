@@ -26,6 +26,12 @@ export function parseReportArgs(sub: string[], common: CommonArgs): ReportArgs |
     let i = 0
 
     while (i < sub.length) {
+        const consumed = parseCommonArgs(common, sub, i)
+        if (consumed > 0) {
+            i += consumed
+            continue
+        }
+
         const a = sub[i]
         if (a === "--output") {
             const v = sub[i + 1]
@@ -34,12 +40,6 @@ export function parseReportArgs(sub: string[], common: CommonArgs): ReportArgs |
             }
             output = v
             i += 2
-            continue
-        }
-        const consumed = parseCommonArgs(common, sub, i)
-        if (consumed < 0) return undefined
-        if (consumed > 0) {
-            i += consumed
         } else if (a.startsWith("--")) {
             const name = a.slice(2)
             if (!reportNames.includes(name)) reportNames.push(name)

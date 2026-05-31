@@ -20,12 +20,14 @@ export function parseInspectArgs(sub: string[], common: CommonArgs): InspectArgs
     let i = 0
 
     while (i < sub.length) {
-        const a = sub[i]
         const consumed = parseCommonArgs(common, sub, i)
-        if (consumed < 0) return undefined
         if (consumed > 0) {
             i += consumed
-        } else if (a.startsWith("--")) {
+            continue
+        }
+
+        const a = sub[i]
+        if (a.startsWith("--")) {
             const name = a.slice(2)
             if (!inspectorNames.includes(name)) inspectorNames.push(name)
             i++

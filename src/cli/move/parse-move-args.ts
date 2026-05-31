@@ -16,12 +16,14 @@ export function parseMoveArgs(sub: string[], common: CommonArgs): MoveArgs | und
     let i = 0
 
     while (i < sub.length) {
-        const a = sub[i]
         const consumed = parseCommonArgs(common, sub, i)
-        if (consumed < 0) return undefined
         if (consumed > 0) {
             i += consumed
-        } else if (a.startsWith("-")) {
+            continue
+        }
+
+        const a = sub[i]
+        if (a.startsWith("-")) {
             throw new Error(`unknown option: ${a}`)
         } else {
             paths.push(a)
