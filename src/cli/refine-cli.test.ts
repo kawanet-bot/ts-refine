@@ -104,4 +104,19 @@ describe("refineCLI", () => {
         assert.notEqual(r.status, 0)
         assert.match(r.stderr, /unknown command/)
     })
+
+    it("reports `expected a subcommand` when an option sits where the command belongs", async () => {
+        const r = await run(["--output", "prettier", "-p", SAMPLE])
+        assert.notEqual(r.status, 0)
+        assert.match(r.stderr, /expected a subcommand/)
+    })
+
+    it("rejects --dry-run on a read command, wherever it sits", async () => {
+        const r1 = await run(["report", "--dry-run", "-p", SAMPLE])
+        assert.notEqual(r1.status, 0)
+        assert.match(r1.stderr, /--dry-run is only valid with format, move, or rename/)
+        const r2 = await run(["--dry-run", "report", "-p", SAMPLE])
+        assert.notEqual(r2.status, 0)
+        assert.match(r2.stderr, /--dry-run is only valid with format, move, or rename/)
+    })
 })

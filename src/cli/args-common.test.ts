@@ -74,17 +74,6 @@ describe("parseArgs globals (position-independent)", () => {
         assert.equal(r.dryRun, true)
     })
 
-    it("rejects --dry-run for a read command, wherever it sits", () => {
-        assert.equal(
-            quiet(() => parseArgs(["report", "--dry-run", "-p", SAMPLE_TSCONFIG])),
-            undefined,
-        )
-        assert.equal(
-            quiet(() => parseArgs(["--dry-run", "report", "-p", SAMPLE_TSCONFIG])),
-            undefined,
-        )
-    })
-
     it("rejects -p duplicated across either side, like the right-side duplicate", () => {
         // left+right
         assert.equal(
@@ -104,19 +93,19 @@ describe("parseArgs globals (position-independent)", () => {
     })
 })
 
-describe("parseArgs subcommand errors", () => {
-    it("returns undefined on an unknown command", () => {
-        assert.equal(
-            quiet(() => parseArgs(["frobnicate", "-p", SAMPLE_TSCONFIG])),
-            undefined,
-        )
+describe("parseArgs subcommand handling", () => {
+    it("passes an unrecognized subcommand through verbatim (validity is the table's job)", () => {
+        const r = parseArgs(["frobnicate", "-p", SAMPLE_TSCONFIG])
+        assert.ok(r && !("help" in r))
+        assert.equal(r.command, "frobnicate")
     })
 
-    it("returns undefined when options are given without a subcommand", () => {
-        assert.equal(
-            quiet(() => parseArgs(["--output", "prettier", "-p", SAMPLE_TSCONFIG])),
-            undefined,
-        )
+    it("treats a leading-dash token where the subcommand belongs as the command verbatim", () => {
+        // refineCLI turns this into an "expected a subcommand" error.
+        const r = parseArgs(["--output", "prettier", "-p", SAMPLE_TSCONFIG])
+        assert.ok(r && !("help" in r))
+        assert.equal(r.command, "--output")
+        assert.deepEqual(r.rest, ["prettier"])
     })
 
     it("treats globals with no subcommand as a usage error, not help", () => {

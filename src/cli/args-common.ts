@@ -5,14 +5,11 @@
 
 import path from "node:path"
 
-export type Command = "report" | "format" | "list" | "inspect" | "move" | "rename"
-
-export const COMMANDS: readonly Command[] = ["report", "format", "list", "inspect", "move", "rename"] as const
-
-// Result of the common pass: the chosen subcommand, the globals, and the
-// still-unparsed tokens to its right. The per-command parser consumes `rest`.
+// Result of the common pass: the chosen subcommand verbatim (validated against
+// the command table by the caller, not here), the globals, and the still-
+// unparsed tokens to its right. The per-command parser consumes `rest`.
 export interface CommonArgs {
-    command: Command
+    command: string
     tsconfigPath: string | null
     dryRun: boolean
     rest: string[]

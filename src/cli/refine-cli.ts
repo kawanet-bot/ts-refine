@@ -9,7 +9,7 @@
 
 import type {Project} from "ts-morph"
 import {initProject} from "../index.ts"
-import {type Command, type CommandGlobals} from "./args-common.ts"
+import type {CommandGlobals} from "./args-common.ts"
 import type {CLIStream} from "./cli-io.ts"
 import {parseFormat} from "./format/format-args.ts"
 import {runFormat} from "./format/format-cli.ts"
@@ -56,13 +56,23 @@ function defineCommand<A extends {tsconfigPath: string}>(parse: (sub: string[], 
     }
 }
 
-const COMMAND_TABLE: Record<Command, CommandSpec> = {
-    report: defineCommand(parseReport, runReport),
-    format: defineCommand(parseFormat, runFormat),
-    list: defineCommand(parseList, runList),
-    inspect: defineCommand(parseInspect, runInspect),
-    move: defineCommand(parseMove, runMove),
-    rename: defineCommand(parseRename, runRename),
+// The command table is the single source of truth for the set of subcommands:
+// membership here is what makes a name valid, so parse-args stays command-
+// agnostic. Insertion order also drives the accepted-subcommand error message.
+const COMMAND_TABLE = new Map<string, CommandSpec>([
+    ["report", defineCommand(parseReport, runReport)],
+    ["format", defineCommand(parseFormat, runFormat)],
+    ["list", defineCommand(parseList, runList)],
+    ["inspect", defineCommand(parseInspect, runInspect)],
+    ["move", defineCommand(parseMove, runMove)],
+    ["rename", defineCommand(parseRename, runRename)],
+])
+
+// Write commands accept --dry-run; the rest reject it as a likely mistake.
+const DRY_RUN_COMMANDS: ReadonlySet<string> = new Set(["format", "move", "rename"])
+
+function acceptedSubcommands(): string {
+    return [...COMMAND_TABLE.keys(), "help"].join(", ")
 }
 
 // The whole CLI as a function: parse `args` (argv minus node/script),
@@ -84,5 +94,24 @@ export const refineCLI: refineCLI = async (args, stream) => {
         return 0
     }
 
-    return COMMAND_TABLE[parsed.command].dispatch(parsed.rest, parsed, stream)
+    const spec = COMMAND_TABLE.get(parsed.command)
+    if (spec === undefined) {
+        // A leading dash means the user gave an option where the subcommand
+        // belongs; otherwise it's just an unrecognized command name.
+        if (parsed.command.startsWith("-")) {
+            console.error(`expected a subcommand: ${acceptedSubcommands()}`)
+        } else {
+            console.error(`unknown command: ${parsed.command} (expected: ${acceptedSubcommands()})`)
+        }
+        console.error(usage())
+        return 1
+    }
+
+    // --dry-run only means something for the write commands.
+    if (parsed.dryRun && !DRY_RUN_COMMANDS.has(parsed.command)) {
+        console.error("--dry-run is only valid with format, move, or rename")
+        return 1
+    }
+
+    return spec.dispatch(parsed.rest, parsed, stream)
 }
