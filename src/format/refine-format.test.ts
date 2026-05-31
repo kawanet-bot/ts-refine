@@ -6,29 +6,29 @@ import {refineFormat} from "./refine-format.ts"
 const log = {write: () => {}}
 
 describe("refineFormat", () => {
-    it("applies the indent recommendation when no override is given", async () => {
+    it("applies the indent width from the format style", async () => {
         const project = new Project({useInMemoryFileSystem: true})
         const sf = project.createSourceFile("a.ts", "function f() {\n  return 1\n}\n")
         await refineFormat(project, {log, dryRun: true, paths: [], format: {indent: 4}})
-        // LS formatText re-indents the body to four spaces under the merged settings.
+        // LS formatText re-indents the body to four spaces under the resolved settings.
         assert.match(sf.getFullText(), /\n {4}return 1\n/)
     })
 
-    it("lets --indent override beat the report's recommendation", async () => {
+    it("applies a pinned indent width", async () => {
         const project = new Project({useInMemoryFileSystem: true})
         const sf = project.createSourceFile("a.ts", "function f() {\n  return 1\n}\n")
         await refineFormat(project, {log, dryRun: true, paths: [], format: {indent: 2}})
         assert.match(sf.getFullText(), /\n {2}return 1\n/)
     })
 
-    it("inserts trailing semicolons when the report recommends 'on'", async () => {
+    it("inserts trailing semicolons when format.semicolons is 'on'", async () => {
         const project = new Project({useInMemoryFileSystem: true})
         const sf = project.createSourceFile("a.ts", "const a = 1\nconst b = 2\n")
         await refineFormat(project, {log, dryRun: true, paths: [], format: {semicolons: "on"}})
         assert.match(sf.getFullText(), /const a = 1;\nconst b = 2;\n/)
     })
 
-    it("strips trailing semicolons when the report recommends 'off'", async () => {
+    it("strips trailing semicolons when format.semicolons is 'off'", async () => {
         const project = new Project({useInMemoryFileSystem: true})
         const sf = project.createSourceFile("a.ts", "const a = 1;\nconst b = 2;\n")
         await refineFormat(project, {log, dryRun: true, paths: [], format: {semicolons: "off"}})
@@ -47,7 +47,7 @@ describe("refineFormat", () => {
         assert.equal(/unused/.test(text), false)
     })
 
-    it("skips organize-imports when the override is 'off'", async () => {
+    it("skips organize-imports when format.organizeImports is 'off'", async () => {
         const project = new Project({useInMemoryFileSystem: true})
         project.createSourceFile("dep.ts", "export const used = 1\nexport const unused = 2\n")
         const sf = project.createSourceFile("a.ts", "import {unused, used} from './dep.ts'\nconst x = used\n")
