@@ -57,10 +57,10 @@ export const refineFormat: typeof declared.refineFormat = async (project, opts) 
 
         changedCount++
         if (dryRun) {
-            console.log(`would update: ${filePath}`)
+            console.error(`would update: ${filePath}`)
         } else {
             await fs.writeFile(filePath, after)
-            console.log(`updated: ${filePath}`)
+            console.error(`updated: ${filePath}`)
         }
     }
 

@@ -68,10 +68,11 @@ export const refineRename: typeof declared.refineRename = async (project, opts) 
     organizeChangedImports(targetFiles, report)
 
     const touched = [...targetFiles]
-    if (dryRun) {
-        for (const sf of touched) console.log(`would update: ${displayPath(sf.getFilePath())}`)
-    } else {
-        for (const sf of touched) await sf.save()
+    if (!dryRun) for (const sf of touched) await sf.save()
+    // Per-file progress on stderr (stdout is reserved for command results);
+    // the verb tracks dryRun.
+    for (const sf of touched) {
+        console.error(`${dryRun ? "would update" : "updated"}: ${displayPath(sf.getFilePath())}`)
     }
 
     const verb = dryRun ? "would rename" : "renamed"

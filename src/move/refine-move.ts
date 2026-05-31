@@ -96,13 +96,7 @@ export const refineMove: typeof declared.refineMove = async (project, opts) => {
     // file would be gone with no new copy to replace it. We deliberately
     // avoid project.save() either way, which would also flush unrelated
     // pending edits a caller may have queued up.
-    if (dryRun) {
-        for (const {from, to} of plan) console.log(`would move: ${displayPath(from)} -> ${displayPath(to)}`)
-        for (const sf of touchedFiles) {
-            const p = sf.getFilePath()
-            if (!destPaths.has(p)) console.log(`would update: ${displayPath(p)}`)
-        }
-    } else {
+    if (!dryRun) {
         for (const sf of touchedFiles) await sf.save()
         const fileSystem = project.getFileSystem()
         for (const {from} of plan) {
@@ -113,6 +107,18 @@ export const refineMove: typeof declared.refineMove = async (project, opts) => {
                 // dropped it as part of move) — nothing to delete.
             }
         }
+    }
+
+    // Per-file progress on stderr (stdout is reserved for command results).
+    // The verb tracks dryRun; moves and importer updates are two separate
+    // streams. A moved file's new path is in destPaths, so the second loop
+    // reports only the importers.
+    for (const {from, to} of plan) {
+        console.error(`${dryRun ? "would move" : "moved"}: ${displayPath(from)} -> ${displayPath(to)}`)
+    }
+    for (const sf of touchedFiles) {
+        const p = sf.getFilePath()
+        if (!destPaths.has(p)) console.error(`${dryRun ? "would update" : "updated"}: ${displayPath(p)}`)
     }
 
     const verb = dryRun ? "would move" : "moved"
