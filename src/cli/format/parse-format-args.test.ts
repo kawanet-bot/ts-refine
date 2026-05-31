@@ -91,7 +91,7 @@ describe("parseFormat", () => {
         assert.equal(c.tsconfigPath, "tsconfig.json")
     })
 
-    it("treats --output as an unknown option", () => {
-        assert.throws(() => parseFormatArgs(["--output", "prettier"], common()), /unknown option/)
+    it("treats --emit as an unknown option", () => {
+        assert.throws(() => parseFormatArgs(["--emit", "prettier"], common()), /unknown option/)
     })
 })

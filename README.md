@@ -121,10 +121,10 @@ npx ts-refine report
 npx ts-refine report --semicolons --indent
 
 # emit a .prettierrc from the survey instead of Markdown
-npx ts-refine report --output prettier
+npx ts-refine report --emit prettier
 
 # emit a runnable `format` command instead of Markdown
-npx ts-refine report --output ts-refine
+npx ts-refine report --emit ts-refine
 ```
 
 ## Format

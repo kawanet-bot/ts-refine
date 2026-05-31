@@ -1,7 +1,7 @@
 // Renders a ReportResult as the JSON body of a .prettierrc file.
 // Only the fields the prettier CLI itself understands are emitted; the
 // caller decides what stream to write to (process.stdout for
-// `report --output prettier`, an in-memory sink for tests, etc.).
+// `report --emit prettier`, an in-memory sink for tests, etc.).
 //
 // Mapping:
 //   semicolons.semicolons === "on"          → semi: true
@@ -24,7 +24,7 @@ import type {TSR} from "ts-refine"
 type Writer = TSR.ReportOpts["stream"]
 
 // Collects the recommendations that fired into a PrettierOptions object.
-// Shared by the raw --output prettier output and the .prettierrc fence
+// Shared by the raw --emit prettier output and the .prettierrc fence
 // embedded in the default Markdown survey.
 function buildPrettierOptions(report: TSR.ReportResult): PrettierOptions {
     const opts: PrettierOptions = {}

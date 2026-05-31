@@ -1,6 +1,6 @@
 // `report` runner: survey-default leads with the list cleanup-candidate
 // listing, then the report tables, then `## recommendation` + `### .prettierrc`.
-// Named reports and `--output` paths skip those survey-only blocks.
+// Named reports and `--emit` paths skip those survey-only blocks.
 
 import {initProject, refineList, refineReport, type TSR} from "../../index.ts"
 import type {Context} from "../cli-io.ts"

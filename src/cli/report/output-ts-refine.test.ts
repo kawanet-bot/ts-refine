@@ -56,7 +56,7 @@ describe("writeFormatCommand", () => {
     })
 
     it("emits a bare `ts-refine format` when nothing was recommended", () => {
-        // Symmetric with `--output prettier` emitting an empty `{}` for the same case.
+        // Symmetric with `--emit prettier` emitting an empty `{}` for the same case.
         const out = capture((s) => writeFormatCommand({}, s))
         assert.equal(out, "ts-refine format\n")
     })

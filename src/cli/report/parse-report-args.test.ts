@@ -20,14 +20,14 @@ describe("parseReport", () => {
         assert.deepEqual(r.reportNames, ["typo-name"])
     })
 
-    it("passes unknown --output names through without rejecting (selectOutput validates)", () => {
-        const r = parseReportArgs(["--output", "typo-format"], common())
+    it("passes unknown --emit names through without rejecting (selectOutput validates)", () => {
+        const r = parseReportArgs(["--emit", "typo-format"], common())
         assert.ok(r)
         assert.equal(r.emit, "typo-format")
     })
 
-    it("accepts report selectors alongside --output", () => {
-        const r = parseReportArgs(["--semicolons", "--output", "ts-refine"], common())
+    it("accepts report selectors alongside --emit", () => {
+        const r = parseReportArgs(["--semicolons", "--emit", "ts-refine"], common())
         assert.ok(r)
         assert.deepEqual(r.reportNames, ["semicolons"])
         assert.equal(r.emit, "ts-refine")
@@ -51,9 +51,9 @@ describe("parseReport", () => {
         assert.equal(r.surveyDefault, true)
     })
 
-    it("opts out of the survey-default flag when selectors or --output are given", () => {
+    it("opts out of the survey-default flag when selectors or --emit are given", () => {
         assert.equal(parseReportArgs(["--unused-exports"], common())?.surveyDefault, false)
-        assert.equal(parseReportArgs(["--output", "prettier"], common())?.surveyDefault, false)
+        assert.equal(parseReportArgs(["--emit", "prettier"], common())?.surveyDefault, false)
     })
 
     it("rejects --dry-run as a read command", () => {

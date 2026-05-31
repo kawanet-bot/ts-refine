@@ -35,7 +35,7 @@ describe("refineCLI", () => {
             assert.match(r.stdout, /^  inspect /m)
             assert.match(r.stdout, /^  move /m)
             assert.match(r.stdout, /^  rename /m)
-            assert.match(r.stdout, /--output <name>/)
+            assert.match(r.stdout, /--emit <name>/)
             assert.match(r.stdout, /--semicolons --indent --member-separators --new-line --bracket-spacing/)
             assert.match(r.stdout, /--exports --importers/)
             assert.match(r.stdout, /--organize-imports on\|off/)
@@ -48,8 +48,8 @@ describe("refineCLI", () => {
         assert.match(r.stdout, /### semicolons/)
     })
 
-    it("emits a prettier config via report --output prettier", async () => {
-        const r = await run(["report", "--output", "prettier", "-p", SAMPLE])
+    it("emits a prettier config via report --emit prettier", async () => {
+        const r = await run(["report", "--emit", "prettier", "-p", SAMPLE])
         assert.equal(r.status, 0)
         // Output is JSON, not Markdown.
         assert.doesNotMatch(r.stdout, /^### /m)
@@ -150,9 +150,9 @@ describe("refineCLI", () => {
     })
 
     it("names a leading-dash token back as an unknown command", async () => {
-        const r = await run(["--output", "prettier", "-p", SAMPLE])
+        const r = await run(["--emit", "prettier", "-p", SAMPLE])
         assert.notEqual(r.status, 0)
-        assert.match(r.stderr, /unknown command: --output/)
+        assert.match(r.stderr, /unknown command: --emit/)
     })
 
     it("treats globals with no subcommand as a usage error, not help", async () => {

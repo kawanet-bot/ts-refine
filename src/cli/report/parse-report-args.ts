@@ -1,5 +1,5 @@
 // `report`: collect report-name selectors (`--<report>`), the optional
-// `--output`, and positional files. Unknown `--<name>` is treated as a
+// `--emit`, and positional files. Unknown `--<name>` is treated as a
 // report selector (validated later by refineReport). Globals are consumed
 // into `common`; the `--<name>` catch runs only after parseCommonArgs so it
 // can't swallow --project / --dry-run.
@@ -14,7 +14,7 @@ export interface ReportArgs {
     reportNames: string[]
     // Suppress Markdown and emit the named output instead.
     emit: string | null
-    // True only for a bare `report` (no selectors, no --output); gates the
+    // True only for a bare `report` (no selectors, no --emit); gates the
     // recommendation + .prettierrc blocks under the per-report Markdown.
     surveyDefault: boolean
 }
@@ -33,10 +33,10 @@ export function parseReportArgs(sub: string[], common: CommonArgs): ReportArgs |
         }
 
         const a = sub[i]
-        if (a === "--output") {
+        if (a === "--emit") {
             const v = sub[i + 1]
             if (!v || v.startsWith("-")) {
-                throw new Error("--output requires a value (e.g. --output prettier)")
+                throw new Error("--emit requires a value (e.g. --emit prettier)")
             }
             emit = v
             i += 2

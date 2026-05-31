@@ -1,8 +1,8 @@
-// `--output` router. Owns the output-name registry and decides what
+// `--emit` router. Owns the emit-name registry and decides what
 // post-processing each output performs over a ReportResult. Mirrors
 // the refineReport router (which owns report-name validation): the CLI
 // hands off a raw string and the dispatcher validates + dispatches, so a
-// new output slots in by extending `outputNames` and adding a branch.
+// new output slots in by extending `emitNames` and adding a branch.
 //
 // A null name means "no output selected"; the Markdown report stream is
 // untouched and `finalize` is a no-op. A selecting output ("prettier")
@@ -30,7 +30,7 @@ export function selectOutput(name: string | null, stdout: Writer): OutputDispatc
         return {reportStream: stdout, finalize: () => {}}
     }
     if (!(emitNames as readonly string[]).includes(name)) {
-        throw new Error(`unknown --output: ${name} (known: ${emitNames.join(", ")})`)
+        throw new Error(`unknown --emit: ${name} (known: ${emitNames.join(", ")})`)
     }
     if (name === "prettier") {
         return {
@@ -44,6 +44,6 @@ export function selectOutput(name: string | null, stdout: Writer): OutputDispatc
             finalize: (report) => writeFormatCommand(report, stdout),
         }
     }
-    // outputNames is exhaustive — this guards future entries that forget to add a branch.
-    throw new Error(`unhandled --output: ${name}`)
+    // emitNames is exhaustive — this guards future entries that forget to add a branch.
+    throw new Error(`unhandled --emit: ${name}`)
 }

@@ -1,4 +1,4 @@
-// `--output ts-refine`: re-emit the recommendation as a runnable CLI.
+// `--emit ts-refine`: re-emit the recommendation as a runnable CLI.
 // Two-line layout (`\` continuation + 2-space indent) lets
 // `grep -E '^ +--'` extract just the flags.
 
@@ -23,7 +23,7 @@ function buildFormatFlags(options: FormatOptions): string[] {
 
 // Always starts with the `format` command (the verb the recommendation
 // translates to). Empty recommendations still emit `ts-refine format`,
-// paralleling `--output prettier`'s empty `{}`.
+// paralleling `--emit prettier`'s empty `{}`.
 export function writeFormatCommand(report: TSR.ReportResult, stream: Writer): void {
     const flags = buildFormatFlags(reportToFormatOptions(report))
     if (flags.length === 0) {
