@@ -62,6 +62,8 @@ export function usage(): string {
         "  rename --from ... <file>    Scope the lookup to the identifier that <file>",
         "                              exports (when the name is not unique).",
         "  --from NS.a --to NS.b       Rename a namespace member (same namespace only).",
+        "  --from T.prop --to T.prop2  Rename an interface/class member (same type only;",
+        "                              T may be nested: NS.T.prop).",
         "",
         "Global options (may appear before or after the command):",
         "  -p, --project <path>        Path to a tsconfig.json or a directory",

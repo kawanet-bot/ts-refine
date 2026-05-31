@@ -143,12 +143,10 @@ export declare namespace TSR {
         touched: string[]
     }
 
-    // Input to `refineRename`. Renames the exported identifier `from` to `to`
-    // across the project. `file` (absolute path) restricts the lookup to that
-    // file's exports; null means the symbol must be uniquely exported project
-    // -wide. Named exports only — default/expression exports are out of scope.
-    // After renaming, the touched files' imports are re-sorted (organizeImports)
-    // using `report` — the project-wide surveyed style.
+    // Input to `refineRename`. Renames `from` to `to` in place; a dotted spec
+    // (ns.member, Type.prop, ns.Type.prop) renames a member of a matching
+    // container. `file` scopes the lookup; null requires a project-unique symbol.
+    // Touched files' imports are then re-sorted (organizeImports) using `report`.
     interface RenameOpts {
         from: string
         to: string

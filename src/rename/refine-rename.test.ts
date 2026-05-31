@@ -121,13 +121,13 @@ describe("refineRename", () => {
     it("refuses a cross-namespace rename", async () => {
         const project = newProject()
         project.createSourceFile("/types.ts", "export declare namespace NS {\n    interface A {}\n}\n")
-        await assert.rejects(refineRename(project, {from: "NS.A", to: "Other.A", file: null, dryRun: true, report: NO_SPACE}), /same namespace/)
+        await assert.rejects(refineRename(project, {from: "NS.A", to: "Other.A", file: null, dryRun: true, report: NO_SPACE}), /same container/)
     })
 
     it("refuses moving a namespace member to the top level", async () => {
         const project = newProject()
         project.createSourceFile("/types.ts", "export declare namespace NS {\n    interface A {}\n}\n")
-        await assert.rejects(refineRename(project, {from: "NS.A", to: "A", file: null, dryRun: true, report: NO_SPACE}), /same namespace/)
+        await assert.rejects(refineRename(project, {from: "NS.A", to: "A", file: null, dryRun: true, report: NO_SPACE}), /same container/)
     })
 
     it("refuses when the target member name already exists in the namespace", async () => {
@@ -169,5 +169,51 @@ describe("refineRename", () => {
         assert.doesNotMatch(text, /interface A {/)
         // Both merged declarations follow the single symbol's rename.
         assert.equal((text.match(/interface B {/g) ?? []).length, 2)
+    })
+
+    it("renames an interface property across its declaration and usages", async () => {
+        const project = newProject()
+        const types = project.createSourceFile("/types.ts", "export interface Shape {\n    width: number\n}\n")
+        const use = project.createSourceFile("/use.ts", 'import type {Shape} from "./types.ts"\nconst s: Shape = {width: 1}\nconsole.log(s.width)\n')
+        await refineRename(project, {from: "Shape.width", to: "Shape.w", file: null, dryRun: true, report: NO_SPACE})
+        assert.match(types.getFullText(), /\bw: number/)
+        assert.doesNotMatch(types.getFullText(), /width/)
+        assert.match(use.getFullText(), /\{w: 1\}/)
+        assert.match(use.getFullText(), /s\.w\b/)
+    })
+
+    it("renames a class method on a top-level class", async () => {
+        const project = newProject()
+        const types = project.createSourceFile("/box.ts", "export class Box {\n    grow(): void {}\n}\n")
+        const use = project.createSourceFile("/use.ts", 'import {Box} from "./box.ts"\nnew Box().grow()\n')
+        await refineRename(project, {from: "Box.grow", to: "Box.expand", file: null, dryRun: true, report: NO_SPACE})
+        assert.match(types.getFullText(), /expand\(\): void/)
+        assert.match(use.getFullText(), /\.expand\(\)/)
+    })
+
+    it("renames a property of a namespace-nested interface", async () => {
+        const project = newProject()
+        const types = project.createSourceFile("/types.ts", "export declare namespace NS {\n    interface Shape {\n        width: number\n    }\n}\n")
+        await refineRename(project, {from: "NS.Shape.width", to: "NS.Shape.w", file: null, dryRun: true, report: NO_SPACE})
+        assert.match(types.getFullText(), /\bw: number/)
+        assert.doesNotMatch(types.getFullText(), /width/)
+    })
+
+    it("refuses moving a property to a different container", async () => {
+        const project = newProject()
+        project.createSourceFile("/types.ts", "export interface Shape {\n    width: number\n}\nexport interface Box {\n    width: number\n}\n")
+        await assert.rejects(refineRename(project, {from: "Shape.width", to: "Box.w", file: null, dryRun: true, report: NO_SPACE}), /same container/)
+    })
+
+    it("refuses when the target property name already exists on the container", async () => {
+        const project = newProject()
+        project.createSourceFile("/types.ts", "export interface Shape {\n    width: number\n    w: number\n}\n")
+        await assert.rejects(refineRename(project, {from: "Shape.width", to: "Shape.w", file: null, dryRun: true, report: NO_SPACE}), /already exists/)
+    })
+
+    it("errors when the container has no such property", async () => {
+        const project = newProject()
+        project.createSourceFile("/types.ts", "export interface Shape {\n    width: number\n}\n")
+        await assert.rejects(refineRename(project, {from: "Shape.height", to: "Shape.h", file: null, dryRun: true, report: NO_SPACE}), /has no member named/)
     })
 })

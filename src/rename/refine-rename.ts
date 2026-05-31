@@ -1,34 +1,32 @@
-// `rename`: rename an exported identifier across the whole project. The TS
-// Language Service rename (ts-morph's Node#rename) rewrites the declaration,
-// every importer's binding, and every usage in one pass — and already keeps
-// an importer's local alias intact (`{from as x}` → `{to as x}`). After the
-// rename, the touched files' import blocks are re-sorted (organizeImports)
-// using the project's surveyed style; files that don't reference the symbol
-// are never touched.
+// `rename`: rename an identifier in place across the project via the TS
+// language-service rename. The leaf of a dotted spec is renamed; leading
+// segments locate the container (top-level / namespace / interface|class),
+// which `from` and `to` must share — a member is never moved across containers.
 //
-// A dotted `from`/`to` (e.g. `TSR.ReportResult`) targets a member of that
-// namespace instead of a top-level export. Renaming is name-only: the
-// namespace part of `from` and `to` must match — moving a member across
-// namespaces is out of scope. Namespace members aren't `export`ed, so they
-// are resolved by structural lookup (getInterface / getTypeAlias / ...),
-// not via getExportedDeclarations.
-//
-// Scope: named exports / named namespace members. Converting default <->
-// named export is a separate concern. On a name collision (the target name
-// already exists) we refuse rather than emit shadowed/broken code.
+// Supported `from`/`to` shapes and the collision/scope rules live in parseTarget
+// and resolveTarget below; the surveyed `report` drives the post-rename
+// organizeImports.
 
-import {Node, type Identifier, type ModuleDeclaration, type Project, type SourceFile} from "ts-morph"
+import {type ClassDeclaration, type Identifier, type InterfaceDeclaration, type ModuleDeclaration, Node, type Project, type SourceFile} from "ts-morph"
 import type * as declared from "ts-refine"
 import {displayPath} from "../lib/source-files.ts"
 import {organizeChangedImports} from "../recommend/organize-changed.ts"
 
 const IDENT = /^[A-Za-z_$][A-Za-z0-9_$]*$/
 
-// A rename target split into an optional namespace and the member/identifier
-// name. `ns` is null for a top-level export.
+// A rename target: the container path (0–2 segments: namespace and/or type)
+// plus the leaf name being renamed.
 interface Target {
-    ns: string | null
+    path: string[]
     name: string
+}
+
+// What a resolved target renames, plus how to detect a name collision for the
+// would-be new name. Keeping the collision check beside resolution means each
+// target shape (top-level / namespace member / member) carries its own rule.
+interface Resolved {
+    node: Identifier
+    collisions: (toName: string, targetFiles: Set<SourceFile>) => SourceFile[]
 }
 
 export const refineRename: typeof declared.refineRename = async (project, opts) => {
@@ -37,31 +35,30 @@ export const refineRename: typeof declared.refineRename = async (project, opts) 
     const fromT = parseTarget(from)
     const toT = parseTarget(to)
     if (from === to) throw new Error("rename: --from and --to are the same")
-    if (fromT.ns !== toT.ns) {
-        throw new Error(`rename: --from and --to must stay in the same namespace (cross-namespace rename is out of scope): ${from} -> ${to}`)
+    if (fromT.path.join(".") !== toT.path.join(".")) {
+        throw new Error(`rename: --from and --to must keep the same container (moving across namespaces or types is out of scope): ${from} -> ${to}`)
     }
-    for (const part of [fromT.ns, fromT.name, toT.name]) {
-        if (part !== null && !IDENT.test(part)) throw new Error(`rename: not a valid identifier: ${part}`)
+    for (const part of [...fromT.path, fromT.name, toT.name]) {
+        if (!IDENT.test(part)) throw new Error(`rename: not a valid identifier: ${part}`)
     }
 
-    const nameNode = fromT.ns === null ? resolveExportedName(project, fromT.name, file) : resolveNamespaceMember(project, fromT.ns, fromT.name, file)
+    const resolved = resolveTarget(project, fromT, file)
 
     // Reference locations cover the declaration, importer bindings, and
     // usages — the exact set of files the rename will edit.
-    const refs = nameNode.findReferencesAsNodes()
-    const targetFiles = new Set<SourceFile>([nameNode.getSourceFile()])
+    const refs = resolved.node.findReferencesAsNodes()
+    const targetFiles = new Set<SourceFile>([resolved.node.getSourceFile()])
     for (const r of refs) targetFiles.add(r.getSourceFile())
 
     // Collision guard: refuse if the target name already exists where the
-    // rename would land. Top-level scans touched files only; a namespace
-    // member is project-wide because namespaces merge across files.
-    const collisions = fromT.ns === null ? topLevelCollisions(targetFiles, toT.name) : namespaceCollisions(project, fromT.ns, toT.name)
+    // rename would land.
+    const collisions = resolved.collisions(toT.name, targetFiles)
     if (collisions.length > 0) {
         const where = [...new Set(collisions)].map((sf) => displayPath(sf.getFilePath())).join(", ")
         throw new Error(`rename: \`${to}\` already exists in: ${where} (aliasing on collision is not supported yet)`)
     }
 
-    nameNode.rename(toT.name)
+    resolved.node.rename(toT.name)
 
     // Re-sort imports in every file the rename edited, so a changed import
     // binding leaves a tidy, conventionally-ordered block.
@@ -81,20 +78,47 @@ export const refineRename: typeof declared.refineRename = async (project, opts) 
     return {from, to, touched: touched.map((sf) => sf.getFilePath())}
 }
 
-// Split `a.b` into {ns: "a", name: "b"} and a bare `b` into {ns: null,
-// name: "b"}. Only a single namespace level is supported.
+// Split a dotted spec into its container path and leaf name. At most three
+// segments (ns.Type.prop); deeper paths aren't a shape we resolve.
 function parseTarget(spec: string): Target {
     const parts = spec.split(".")
-    if (parts.length === 1) return {ns: null, name: parts[0]}
-    if (parts.length === 2) return {ns: parts[0], name: parts[1]}
-    throw new Error(`rename: nested namespaces are not supported: ${spec}`)
+    if (parts.length > 3) throw new Error(`rename: too many segments (max ns.Type.prop): ${spec}`)
+    return {path: parts.slice(0, -1), name: parts[parts.length - 1]}
+}
+
+// Resolve a target to the name node it renames, plus its collision rule.
+function resolveTarget(project: Project, target: Target, file: string | null): Resolved {
+    const {path, name} = target
+
+    // Top-level export.
+    if (path.length === 0) {
+        return {node: resolveExportedName(project, name, file), collisions: (toName, targetFiles) => topLevelCollisions(targetFiles, toName)}
+    }
+
+    // `ns.member` where `ns` is an actual namespace (takes precedence over a
+    // same-named type), e.g. TSR.ReportResult.
+    if (path.length === 1 && isNamespace(project, path[0])) {
+        const ns = path[0]
+        return {node: resolveNamespaceMember(project, ns, name, file), collisions: (toName) => namespaceCollisions(project, ns, toName)}
+    }
+
+    // Otherwise a member of an interface/class container: `Type.prop` or
+    // `ns.Type.prop`.
+    const container = resolveContainerType(project, path, file)
+    const node = memberNameNode(container, name)
+    if (!node) throw new Error(`rename: ${path.join(".")} has no member named: ${name}`)
+    return {node, collisions: (toName) => (memberNameNode(container, toName) ? [container.getSourceFile()] : [])}
 }
 
 // Locate the renameable name node for a top-level exported identifier.
-// With a file given, restrict to that file's exports (form ②); otherwise
-// the symbol must be uniquely exported across the project (form ①) — zero
-// or multiple distinct declarations are an error.
 function resolveExportedName(project: Project, from: string, file: string | null): Identifier {
+    return nameIdentifier(resolveExportedDecl(project, from, file), from)
+}
+
+// The declaration exported under `from`. With a file given, restrict to that
+// file's exports; otherwise the symbol must be uniquely exported across the
+// project — zero or multiple distinct declarations are an error.
+function resolveExportedDecl(project: Project, from: string, file: string | null): Node {
     if (file) {
         const sf = project.getSourceFile(file)
         if (!sf) throw new Error(`rename: not in the project: ${file}`)
@@ -102,10 +126,9 @@ function resolveExportedName(project: Project, from: string, file: string | null
         if (!decls || decls.length === 0) {
             throw new Error(`rename: ${displayPath(file)} does not export: ${from}`)
         }
-        return nameIdentifier(decls[0], from)
+        return decls[0]
     }
 
-    // Project-wide: collect distinct declarations exported under `from`.
     const found = new Set<Node>()
     for (const sf of project.getSourceFiles()) {
         const decls = sf.getExportedDeclarations().get(from)
@@ -115,7 +138,7 @@ function resolveExportedName(project: Project, from: string, file: string | null
     if (found.size > 1) {
         throw new Error(`rename: \`${from}\` is exported from multiple places; pass the defining file to disambiguate`)
     }
-    return nameIdentifier([...found][0], from)
+    return [...found][0]
 }
 
 // Locate the renameable name node for `<ns>.<name>` — a member of namespace
@@ -137,6 +160,39 @@ function resolveNamespaceMember(project: Project, ns: string, name: string, file
     return nodes[0]
 }
 
+// The interface/class container for a member rename: a top-level exported type
+// (`Type.prop`) or a namespace-nested one (`ns.Type.prop`).
+function resolveContainerType(project: Project, path: string[], file: string | null): InterfaceDeclaration | ClassDeclaration {
+    if (path.length === 1) {
+        const decl = resolveExportedDecl(project, path[0], file)
+        if (Node.isInterfaceDeclaration(decl) || Node.isClassDeclaration(decl)) return decl
+        throw new Error(`rename: ${path[0]} is not an interface or class (only their members can be renamed by property)`)
+    }
+
+    const [ns, typeName] = path
+    const found = findNamespaceTypes(project, ns, typeName, file)
+    if (found.length === 0) throw new Error(`rename: no interface or class named: ${ns}.${typeName}`)
+    if (found.length > 1) {
+        throw new Error(`rename: \`${ns}.${typeName}\` is declared in multiple places; pass the defining file to disambiguate`)
+    }
+    return found[0]
+}
+
+// Whether any source file declares a top-level namespace called `name`.
+function isNamespace(project: Project, name: string): boolean {
+    return project.getSourceFiles().some((sf) => sf.getModules().some((m) => m.getName() === name))
+}
+
+// The name Identifier of an interface/class member (property, method, or — for
+// classes — an accessor). String-literal and computed member names have no
+// Identifier to rename and return undefined.
+function memberNameNode(container: InterfaceDeclaration | ClassDeclaration, name: string): Identifier | undefined {
+    const member = container.getProperty(name) ?? container.getMethod(name) ?? (Node.isClassDeclaration(container) ? (container.getGetAccessor(name) ?? container.getSetAccessor(name)) : undefined)
+    if (!member) return undefined
+    const nn = member.getNameNode()
+    return Node.isIdentifier(nn) ? nn : undefined
+}
+
 // Every name node for member `name` of a top-level namespace `ns`, across the
 // project (or a single file). Members are looked up structurally because they
 // are intentionally not `export`ed within the namespace. A namespace can be
@@ -153,6 +209,21 @@ function findNamespaceMembers(project: Project, ns: string, name: string, file: 
         }
     }
     return nodes
+}
+
+// Every interface/class named `typeName` inside namespace `ns` (one per
+// matching merged block), across the project or a single file.
+function findNamespaceTypes(project: Project, ns: string, typeName: string, file: string | null): (InterfaceDeclaration | ClassDeclaration)[] {
+    const files = file ? [project.getSourceFileOrThrow(file)] : project.getSourceFiles()
+    const found: (InterfaceDeclaration | ClassDeclaration)[] = []
+    for (const sf of files) {
+        for (const mod of sf.getModules()) {
+            if (mod.getName() !== ns) continue
+            const decl = mod.getInterface(typeName) ?? mod.getClass(typeName)
+            if (decl) found.push(decl)
+        }
+    }
+    return found
 }
 
 // The name Identifier of a namespace member, whatever kind it is.
@@ -172,7 +243,7 @@ function nameIdentifier(decl: Node, from: string): Identifier {
 }
 
 // Files that already declare `name` at the top level — every such file
-// is a collision site for a top-level rename.
+// (among those the rename would touch) is a collision site.
 function topLevelCollisions(files: Iterable<SourceFile>, name: string): SourceFile[] {
     return [...files].filter((sf) => fileDeclaresTopLevel(sf, name))
 }
