@@ -62,6 +62,16 @@ describe("refineCLI", () => {
         const r = await run(["format", "--dry-run", "-p", SAMPLE])
         assert.equal(r.status, 0)
         assert.match(r.stderr, /apply: would change/)
+        // format never consumes member-separators, so it is not surveyed.
+        assert.doesNotMatch(r.stderr, /report member-separators:/)
+    })
+
+    it("skips surveying a field that a format override already pins", async () => {
+        const r = await run(["format", "--indent", "4", "--dry-run", "-p", SAMPLE])
+        assert.equal(r.status, 0)
+        // --indent pins indent, so its survey is skipped; the rest still run.
+        assert.doesNotMatch(r.stderr, /report indent:/)
+        assert.match(r.stderr, /report semicolons:/)
     })
 
     it("exits non-zero with a fix hint when format --check finds changes", async () => {

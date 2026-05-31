@@ -1,7 +1,7 @@
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
 import {ts} from "ts-morph"
-import {mergeFormatOptions, normalizeNewLines, overridesToFormatOptions, reportToFormatOptions, resolveSettings} from "./format-options.ts"
+import {mergeFormatOptions, normalizeNewLines, overridesToFormatOptions, reportNamesForFormat, reportToFormatOptions, resolveSettings} from "./format-options.ts"
 
 describe("reportToFormatOptions", () => {
     it("maps the actionable report fields", () => {
@@ -121,5 +121,25 @@ describe("normalizeNewLines", () => {
 
     it("leaves non-terminator characters untouched", () => {
         assert.equal(normalizeNewLines("hello world", "\n"), "hello world")
+    })
+})
+
+describe("reportNamesForFormat", () => {
+    it("surveys the full apply set when nothing is overridden", () => {
+        assert.deepEqual(reportNamesForFormat({}), ["semicolons", "indent", "new-line", "bracket-spacing"])
+    })
+
+    it("drops the report for each pinned field", () => {
+        assert.deepEqual(reportNamesForFormat({indent: 4}), ["semicolons", "new-line", "bracket-spacing"])
+        assert.deepEqual(reportNamesForFormat({newLine: "lf"}), ["semicolons", "indent", "bracket-spacing"])
+    })
+
+    it("returns an empty set when every surveyed field is pinned", () => {
+        const all = {semicolons: "on", indent: 2, newLine: "lf", bracketSpacing: "off"} as const
+        assert.deepEqual(reportNamesForFormat(all), [])
+    })
+
+    it("ignores organize-imports, which has no report to skip", () => {
+        assert.deepEqual(reportNamesForFormat({organizeImports: "off"}), ["semicolons", "indent", "new-line", "bracket-spacing"])
     })
 })

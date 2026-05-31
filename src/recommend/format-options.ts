@@ -10,6 +10,7 @@
 import type {FormatCodeSettings} from "ts-morph"
 import {ts} from "ts-morph"
 import type {TSR} from "ts-refine"
+import {applyReportNames} from "../report/report-names.ts"
 
 // `newLine` is lf|crlf only: a `cr` recommendation is neither a runnable
 // ts-refine flag nor an LS setting, so it never enters FormatOptions.
@@ -19,6 +20,21 @@ export interface FormatOptions {
     semicolons?: "on" | "off"
     newLine?: "lf" | "crlf"
     bracketSpacing?: "on" | "off"
+}
+
+// A CLI override pins a field, so surveying the matching report is redundant;
+// organizeImports has no report. reportNamesForFormat trims the apply set to
+// the reports still worth running — a fully-pinned format skips the survey.
+const reportByOverride: {field: keyof FormatOptions; report: TSR.ReportName}[] = [
+    {field: "semicolons", report: "semicolons"},
+    {field: "indent", report: "indent"},
+    {field: "newLine", report: "new-line"},
+    {field: "bracketSpacing", report: "bracket-spacing"},
+]
+
+export function reportNamesForFormat(overrides: FormatOptions): TSR.ReportName[] {
+    const skip = new Set(reportByOverride.filter((m) => overrides[m.field] !== undefined).map((m) => m.report))
+    return applyReportNames.filter((name) => !skip.has(name))
 }
 
 // LS settings + refineFormat-only concerns (organize gate, newline post-pass).

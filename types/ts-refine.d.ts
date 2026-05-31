@@ -43,8 +43,12 @@ export declare namespace TSR {
     // (runtime list) and src/report/refine-report.ts (dispatch).
     type ReportName = "semicolons" | "indent" | "member-separators" | "new-line" | "bracket-spacing"
 
+    // A minimal output sink: anything with a line-oriented write. refineReport
+    // streams its Markdown to one; the CLI's stdout and NULL_SINK both satisfy it.
+    type Writer = {write: (line: string) => void}
+
     interface ReportOpts extends CommonOpts {
-        stream: {write: (line: string) => void}
+        stream: Writer
         reportNames: ReportName[]
     }
 

@@ -1,8 +1,8 @@
-// Output sink shared by the command runners. `stream` stands in for stdout
-// (report Markdown, list/inspect tables, --output bodies); the write commands
-// route the report Markdown they don't print into NULL_SINK.
+// Output sink shared by the command runners. They type their stream as the
+// published TSR.Writer; this module just provides NULL_SINK, which the write
+// commands route the report Markdown they don't print into.
 
-export type CLIStream = {write: (line: string) => void}
+import type {TSR} from "ts-refine"
 
 // Swallows the Markdown stream in the write modes; the runner consumes it.
-export const NULL_SINK: CLIStream = {write: () => {}}
+export const NULL_SINK: TSR.Writer = {write: () => {}}

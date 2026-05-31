@@ -1,14 +1,14 @@
 // `list` runner: gather the cleanup-candidate entries and write the filtered
 // table to stdout.
 
+import type {TSR} from "ts-refine"
 import {initProject, refineList} from "../../index.ts"
-import type {CLIStream} from "../cli-io.ts"
 import type {CommonArgs} from "../parse-common-args.ts"
 import {resolvePaths} from "../resolve-paths.ts"
 import {parseListArgs} from "./parse-list-args.ts"
 import {filterListEntries, writeListTable} from "./write-list-table.ts"
 
-export async function runList(sub: string[], common: CommonArgs, stream: CLIStream): Promise<number> {
+export async function runList(sub: string[], common: CommonArgs, stream: TSR.Writer): Promise<number> {
     const args = parseListArgs(sub, common)
     if (!args) return 1
     if (common.help) throw new Error("--help is not supported for the list command")

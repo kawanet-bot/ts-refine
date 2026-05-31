@@ -9,7 +9,7 @@
 // Diagnostics and per-command progress stay on console.error / the runners'
 // own console output, which already target the process's stderr/stdout.
 
-import type {CLIStream} from "./cli-io.ts"
+import type {TSR} from "ts-refine"
 import {runFormat} from "./format/format-cli.ts"
 import {runInspect} from "./inspect/inspect-cli.ts"
 import {runList} from "./list/list-cli.ts"
@@ -22,7 +22,7 @@ import {usage} from "./usage.ts"
 // A command handler parses its own tokens (using `common` for globals), opens
 // the project, runs, and resolves with the exit status. Read-only commands
 // ignore `stream` only by taking fewer parameters.
-type CommandHandler = (sub: string[], common: CommonArgs, stream: CLIStream) => Promise<number>
+type CommandHandler = (sub: string[], common: CommonArgs, stream: TSR.Writer) => Promise<number>
 
 // The command table is the single source of truth for the set of subcommands:
 // membership here is what makes a name valid. Insertion order also drives the
@@ -43,7 +43,7 @@ function acceptedSubcommands(): string {
 // The whole CLI as a function: parse `args` (argv minus node/script),
 // dispatch the subcommand writing stdout-bound output to `stream`, and
 // resolve with 0 on success, or reject with an Error for the caller to display.
-type refineCLI = (args: string[], stream: CLIStream) => Promise<number>
+type refineCLI = (args: string[], stream: TSR.Writer) => Promise<number>
 
 export const refineCLI: refineCLI = async (args, stream) => {
     // Consume the leading globals (including -h/--help); the first token that
