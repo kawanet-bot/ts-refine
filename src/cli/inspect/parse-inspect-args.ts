@@ -5,7 +5,7 @@
 // --project / --dry-run.
 
 import {inspectorNames as knownInspectorNames} from "../../inspect/inspector-names.ts"
-import {type CommonArgs, parseCommonArgs} from "../args-common.ts"
+import {type CommonArgs, parseCommonArgs} from "../parse-common-args.ts"
 
 // Raw values only: the runner resolves `paths` into absolute paths.
 export interface InspectArgs {
@@ -14,7 +14,7 @@ export interface InspectArgs {
     inspectorNames: string[]
 }
 
-export function parseInspect(sub: string[], common: CommonArgs): InspectArgs | undefined {
+export function parseInspectArgs(sub: string[], common: CommonArgs): InspectArgs | undefined {
     const inspectorNames: string[] = []
     const paths: string[] = []
     let i = 0

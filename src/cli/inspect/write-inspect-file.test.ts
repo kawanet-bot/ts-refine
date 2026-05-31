@@ -1,7 +1,7 @@
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
 import type {TSR} from "ts-refine"
-import {writeInspectFile} from "./format-inspect.ts"
+import {writeInspectFile} from "./write-inspect-file.ts"
 
 function capture(file: TSR.InspectFile): string {
     let out = ""

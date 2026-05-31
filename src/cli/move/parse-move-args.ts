@@ -4,14 +4,14 @@
 // `files` because the destination may be a directory. Globals are consumed
 // into `common`.
 
-import {type CommonArgs, parseCommonArgs} from "../args-common.ts"
+import {type CommonArgs, parseCommonArgs} from "../parse-common-args.ts"
 
 // Raw values only: the runner resolves `paths` into absolute paths.
 export interface MoveArgs {
     paths: string[]
 }
 
-export function parseMove(sub: string[], common: CommonArgs): MoveArgs | undefined {
+export function parseMoveArgs(sub: string[], common: CommonArgs): MoveArgs | undefined {
     const paths: string[] = []
     let i = 0
 

@@ -2,7 +2,7 @@
 // optional positional file scopes the lookup to that file's exports. Globals
 // are consumed into `common`.
 
-import {type CommonArgs, parseCommonArgs} from "../args-common.ts"
+import {type CommonArgs, parseCommonArgs} from "../parse-common-args.ts"
 
 // Raw values only: the runner resolves `paths` into absolute paths. `paths`
 // holds the optional scope file (zero or one entry).
@@ -12,7 +12,7 @@ export interface RenameArgs {
     to: string
 }
 
-export function parseRename(sub: string[], common: CommonArgs): RenameArgs | undefined {
+export function parseRenameArgs(sub: string[], common: CommonArgs): RenameArgs | undefined {
     let from: string | undefined
     let to: string | undefined
     const paths: string[] = []

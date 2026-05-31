@@ -8,12 +8,12 @@
 // Diagnostics and per-command progress stay on console.error / the runners'
 // own console output, which already target the process's stderr/stdout.
 
-import {type CommonArgs, parseCommonArgs} from "./args-common.ts"
 import type {CLIStream} from "./cli-io.ts"
 import {runFormat} from "./format/format-cli.ts"
 import {runInspect} from "./inspect/inspect-cli.ts"
 import {runList} from "./list/list-cli.ts"
 import {runMove} from "./move/move-cli.ts"
+import {type CommonArgs, parseCommonArgs} from "./parse-common-args.ts"
 import {runRename} from "./rename/rename-cli.ts"
 import {runReport} from "./report/report-cli.ts"
 import {usage} from "./usage.ts"

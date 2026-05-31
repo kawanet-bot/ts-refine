@@ -2,7 +2,7 @@
 // (-p / --dry-run) that land among them are consumed into `common`.
 
 import type {FormatOptions} from "../../recommend/format-options.ts"
-import {type CommonArgs, parseCommonArgs} from "../args-common.ts"
+import {type CommonArgs, parseCommonArgs} from "../parse-common-args.ts"
 
 // Raw values only: the runner resolves `paths` into absolute paths.
 export interface FormatArgs {
@@ -10,7 +10,7 @@ export interface FormatArgs {
     applyOverrides: FormatOptions
 }
 
-export function parseFormat(sub: string[], common: CommonArgs): FormatArgs | undefined {
+export function parseFormatArgs(sub: string[], common: CommonArgs): FormatArgs | undefined {
     const overrides: FormatOptions = {}
     const paths: string[] = []
     let i = 0

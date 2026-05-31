@@ -2,7 +2,7 @@
 // boolean; multiple are OR-combined downstream. Globals are consumed into
 // `common`.
 
-import {type CommonArgs, parseCommonArgs} from "../args-common.ts"
+import {type CommonArgs, parseCommonArgs} from "../parse-common-args.ts"
 
 // `list` filter flags; OR-combined when more than one is set.
 export interface ListFilters {
@@ -17,7 +17,7 @@ export interface ListArgs {
     listFilters: ListFilters
 }
 
-export function parseList(sub: string[], common: CommonArgs): ListArgs | undefined {
+export function parseListArgs(sub: string[], common: CommonArgs): ListArgs | undefined {
     const paths: string[] = []
     let noExports = false
     let noImporters = false

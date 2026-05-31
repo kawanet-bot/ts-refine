@@ -2,14 +2,14 @@
 // table to stdout.
 
 import {initProject, refineList} from "../../index.ts"
-import type {CommonArgs} from "../args-common.ts"
 import type {CLIStream} from "../cli-io.ts"
+import type {CommonArgs} from "../parse-common-args.ts"
 import {resolvePaths} from "../resolve-paths.ts"
-import {filterListEntries, writeListTable} from "./format-list.ts"
-import {parseList} from "./list-args.ts"
+import {parseListArgs} from "./parse-list-args.ts"
+import {filterListEntries, writeListTable} from "./write-list-table.ts"
 
 export async function runList(sub: string[], common: CommonArgs, stream: CLIStream): Promise<number> {
-    const args = parseList(sub, common)
+    const args = parseListArgs(sub, common)
     if (!args) return 1
     const {absTsconfig, paths} = resolvePaths(common.tsconfigPath, args.paths)
     const project = initProject({tsConfigFilePath: absTsconfig})

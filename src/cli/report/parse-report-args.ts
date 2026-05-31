@@ -5,7 +5,7 @@
 // can't swallow --project / --dry-run.
 
 import {reportNames as knownReportNames} from "../../report/report-names.ts"
-import {type CommonArgs, parseCommonArgs} from "../args-common.ts"
+import {type CommonArgs, parseCommonArgs} from "../parse-common-args.ts"
 
 // Raw values only: the runner resolves `paths` into absolute paths.
 export interface ReportArgs {
@@ -19,7 +19,7 @@ export interface ReportArgs {
     surveyDefault: boolean
 }
 
-export function parseReport(sub: string[], common: CommonArgs): ReportArgs | undefined {
+export function parseReportArgs(sub: string[], common: CommonArgs): ReportArgs | undefined {
     const reportNames: string[] = []
     const paths: string[] = []
     let output: string | null = null

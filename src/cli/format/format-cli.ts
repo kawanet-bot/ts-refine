@@ -4,13 +4,13 @@
 
 import {initProject, refineFormat, refineReport, type TSR} from "../../index.ts"
 import {applyReportNames} from "../../report/report-names.ts"
-import type {CommonArgs} from "../args-common.ts"
 import {NULL_SINK} from "../cli-io.ts"
+import type {CommonArgs} from "../parse-common-args.ts"
 import {resolvePaths} from "../resolve-paths.ts"
-import {parseFormat} from "./format-args.ts"
+import {parseFormatArgs} from "./parse-format-args.ts"
 
 export async function runFormat(sub: string[], common: CommonArgs): Promise<number> {
-    const args = parseFormat(sub, common)
+    const args = parseFormatArgs(sub, common)
     if (!args) return 1
     const {absTsconfig, paths} = resolvePaths(common.tsconfigPath, args.paths)
     const project = initProject({tsConfigFilePath: absTsconfig})

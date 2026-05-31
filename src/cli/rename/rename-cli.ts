@@ -3,13 +3,13 @@
 
 import {initProject, refineRename, refineReport, type TSR} from "../../index.ts"
 import {applyReportNames} from "../../report/report-names.ts"
-import type {CommonArgs} from "../args-common.ts"
 import {NULL_SINK} from "../cli-io.ts"
+import type {CommonArgs} from "../parse-common-args.ts"
 import {resolvePaths} from "../resolve-paths.ts"
-import {parseRename} from "./rename-args.ts"
+import {parseRenameArgs} from "./parse-rename-args.ts"
 
 export async function runRename(sub: string[], common: CommonArgs): Promise<number> {
-    const args = parseRename(sub, common)
+    const args = parseRenameArgs(sub, common)
     if (!args) return 1
     const {absTsconfig, paths} = resolvePaths(common.tsconfigPath, args.paths)
     const project = initProject({tsConfigFilePath: absTsconfig})

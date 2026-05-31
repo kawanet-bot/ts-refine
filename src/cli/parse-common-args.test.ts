@@ -5,7 +5,7 @@
 
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
-import {type CommonArgs, parseCommonArgs} from "./args-common.ts"
+import {type CommonArgs, parseCommonArgs} from "./parse-common-args.ts"
 
 function fresh(): CommonArgs {
     return {tsconfigPath: null, dryRun: false}

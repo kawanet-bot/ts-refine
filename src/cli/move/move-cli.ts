@@ -4,13 +4,13 @@
 
 import {initProject, refineMove, refineReport, type TSR} from "../../index.ts"
 import {applyReportNames} from "../../report/report-names.ts"
-import type {CommonArgs} from "../args-common.ts"
 import {NULL_SINK} from "../cli-io.ts"
+import type {CommonArgs} from "../parse-common-args.ts"
 import {resolvePaths} from "../resolve-paths.ts"
-import {parseMove} from "./move-args.ts"
+import {parseMoveArgs} from "./parse-move-args.ts"
 
 export async function runMove(sub: string[], common: CommonArgs): Promise<number> {
-    const args = parseMove(sub, common)
+    const args = parseMoveArgs(sub, common)
     if (!args) return 1
     const {absTsconfig, paths} = resolvePaths(common.tsconfigPath, args.paths)
     const project = initProject({tsConfigFilePath: absTsconfig})
