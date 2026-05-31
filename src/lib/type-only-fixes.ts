@@ -13,6 +13,14 @@ import type {FormatCodeSettings, SourceFile} from "ts-morph"
 const FIX_IDS = ["splitTypeOnlyImport", "convertToTypeOnlyImport", "convertToTypeOnlyExport"] as const
 
 export function applyTypeOnlyFixes(sf: SourceFile, formatSettings: FormatCodeSettings): void {
+    const opts = sf.getProject().getCompilerOptions()
+    // The whole bundle is a verbatimModuleSyntax/isolatedModules feature, and
+    // getCombinedCodeFix forces a per-file semantic pass regardless of fixId —
+    // even the syntactic split. Skipping fixes individually saves nothing once
+    // any one runs, so gate the entire bundle and skip it wholesale when no
+    // fix here could ever fire.
+    if (!opts.verbatimModuleSyntax && !opts.isolatedModules) return
+
     const ls = sf.getProject().getLanguageService()
     for (const fixId of FIX_IDS) {
         // Output style follows the TS LS default (inline `{type X, y}`); no
