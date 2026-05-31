@@ -23,14 +23,14 @@ describe("parseReport", () => {
     it("passes unknown --output names through without rejecting (selectOutput validates)", () => {
         const r = parseReportArgs(["--output", "typo-format"], common())
         assert.ok(r)
-        assert.equal(r.output, "typo-format")
+        assert.equal(r.emit, "typo-format")
     })
 
     it("accepts report selectors alongside --output", () => {
         const r = parseReportArgs(["--semicolons", "--output", "ts-refine"], common())
         assert.ok(r)
         assert.deepEqual(r.reportNames, ["semicolons"])
-        assert.equal(r.output, "ts-refine")
+        assert.equal(r.emit, "ts-refine")
         assert.equal(r.surveyDefault, false)
     })
 

@@ -3,12 +3,12 @@
 
 import {inspectorNames} from "../inspect/inspector-names.ts"
 import {reportNames} from "../report/report-names.ts"
-import {outputNames} from "./report/select-output.ts"
+import {emitNames} from "./report/select-output.ts"
 
 export function usage(): string {
     const reportFlags = reportNames.map((name) => `--${name}`).join(" ")
     const inspectorFlags = inspectorNames.map((name) => `--${name}`).join(" ")
-    const outputFlags = outputNames.map((name) => `--output ${name}`).join(" / ")
+    const emitFlags = emitNames.map((name) => `--output ${name}`).join(" / ")
 
     return [
         "Usage: ts-refine <command> [options] [files...]",
@@ -34,7 +34,7 @@ export function usage(): string {
         "  report --<report>...        Restrict to the named reports:",
         `                              ${reportFlags}`,
         "  --output <name>             Suppress Markdown and emit the named output instead",
-        `                              ${outputFlags}`,
+        `                              ${emitFlags}`,
         "                              prettier: .prettierrc JSON; ts-refine: runnable format command",
         "",
         "format (write; follows inferred conventions):",

@@ -16,7 +16,7 @@ import {writeFormatCommand} from "./output-ts-refine.ts"
 // Local alias for readability — not exported.
 type Writer = TSR.ReportOpts["stream"]
 
-export const outputNames = ["prettier", "ts-refine"] as const
+export const emitNames = ["prettier", "ts-refine"] as const
 
 interface OutputDispatch {
     reportStream: Writer
@@ -29,8 +29,8 @@ export function selectOutput(name: string | null, stdout: Writer): OutputDispatc
     if (name === null) {
         return {reportStream: stdout, finalize: () => {}}
     }
-    if (!(outputNames as readonly string[]).includes(name)) {
-        throw new Error(`unknown --output: ${name} (known: ${outputNames.join(", ")})`)
+    if (!(emitNames as readonly string[]).includes(name)) {
+        throw new Error(`unknown --output: ${name} (known: ${emitNames.join(", ")})`)
     }
     if (name === "prettier") {
         return {

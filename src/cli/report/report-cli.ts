@@ -21,7 +21,7 @@ export async function runReport(ctx: Context): Promise<number> {
 
     // Report-name validation lives in refineReport so typos surface there.
     const reportNames = args.reportNames as TSR.ReportName[]
-    const output = selectOutput(args.output, stream)
+    const output = selectOutput(args.emit, stream)
 
     if (args.surveyDefault) {
         const entries = await refineList(project, {paths, log})

@@ -13,7 +13,7 @@ export interface ReportArgs {
     // The requested selectors, or the full registry when none are given.
     reportNames: string[]
     // Suppress Markdown and emit the named output instead.
-    output: string | null
+    emit: string | null
     // True only for a bare `report` (no selectors, no --output); gates the
     // recommendation + .prettierrc blocks under the per-report Markdown.
     surveyDefault: boolean
@@ -22,7 +22,7 @@ export interface ReportArgs {
 export function parseReportArgs(sub: string[], common: CommonArgs): ReportArgs | undefined {
     const reportNames: string[] = []
     const paths: string[] = []
-    let output: string | null = null
+    let emit: string | null = null
     let i = 0
 
     while (i < sub.length) {
@@ -38,7 +38,7 @@ export function parseReportArgs(sub: string[], common: CommonArgs): ReportArgs |
             if (!v || v.startsWith("-")) {
                 throw new Error("--output requires a value (e.g. --output prettier)")
             }
-            output = v
+            emit = v
             i += 2
         } else if (a.startsWith("--")) {
             const name = a.slice(2)
@@ -57,7 +57,7 @@ export function parseReportArgs(sub: string[], common: CommonArgs): ReportArgs |
         throw new Error("--dry-run is not valid for the report command")
     }
 
-    const surveyDefault = reportNames.length === 0 && output === null
+    const surveyDefault = reportNames.length === 0 && emit === null
     const effectiveReports = reportNames.length > 0 ? reportNames : [...knownReportNames]
-    return {paths, reportNames: effectiveReports, output, surveyDefault}
+    return {paths, reportNames: effectiveReports, emit, surveyDefault}
 }
