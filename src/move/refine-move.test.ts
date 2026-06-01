@@ -44,6 +44,21 @@ describe("refineMove (in-memory, dry-run)", () => {
         )
     })
 
+    it("preserves the mandatory `.json` extension when moving a file that imports JSON", async () => {
+        const project = initInMemoryTestProject({
+            module: ts.ModuleKind.ESNext,
+            moduleResolution: ts.ModuleResolutionKind.Bundler,
+            resolveJsonModule: true,
+            allowImportingTsExtensions: true,
+        })
+        project.createSourceFile("/src/data.json", '{"a": 1}\n')
+        project.createSourceFile("/src/main.ts", 'import DATA from "./data.json" with {type: "json"}\nexport const v = DATA.a\n')
+        await refineMove({project, log, sources: ["/src/main.ts"], dest: "/src/sub/", dryRun: true, format: NO_SPACE})
+
+        // `.json` is required to resolve; the move must keep it, not strip to "../data".
+        assert.equal(project.getSourceFileOrThrow("/src/sub/main.ts").getFullText(), 'import DATA from "../data.json" with {type: "json"}\nexport const v = DATA.a\n')
+    })
+
     it("does not add `.ts` to importers that omitted it", async () => {
         const project = newProject()
         project.createSourceFile("/src/a.ts", "export const x = 1\n")

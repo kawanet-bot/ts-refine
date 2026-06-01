@@ -1,5 +1,6 @@
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
+import {ts} from "ts-morph"
 import {initInMemoryTestProject} from "../test-utils/init-test-project.ts"
 import {refineFormat} from "./refine-format.ts"
 
@@ -27,6 +28,24 @@ describe("refineFormat", () => {
         const sf = project.createSourceFile("a.ts", "const a = 1\nconst b = 2\n")
         await refineFormat({project, log, dryRun: true, paths: [], format: {semicolons: "on"}})
         assert.match(sf.getFullText(), /const a = 1;\nconst b = 2;\n/)
+    })
+
+    it("leaves JSON modules untouched instead of corrupting them with semicolons", async () => {
+        // A semicolon injected into the JSON object literal is a syntax error and
+        // used to crash the whole command; JSON must not be a format target.
+        const project = initInMemoryTestProject({
+            module: ts.ModuleKind.ESNext,
+            moduleResolution: ts.ModuleResolutionKind.Bundler,
+            resolveJsonModule: true,
+            allowImportingTsExtensions: true,
+        })
+        const json = project.createSourceFile("/data.json", '{\n  "a": 1\n}\n')
+        const main = project.createSourceFile("/main.ts", 'import DATA from "./data.json" with {type: "json"}\nconst v = DATA.a\n')
+        const before = json.getFullText()
+        await refineFormat({project, log, dryRun: true, paths: [], format: {semicolons: "on"}})
+
+        assert.equal(json.getFullText(), before)
+        assert.match(main.getFullText(), /const v = DATA\.a;/)
     })
 
     it("strips trailing semicolons when format.semicolons is 'off'", async () => {

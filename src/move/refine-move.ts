@@ -30,10 +30,11 @@ import {organizeChangedImports} from "../recommend/organize-changed.ts"
 // exactly what was there originally.
 type SpecRecord = {kind: "import"; node: ImportDeclaration; originalExt: string} | {kind: "export"; node: ExportDeclaration; originalExt: string} | {kind: "dynamic"; node: StringLiteral; originalExt: string}
 
-// File extensions TypeScript's module resolution recognizes for source
-// files. We restore whichever of these the user wrote — `.js` etc. is
-// just as much a "TS-resolvable" specifier in NodeNext / bundler.
-const KNOWN_EXT = /\.(ts|tsx|js|jsx|mjs|cjs|mts|cts)$/
+// Extensions a module specifier may carry that the move must preserve. The
+// TS-resolvable family (`.js` etc. count under NodeNext / bundler) plus `.json`
+// (resolveJsonModule), whose extension is mandatory — dropping it breaks the
+// import.
+const KNOWN_EXT = /\.(ts|tsx|js|jsx|mjs|cjs|mts|cts|json)$/
 
 function extensionOf(specifier: string): string {
     const m = specifier.match(KNOWN_EXT)

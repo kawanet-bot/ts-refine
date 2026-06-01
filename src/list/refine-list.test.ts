@@ -52,6 +52,24 @@ describe("refineList (sample/basic)", () => {
         const a = entries.find((e) => path.basename(e.file) === "a.ts")!
         assert.equal(a.importers, 1)
     })
+
+    it("excludes JSON modules (resolveJsonModule) from the listing", async () => {
+        const project = initInMemoryTestProject({
+            module: ts.ModuleKind.ESNext,
+            moduleResolution: ts.ModuleResolutionKind.Bundler,
+            resolveJsonModule: true,
+            allowImportingTsExtensions: true,
+        })
+        project.createSourceFile("/data.json", '{"a": 1}\n')
+        project.createSourceFile("/main.ts", 'import DATA from "./data.json" with {type: "json"}\nexport const v = DATA.a\n')
+        const entries = await refineList({project, log, paths: []})
+
+        // JSON isn't TypeScript; it never belongs in the cleanup listing.
+        assert.deepEqual(
+            entries.map((e) => path.basename(e.file)),
+            ["main.ts"],
+        )
+    })
 })
 
 // sample/basic: index.ts {0,0,0}, partial.ts {2,1,1}, unused.ts {2,2,0},
