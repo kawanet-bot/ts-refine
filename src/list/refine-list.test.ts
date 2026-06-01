@@ -84,6 +84,25 @@ describe("refineList filters (sample/basic)", () => {
     })
 })
 
+describe("refineList progress log (sample/basic)", () => {
+    async function logLine(filters?: TSR.ListFilters): Promise<string> {
+        let logged = ""
+        const project = initTestProject(SAMPLE_TSCONFIG)
+        await refineList({project, log: {write: (s) => (logged += s)}, paths: [], filters})
+        return logged.trim()
+    }
+
+    it("reports the total when nothing is filtered out", async () => {
+        // 4 sample files, none filtered away.
+        assert.equal(await logLine(), "list: 4 files found / 4 files total")
+    })
+
+    it("reports the matched count against the total when a filter narrows it", async () => {
+        // --no-importers keeps index.ts and unused.ts out of the 4.
+        assert.equal(await logLine({noImporters: true}), "list: 2 files found / 4 files total")
+    })
+})
+
 const BUNDLER = {
     module: ts.ModuleKind.ESNext,
     moduleResolution: ts.ModuleResolutionKind.Bundler,

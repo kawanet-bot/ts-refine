@@ -59,7 +59,9 @@ export const refineList: typeof declared.refineList = async (opts) => {
         const refFiles = referencedFiles(project, filters.ref)
         result = result.filter((e) => refFiles.has(e.file))
     }
-    log.write(`list: ${result.length} files\n`)
+    // Emitted before the table: report what matched against the total scanned,
+    // so a filtered run does not look like it mislabelled the whole project.
+    log.write(`list: ${result.length} files found / ${entries.length} files total\n`)
     return result
 }
 
