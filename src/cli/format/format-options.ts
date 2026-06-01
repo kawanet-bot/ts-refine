@@ -5,7 +5,7 @@
 //   ReportResult ── reportToFormatStyle────┐
 //                                          ├─ mergeFormatStyles ── formatStyleToSettings ─▶ FormatSettings
 //   FormatStyle ── overridesToFormatStyle──┘
-// and buildFormatFlags renders the same FormatStyle back to argv.
+// and buildFormatTokens renders the same FormatStyle back to argv.
 
 import type {TSR} from "ts-refine"
 import {applyReportNames} from "../../common/report-names.ts"
