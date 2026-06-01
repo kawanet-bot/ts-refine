@@ -7,10 +7,11 @@
 // The export/unused counting mirrors the unused-exports report; the two
 // will be unified in a later pass (that report is left untouched for now).
 
-import {Node} from "ts-morph"
+import {Node, type Project} from "ts-morph"
 import type * as declared from "ts-refine"
 import type {TSR} from "ts-refine"
 import {resolveProject} from "../lib/init-project.ts"
+import {resolveTargetNode} from "../lib/resolve-target.ts"
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
 
 export const refineList: typeof declared.refineList = async (opts) => {
@@ -51,16 +52,35 @@ export const refineList: typeof declared.refineList = async (opts) => {
 
     entries.sort((a, b) => a.file.localeCompare(b.file))
 
-    const result = filters ? entries.filter((e) => keepEntry(e, filters)) : entries
+    let result = filters ? entries.filter((e) => keepEntry(e, filters)) : entries
+    if (filters?.ref != null) {
+        // Resolve the target project-wide (a file glob scopes the listing, not
+        // the lookup) and keep only listed files that reference it.
+        const refFiles = referencedFiles(project, filters.ref)
+        result = result.filter((e) => refFiles.has(e.file))
+    }
     log.write(`list: ${result.length} files\n`)
     return result
 }
 
 // AND semantics: an entry survives only when it matches every filter that is
-// set. With no filter active every entry passes.
+// set. With no filter active every entry passes. `ref` is applied separately
+// because it needs the project to resolve references.
 function keepEntry(e: TSR.ListEntry, f: TSR.ListFilters): boolean {
     if (f.noExports && e.exports !== 0) return false
     if (f.noImporters && e.importers !== 0) return false
     if (f.unusedExports && e.unused === 0) return false
     return true
+}
+
+// Display paths of every file that references `spec` — the declaring file plus
+// each file with an import binding or usage of it. Mirrors the file set the
+// rename command computes for the same target forms.
+function referencedFiles(project: Project, spec: string): Set<string> {
+    const node = resolveTargetNode(project, spec, null)
+    const files = new Set<string>([displayPath(node.getSourceFile().getFilePath())])
+    for (const ref of node.findReferencesAsNodes()) {
+        files.add(displayPath(ref.getSourceFile().getFilePath()))
+    }
+    return files
 }

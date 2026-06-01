@@ -103,6 +103,13 @@ npx ts-refine list --no-importers
 
 # only files that have unused exports
 npx ts-refine list --unused-exports
+
+# only files that reference a given target (an identifier or a dotted
+# member spec — the same forms `rename --from` accepts)
+npx ts-refine list --ref funcA
+npx ts-refine list --ref nsA.funcB
+npx ts-refine list --ref typeA.propB
+npx ts-refine list --ref nsA.typeB.propC
 ```
 
 ## Report

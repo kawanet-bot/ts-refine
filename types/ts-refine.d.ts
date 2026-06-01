@@ -108,11 +108,14 @@ export declare namespace TSR {
 
     // `list` cleanup-candidate filters; all optional. Several active filters
     // narrow the result together (AND): an entry is kept only when it matches
-    // every filter that is set.
+    // every filter that is set. `ref` keeps only files that reference the given
+    // target (same dotted-name forms as rename's --from: plain, ns.member,
+    // Type.prop, ns.Type.prop).
     interface ListFilters {
         noExports?: boolean
         noImporters?: boolean
         unusedExports?: boolean
+        ref?: string
     }
 
     interface ListOpts extends CommonOpts {

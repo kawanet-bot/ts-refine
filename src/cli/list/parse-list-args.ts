@@ -17,6 +17,7 @@ export function parseListArgs(sub: string[], common: CommonArgs): ListArgs | und
     let noExports = false
     let noImporters = false
     let unusedExports = false
+    let ref: string | undefined
     let i = 0
 
     while (i < sub.length) {
@@ -36,6 +37,13 @@ export function parseListArgs(sub: string[], common: CommonArgs): ListArgs | und
         } else if (a === "--unused-exports") {
             unusedExports = true
             i++
+        } else if (a === "--ref") {
+            // Identifiers never start with "-", so a missing or flag-like value
+            // is a usage error; the spec itself is resolved by refineList.
+            const v = sub[i + 1]
+            if (v == null || v.startsWith("-")) throw new Error("--ref requires a <target>")
+            ref = v
+            i += 2
         } else if (a.startsWith("-")) {
             throw new Error(`unknown option: ${a}`)
         } else {
@@ -49,5 +57,7 @@ export function parseListArgs(sub: string[], common: CommonArgs): ListArgs | und
         throw new Error("--dry-run is not valid for the list command")
     }
 
-    return {paths, listFilters: {noExports, noImporters, unusedExports}}
+    const listFilters: TSR.ListFilters = {noExports, noImporters, unusedExports}
+    if (ref != null) listFilters.ref = ref
+    return {paths, listFilters}
 }

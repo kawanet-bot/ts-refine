@@ -27,6 +27,8 @@ export function usage(): string {
         "  --no-exports                Only files that export nothing",
         "  --no-importers              Only files no other file imports",
         "  --unused-exports            Only files with unused exports",
+        "  --ref <target>              Only files that reference the target",
+        "                              (an identifier, or a dotted a.b / a.b.c)",
         "                              (multiple list filters combine with AND)",
         "",
         "report (read; the primary mode):",
