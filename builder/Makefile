@@ -57,6 +57,7 @@ $(MJS_DST): $(MJS_CONFIG) $(SRC) $(BUILDER_SRC)
 $(CLI_DST): $(CLI_CONFIG) $(SRC) $(BUILDER_SRC)
 	@mkdir -p $(dir $@)
 	../node_modules/.bin/rollup -c $<
+	chmod a+x $@
 	@ls -l $@
 	@test "$$(wc -c < $@)" -le $(MAX_BYTES) || { echo "ERROR: $@ exceeds $(MAX_BYTES) byte cap" >&2; exit 1; }
 	@echo ""
