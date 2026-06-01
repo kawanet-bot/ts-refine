@@ -4,7 +4,7 @@
 
 import type {Project} from "ts-morph"
 
-export {}; // external module indicator
+export {} // external module indicator
 
 export declare namespace TSR {
     // A minimal output sink: anything with a line-oriented write. The report
