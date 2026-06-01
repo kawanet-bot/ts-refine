@@ -15,7 +15,7 @@ import type * as declared from "ts-refine"
 import type {TSR} from "ts-refine"
 import {resolveProject} from "../common/init-project.ts"
 import {inspectorNames} from "../common/inspector-names.ts"
-import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
+import {displayPath, inProjectSourceFiles, selectSourceFiles} from "../lib/source-files.ts"
 
 export const refineInspect: typeof declared.refineInspect = async (opts) => {
     const {paths, inspectorNames: requested, log} = opts
@@ -31,9 +31,8 @@ export const refineInspect: typeof declared.refineInspect = async (opts) => {
 
     // Importers analysis scans every other project source file for import
     // declarations / `export ... from` / dynamic imports pointing here, so
-    // build the candidate set once and reuse across targets. External
-    // declarations (TS lib, @types/*) are not project files, so drop them.
-    const allFiles = requested.includes("importers") ? project.getSourceFiles().filter((sf) => !sf.isFromExternalLibrary()) : []
+    // build the candidate set once and reuse across targets.
+    const allFiles = requested.includes("importers") ? inProjectSourceFiles(project) : []
 
     const results: TSR.InspectFile[] = []
     for (const sf of targets) {

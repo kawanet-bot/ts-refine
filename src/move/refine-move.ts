@@ -19,7 +19,7 @@ import path from "node:path"
 import {type ExportDeclaration, type ImportDeclaration, Node, type Project, type SourceFile, type StringLiteral, ts} from "ts-morph"
 import type * as declared from "ts-refine"
 import {resolveProject} from "../common/init-project.ts"
-import {displayPath} from "../lib/source-files.ts"
+import {displayPath, inProjectSourceFiles} from "../lib/source-files.ts"
 import {organizeChangedImports} from "../recommend/organize-changed.ts"
 
 // One captured module specifier whose target is moving. Held by AST node
@@ -192,7 +192,7 @@ function isDirectoryDest(project: Project, dest: string): boolean {
     // child file is saved; infer dir-ness from the source-file layout
     // so a fresh createSourceFile + refineMove flow still works.
     const prefix = dest + "/"
-    for (const sf of project.getSourceFiles()) {
+    for (const sf of inProjectSourceFiles(project)) {
         if (sf.getFilePath().startsWith(prefix)) return true
     }
     try {
@@ -210,7 +210,7 @@ function isDirectoryDest(project: Project, dest: string): boolean {
 function snapshotSpecifiers(project: Project, movingPaths: Set<string>): SpecRecord[] {
     const records: SpecRecord[] = []
 
-    for (const sf of project.getSourceFiles()) {
+    for (const sf of inProjectSourceFiles(project)) {
         const filePath = sf.getFilePath()
         const isMoving = movingPaths.has(filePath)
 
