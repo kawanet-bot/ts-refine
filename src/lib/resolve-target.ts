@@ -11,14 +11,14 @@ export const IDENT = /^[A-Za-z_$][A-Za-z0-9_$]*$/
 
 // A parsed target: the container path (0–2 segments: namespace and/or type)
 // plus the leaf name.
-export interface Target {
+interface Target {
     path: string[]
     name: string
 }
 
 // How a target resolved, with the context each rename collision rule needs:
 // the namespace for a `ns.member`, or the container for a `Type.prop` member.
-export type TargetKind = "exported" | "namespace-member" | "type-member"
+type TargetKind = "exported" | "namespace-member" | "type-member"
 
 export interface ResolvedTarget {
     node: Identifier
@@ -75,7 +75,7 @@ function resolveExportedName(project: Project, from: string, file: string | null
 // The declaration exported under `from`. With a file given, restrict to that
 // file's exports; otherwise the symbol must be uniquely exported across the
 // project — zero or multiple distinct declarations are an error.
-export function resolveExportedDecl(project: Project, from: string, file: string | null): Node {
+function resolveExportedDecl(project: Project, from: string, file: string | null): Node {
     if (file) {
         const sf = project.getSourceFile(file)
         if (!sf) throw new Error(`refine: not in the project: ${file}`)
@@ -119,7 +119,7 @@ function resolveNamespaceMember(project: Project, ns: string, name: string, file
 
 // The interface/class container for a member target: a top-level exported type
 // (`Type.prop`) or a namespace-nested one (`ns.Type.prop`).
-export function resolveContainerType(project: Project, path: string[], file: string | null): InterfaceDeclaration | ClassDeclaration {
+function resolveContainerType(project: Project, path: string[], file: string | null): InterfaceDeclaration | ClassDeclaration {
     if (path.length === 1) {
         const decl = resolveExportedDecl(project, path[0], file)
         if (Node.isInterfaceDeclaration(decl) || Node.isClassDeclaration(decl)) return decl
@@ -136,7 +136,7 @@ export function resolveContainerType(project: Project, path: string[], file: str
 }
 
 // Whether any source file declares a top-level namespace called `name`.
-export function isNamespace(project: Project, name: string): boolean {
+function isNamespace(project: Project, name: string): boolean {
     return project.getSourceFiles().some((sf) => sf.getModules().some((m) => m.getName() === name))
 }
 
