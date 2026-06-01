@@ -2,7 +2,7 @@
 // boolean; refineList combines several active ones with AND. Globals are
 // consumed into `common`.
 
-import type {TSR} from "../../index.ts"
+import type {TSR} from "ts-refine"
 import {type CommonArgs, parseCommonArgs} from "../parse-common-args.ts"
 
 // Raw values only: the runner resolves `paths` into absolute paths and hands

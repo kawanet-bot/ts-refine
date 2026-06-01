@@ -2,7 +2,8 @@
 // `## recommendation` + `### .prettierrc`. Named reports and `--emit` paths
 // skip those survey-only blocks.
 
-import {refineReport, type TSR} from "../../index.ts"
+import type {TSR} from "ts-refine"
+import {refineReport} from "../../index.ts"
 import {initProject} from "../../lib/init-project.ts"
 import type {CLI} from "../cli-io.ts"
 import {resolvePaths} from "../resolve-paths.ts"
