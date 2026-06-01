@@ -19,7 +19,7 @@ import path from "node:path"
 import {type ExportDeclaration, type ImportDeclaration, Node, type Project, type SourceFile, type StringLiteral, ts} from "ts-morph"
 import type * as declared from "ts-refine"
 import {resolveProject} from "../common/init-project.ts"
-import {displayPath} from "../lib/source-files.ts"
+import {displayPath, inProjectSourceFiles} from "../lib/source-files.ts"
 import {organizeChangedImports} from "../recommend/organize-changed.ts"
 
 // One captured module specifier whose target is moving. Held by AST node
@@ -30,10 +30,11 @@ import {organizeChangedImports} from "../recommend/organize-changed.ts"
 // exactly what was there originally.
 type SpecRecord = {kind: "import"; node: ImportDeclaration; originalExt: string} | {kind: "export"; node: ExportDeclaration; originalExt: string} | {kind: "dynamic"; node: StringLiteral; originalExt: string}
 
-// File extensions TypeScript's module resolution recognizes for source
-// files. We restore whichever of these the user wrote — `.js` etc. is
-// just as much a "TS-resolvable" specifier in NodeNext / bundler.
-const KNOWN_EXT = /\.(ts|tsx|js|jsx|mjs|cjs|mts|cts)$/
+// Extensions a module specifier may carry that the move must preserve. The
+// TS-resolvable family (`.js` etc. count under NodeNext / bundler) plus `.json`
+// (resolveJsonModule), whose extension is mandatory — dropping it breaks the
+// import.
+const KNOWN_EXT = /\.(ts|tsx|js|jsx|mjs|cjs|mts|cts|json)$/
 
 function extensionOf(specifier: string): string {
     const m = specifier.match(KNOWN_EXT)
@@ -192,7 +193,7 @@ function isDirectoryDest(project: Project, dest: string): boolean {
     // child file is saved; infer dir-ness from the source-file layout
     // so a fresh createSourceFile + refineMove flow still works.
     const prefix = dest + "/"
-    for (const sf of project.getSourceFiles()) {
+    for (const sf of inProjectSourceFiles(project)) {
         if (sf.getFilePath().startsWith(prefix)) return true
     }
     try {
@@ -210,7 +211,7 @@ function isDirectoryDest(project: Project, dest: string): boolean {
 function snapshotSpecifiers(project: Project, movingPaths: Set<string>): SpecRecord[] {
     const records: SpecRecord[] = []
 
-    for (const sf of project.getSourceFiles()) {
+    for (const sf of inProjectSourceFiles(project)) {
         const filePath = sf.getFilePath()
         const isMoving = movingPaths.has(filePath)
 

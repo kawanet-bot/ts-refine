@@ -3,15 +3,14 @@
 // the whole project.
 
 import path from "node:path"
-import type {Project, SourceFile} from "ts-morph"
+import {type Project, ScriptKind, type SourceFile} from "ts-morph"
 import type {TSR} from "ts-refine"
 
-// Never a command/refactor target: external declarations (TS lib, @types/* and
-// node_modules packages pulled in via tsconfig) the program loads only for
-// type-checking. The project's own .d.ts stays — it is not external — which is
-// the point of including .d.ts at all.
+// In-project command/refactor targets only. External declarations (TS lib,
+// @types/*, node_modules) are load-only; JSON modules aren't TypeScript and the
+// language service would corrupt them. The project's own .d.ts stays.
 function isInProject(sf: SourceFile): boolean {
-    return !sf.isFromExternalLibrary()
+    return !sf.isFromExternalLibrary() && sf.getScriptKind() !== ScriptKind.JSON
 }
 
 export function selectSourceFiles(project: Project, {paths}: Pick<TSR.ReportOpts, "paths">): SourceFile[] {
