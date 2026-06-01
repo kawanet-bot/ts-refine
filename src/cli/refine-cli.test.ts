@@ -60,7 +60,7 @@ describe("refineCLI", () => {
     it("applies via the format subcommand (dry-run)", async () => {
         const r = await run(["format", "--dry-run", "-p", SAMPLE])
         assert.equal(r.status, 0)
-        assert.match(r.stderr, /apply: would change/)
+        assert.match(r.stderr, /format: would change/)
 
         // format never consumes member-separators, so it is not surveyed.
         assert.doesNotMatch(r.stderr, /report member-separators:/)
@@ -80,7 +80,7 @@ describe("refineCLI", () => {
         assert.notEqual(r.status, 0)
 
         // --check writes nothing (would-change), then points at the fix.
-        assert.match(r.stderr, /apply: would change/)
+        assert.match(r.stderr, /format: would change/)
         assert.match(r.stderr, /Run `ts-refine format` to fix\./)
     })
 

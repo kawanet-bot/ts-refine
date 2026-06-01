@@ -61,7 +61,7 @@ export const refineFormat: typeof declared.refineFormat = async (opts) => {
     }
 
     const verb = dryRun ? "would change" : "changed"
-    log.write(`apply: ${verb} ${touched.length} / ${totalCount} files\n`)
+    log.write(`format: ${verb} ${touched.length} / ${totalCount} files\n`)
 
     return {touched}
 }
