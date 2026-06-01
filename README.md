@@ -32,6 +32,9 @@ npx ts-refine report
 # apply the surveyed style and organize imports
 npx ts-refine format --dry-run
 
+# show only files that reference an identifier
+npx ts-refine list --ref funcA
+
 # inspect one file's exports and importers
 npx ts-refine inspect src/foo.ts
 
@@ -104,8 +107,7 @@ npx ts-refine list --no-importers
 # only files that have unused exports
 npx ts-refine list --unused-exports
 
-# only files that reference a given target (an identifier or a dotted
-# member spec — the same forms `rename --from` accepts)
+# only files that reference an identifier, or a dotted a.b / a.b.c
 npx ts-refine list --ref funcA
 npx ts-refine list --ref nsA.funcB
 npx ts-refine list --ref typeA.propB
@@ -268,4 +270,5 @@ npx ts-refine rename --from nsA.typeB.propC --to nsA.typeB.propD
 ## Links
 
 - https://github.com/kawanet/ts-refine
+- https://github.com/kawanet/ts-refine/blob/main/types/ts-refine.d.ts
 - https://www.npmjs.com/package/ts-refine

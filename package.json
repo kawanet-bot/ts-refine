@@ -18,7 +18,7 @@
     "@rollup/plugin-sucrase": "^5.1.0",
     "@types/node": "^24.10.0",
     "prettier": "^3.8.3",
-    "rollup": "^4.60.4",
+    "rollup": "^4.61.0",
     "typescript": "^6.0.3"
   },
   "engines": {
@@ -35,23 +35,19 @@
     "README.md",
     "dist/ts-refine.mjs",
     "dist/ts-refine.cli.mjs",
-    "src/**/*.ts",
-    "!src/**/*.test.ts",
-    "!src/test-utils/**",
     "types/*.d.ts"
   ],
   "homepage": "https://github.com/kawanet/ts-refine#readme",
   "keywords": [
-    "cli",
-    "codemod",
-    "formatter",
-    "imports",
+    "knip",
     "language-service",
-    "move",
+    "optimize-imports",
     "organize-imports",
+    "prettier",
     "refactor",
     "ts-morph",
-    "typescript"
+    "typescript",
+    "unused"
   ],
   "license": "MIT",
   "main": "./dist/ts-refine.mjs",
@@ -63,7 +59,8 @@
     "build": "make -C builder",
     "fixpack": "fixpack",
     "format": "node src/cli.ts format",
-    "prepack": "make -C builder test",
+    "prepack": "make -C builder is-buildable",
+    "prepare": "make -C builder is-not-buildable 2> /dev/null || make -C builder clean all test",
     "prettier": "prettier --write 'src/**/*.ts' 'types/**/*.ts'",
     "test": "make -C builder test"
   },

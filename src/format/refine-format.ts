@@ -5,7 +5,7 @@
 
 import fs from "node:fs/promises"
 import type * as declared from "ts-refine"
-import {resolveProject} from "../lib/init-project.ts"
+import {resolveProject} from "../common/init-project.ts"
 import {applyOrganizeImports} from "../lib/organize-imports.ts"
 import {selectSourceFiles} from "../lib/source-files.ts"
 import {formatStyleToSettings, normalizeNewLines} from "../recommend/format-settings.ts"
@@ -61,7 +61,7 @@ export const refineFormat: typeof declared.refineFormat = async (opts) => {
     }
 
     const verb = dryRun ? "would change" : "changed"
-    log.write(`apply: ${verb} ${touched.length} / ${totalCount} files\n`)
+    log.write(`format: ${verb} ${touched.length} / ${totalCount} files\n`)
 
     return {touched}
 }

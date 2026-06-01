@@ -1,10 +1,11 @@
 // `rename` runner: survey the project so the post-rename organizeImports
 // follows the codebase's conventions, then rename the exported identifier.
 
+import type {TSR} from "ts-refine"
 import {reportToFormatStyle} from "../../common/format-style.ts"
+import {initProject} from "../../common/init-project.ts"
 import {applyReportNames} from "../../common/report-names.ts"
-import {refineRename, refineReport, type TSR} from "../../index.ts"
-import {initProject} from "../../lib/init-project.ts"
+import {refineRename, refineReport} from "../../index.ts"
 import {type CLI, NULL_SINK} from "../cli-io.ts"
 import {buildFormatTokens} from "../report/emit-ts-refine.ts"
 import {resolvePaths} from "../resolve-paths.ts"

@@ -9,7 +9,7 @@
 
 import {Node, type Project, type SourceFile} from "ts-morph"
 import type * as declared from "ts-refine"
-import {resolveProject} from "../lib/init-project.ts"
+import {resolveProject} from "../common/init-project.ts"
 import {findNamespaceMembers, IDENT, memberNameNode, parseTarget, type ResolvedTarget, resolveTarget} from "../lib/resolve-target.ts"
 import {displayPath} from "../lib/source-files.ts"
 import {organizeChangedImports} from "../recommend/organize-changed.ts"
@@ -24,6 +24,7 @@ export const refineRename: typeof declared.refineRename = async (opts) => {
     if (fromT.path.join(".") !== toT.path.join(".")) {
         throw new Error(`rename: --from and --to must keep the same container (moving across namespaces or types is out of scope): ${from} -> ${to}`)
     }
+
     // `from` is validated while resolving; the new name `to` is checked here.
     for (const part of [...toT.path, toT.name]) {
         if (!IDENT.test(part)) throw new Error(`rename: not a valid identifier: ${part}`)

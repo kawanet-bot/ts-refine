@@ -1,8 +1,9 @@
 // `inspect` runner: run the selected inspectors and write each file's
 // analysis to stdout.
 
-import {refineInspect, type TSR} from "../../index.ts"
-import {initProject} from "../../lib/init-project.ts"
+import type {TSR} from "ts-refine"
+import {initProject} from "../../common/init-project.ts"
+import {refineInspect} from "../../index.ts"
 import type {CLI} from "../cli-io.ts"
 import {resolvePaths} from "../resolve-paths.ts"
 import {parseInspectArgs} from "./parse-inspect-args.ts"
