@@ -36,6 +36,7 @@ describe("resolve-target external-library exclusion", () => {
     it("loads the external .d.ts but treats it as out of project", () => {
         const added = project.getSourceFileOrThrow(dts)
         assert.equal(added.isFromExternalLibrary(), true)
+
         // The raw program sees it; the in-project view filters it out.
         assert.ok(project.getSourceFiles().includes(added))
         assert.ok(!inProjectSourceFiles(project).includes(added))

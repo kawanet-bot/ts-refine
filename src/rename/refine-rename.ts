@@ -24,6 +24,7 @@ export const refineRename: typeof declared.refineRename = async (opts) => {
     if (fromT.path.join(".") !== toT.path.join(".")) {
         throw new Error(`rename: --from and --to must keep the same container (moving across namespaces or types is out of scope): ${from} -> ${to}`)
     }
+
     // `from` is validated while resolving; the new name `to` is checked here.
     for (const part of [...toT.path, toT.name]) {
         if (!IDENT.test(part)) throw new Error(`rename: not a valid identifier: ${part}`)
