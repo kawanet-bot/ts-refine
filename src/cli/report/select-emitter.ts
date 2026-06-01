@@ -22,9 +22,9 @@ interface EmitterDispatch {
 
 const NULL_SINK: TSR.Writer = {write: () => {}}
 
-export function selectEmitter(name: string | null, stdout: TSR.Writer): EmitterDispatch {
+export function selectEmitter(name: string | null, output: TSR.Writer): EmitterDispatch {
     if (name === null) {
-        return {reportStream: stdout, finalize: () => {}}
+        return {reportStream: output, finalize: () => {}}
     }
     if (!(emitNames as readonly string[]).includes(name)) {
         throw new Error(`unknown --emit: ${name} (known: ${emitNames.join(", ")})`)
@@ -32,13 +32,13 @@ export function selectEmitter(name: string | null, stdout: TSR.Writer): EmitterD
     if (name === "prettier") {
         return {
             reportStream: NULL_SINK,
-            finalize: (report) => writePrettierConfig(report, stdout),
+            finalize: (report) => writePrettierConfig(report, output),
         }
     }
     if (name === "ts-refine") {
         return {
             reportStream: NULL_SINK,
-            finalize: (report) => writeFormatCommand(report, stdout),
+            finalize: (report) => writeFormatCommand(report, output),
         }
     }
     // emitNames is exhaustive — this guards future entries that forget to add a branch.

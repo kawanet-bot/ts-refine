@@ -4,7 +4,7 @@
 // `--<name>` catch runs only after parseCommonArgs so it can't swallow
 // --project / --dry-run.
 
-import {inspectorNames as knownInspectorNames} from "../../inspect/inspector-names.ts"
+import {inspectorNames as knownInspectorNames} from "../../common/inspector-names.ts"
 import {type CommonArgs, parseCommonArgs} from "../parse-common-args.ts"
 
 // Raw values only: the runner resolves `paths` into absolute paths.

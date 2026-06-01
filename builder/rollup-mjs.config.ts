@@ -21,7 +21,7 @@ const rollupConfig: RollupOptions = {
         }),
 
         // show files imported from outside /src/ or inside /src/cli/
-        showFiles({test: (path) => !path.includes("/src/") || path.includes("/cli/")}),
+        showFiles({test: (path) => !path.includes("/src/") || path.includes("/cli/") || path.includes("/common/")}),
 
         sucrase({
             exclude: ["node_modules/**"],

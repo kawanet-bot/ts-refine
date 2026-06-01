@@ -2,10 +2,12 @@
 // (plus any CLI overrides). The Markdown stream is swallowed; refineFormat
 // writes the files.
 
+import {reportToFormatStyle} from "../../common/format-style.ts"
 import {initProject, refineFormat, refineReport} from "../../index.ts"
-import {mergeFormatOptions, overridesToFormatOptions, reportNamesForFormat, reportToFormatOptions} from "../../recommend/format-options.ts"
 import {type CLI, NULL_SINK} from "../cli-io.ts"
+import {buildFormatTokens} from "../report/emit-ts-refine.ts"
 import {resolvePaths} from "../resolve-paths.ts"
+import {mergeFormatStyles, overridesToFormatStyle, reportNamesForFormat} from "./format-options.ts"
 import {parseFormatArgs} from "./parse-format-args.ts"
 
 export const formatCLI: CLI = async (ctx) => {
@@ -22,12 +24,14 @@ export const formatCLI: CLI = async (ctx) => {
 
     // Merge the survey recommendation (base) with the CLI overrides (win per
     // field) here, so refineFormat just applies the result.
-    const format = mergeFormatOptions(reportToFormatOptions(report), overridesToFormatOptions(args.applyOverrides))
+    const format = mergeFormatStyles(reportToFormatStyle(report), overridesToFormatStyle(args.applyOverrides))
     // `cr` is dropped from FormatStyle, so flag it from the report: the survey
     // recommended CR-only newlines but no override forced an applicable value.
     if (args.applyOverrides.newLine === undefined && report.newLine?.newLine === "cr") {
         log.write("note: report recommends CR-only newlines; not applied (LS formatter supports LF/CRLF only)\n")
     }
+
+    log.write(`format: ${buildFormatTokens(format).join(" ")}\n`)
 
     // `--check` reports without writing, so it forces dry-run; the per-file
     // list and summary are already on the log, so only the fix hint is added.

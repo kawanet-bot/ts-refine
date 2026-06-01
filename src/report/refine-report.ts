@@ -8,11 +8,11 @@
 
 import type * as declared from "ts-refine"
 import type {TSR} from "ts-refine"
+import {reportNames} from "../common/report-names.ts"
 import {runReportBracketSpacing} from "./bracket-spacing.ts"
 import {runReportIndent} from "./indent.ts"
 import {runReportMemberSeparators} from "./member-separators.ts"
 import {runReportNewLine} from "./new-line.ts"
-import {reportNames} from "./report-names.ts"
 import {runReportSemicolons} from "./semicolons.ts"
 import type {ReportOpts} from "./types.ts"
 

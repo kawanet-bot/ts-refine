@@ -2,10 +2,11 @@
 // survey the project so the post-move organizeImports follows the codebase's
 // conventions, then relocate.
 
+import {reportToFormatStyle} from "../../common/format-style.ts"
+import {applyReportNames} from "../../common/report-names.ts"
 import {initProject, refineMove, refineReport, type TSR} from "../../index.ts"
-import {reportToFormatOptions} from "../../recommend/format-options.ts"
-import {applyReportNames} from "../../report/report-names.ts"
 import {type CLI, NULL_SINK} from "../cli-io.ts"
+import {buildFormatTokens} from "../report/emit-ts-refine.ts"
 import {resolvePaths} from "../resolve-paths.ts"
 import {parseMoveArgs} from "./parse-move-args.ts"
 
@@ -21,7 +22,9 @@ export const moveCLI: CLI = async (ctx) => {
     const reportNames = applyReportNames as TSR.ReportName[]
     // Survey, then reduce to the format subset refineMove actually needs.
     const report = await refineReport(project, {paths: [], reportNames, output: NULL_SINK, log})
-    const format = reportToFormatOptions(report)
+    const format = reportToFormatStyle(report)
+    log.write(`format: ${buildFormatTokens(format).join(" ")}\n`)
+
     await refineMove(project, {sources, dest, dryRun: common.dryRun, format, log})
     return 0
 }
