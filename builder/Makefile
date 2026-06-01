@@ -71,9 +71,11 @@ smoke: $(MJS_DST)
 
 # Build, run smoke tests, and conditionally run full tests (tsc and node:test).
 # Consumer `npm install` skips the heavy test-ts step to keep install fast.
-test: all smoke $(TYPES)
-	@ [ "$$npm_command" != "install" ] || echo "npm install detected: skipping full tests."
-	@ [ "$$npm_command" = "install" ] || $(MAKE) test-ts
+test: all $(TYPES)
+	@case "$$npm_command" in \
+		install|ci) echo "npm $$npm_command detected: skipping full tests." ;; \
+		*) $(MAKE) smoke test-ts ;; \
+	esac
 
 test-ts:
 	cd .. && ./node_modules/.bin/tsc --noEmit
