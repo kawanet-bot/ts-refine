@@ -44,11 +44,13 @@ describe("refineFormat --indent (dry-run, in-memory)", () => {
         const sf = project.createSourceFile("c.ts", ["function f() {", "  const s = `", "    indented inside template", "    other inside template", "  `", "  return s", "}", ""].join("\n"))
         await refineFormat(opts(project, 4))
         const lines = sf.getFullText().split("\n")
+
         // Code lines (outside template) are rewritten to 4-space.
         assert.equal(lines[0], "function f() {")
         assert.equal(lines[1], "    const s = `")
         assert.equal(lines[5], "    return s")
         assert.equal(lines[6], "}")
+
         // Template-content lines retain their original leading whitespace
         // because their first character sits inside the template span.
         assert.equal(lines[2], "    indented inside template")
@@ -75,6 +77,7 @@ describe("refineFormat --indent (dry-run, in-memory)", () => {
 
     it("normalizes binary-operator continuation lines to the parent block's indent level", async () => {
         const project = new Project({useInMemoryFileSystem: true})
+
         // LS re-indents continuation lines (parent block + continuation
         // step). Hand-rolled alignment such as the 5-space `     2` below
         // is not preserved; Prettier matches.
@@ -82,6 +85,7 @@ describe("refineFormat --indent (dry-run, in-memory)", () => {
         await refineFormat(opts(project, 4))
         const lines = sf.getFullText().split("\n")
         assert.equal(lines[1], "    const x = 1 +")
+
         // Two indent levels: one for the function body, one for the
         // binary-operator continuation. Original 5-space alignment is lost.
         assert.equal(lines[2], "        2")

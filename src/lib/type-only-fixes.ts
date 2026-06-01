@@ -14,6 +14,7 @@ const FIX_IDS = ["splitTypeOnlyImport", "convertToTypeOnlyImport", "convertToTyp
 
 export function applyTypeOnlyFixes(sf: SourceFile, formatSettings: FormatCodeSettings): void {
     const opts = sf.getProject().getCompilerOptions()
+
     // This bundle targets verbatimModuleSyntax/isolatedModules. getCombinedCodeFix
     // forces a per-file semantic pass for any fixId — even the syntactic split —
     // so partial gating saves nothing; skip the whole bundle when neither flag is

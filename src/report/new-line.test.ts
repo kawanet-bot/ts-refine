@@ -16,10 +16,12 @@ describe("runReportNewLine (sample/newlines-mixed)", () => {
 
         const out = lines.join("")
         assert.match(out, /^### new-line\n/)
+
         // Two LF files + one CRLF file + one empty (skipped).
         assert.match(out, /\| `\\n` \| 6 \| 2 \| /)
         assert.match(out, /\| `\\r\\n` \| 3 \| 1 \| /)
         assert.match(out, /\| total \| 9 \| 3 \| \|/)
+
         // Recommendation comes back as action params; LF wins on file count.
         assert.deepEqual(ret, {newLine: "lf"})
     })
@@ -38,6 +40,7 @@ describe("runReportNewLine (sample/newlines-mixed)", () => {
 
     it("breaks a file-count tie by the higher terminator count and emits a recommendation", async () => {
         const project = new Project({useInMemoryFileSystem: true})
+
         // 1 LF file with 5 LFs vs 1 CRLF file with 1 CRLF — tied on files,
         // LF wins on terminator count.
         project.createSourceFile("lf.ts", "a\nb\nc\nd\ne\n")

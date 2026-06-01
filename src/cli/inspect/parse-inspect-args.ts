@@ -10,6 +10,7 @@ import {type CommonArgs, parseCommonArgs} from "../parse-common-args.ts"
 // Raw values only: the runner resolves `paths` into absolute paths.
 export interface InspectArgs {
     paths: string[]
+
     // The requested inspector selectors, or the full registry.
     inspectorNames: string[]
 }

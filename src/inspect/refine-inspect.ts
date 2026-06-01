@@ -70,6 +70,7 @@ function gatherImporters(target: SourceFile, allFiles: SourceFile[]): TSR.Inspec
             if (namespaceExport) names.add(`* as ${namespaceExport.getName()}`)
             const named = decl.getNamedExports()
             if (named.length > 0) for (const n of named) names.add(n.getName())
+
             // `export * from "..."` has neither — fall through with no names.
             if (!namespaceExport && named.length === 0) names.add("*")
         }

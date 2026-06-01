@@ -18,6 +18,7 @@ export const renameCLI: CLI = async (ctx) => {
     const {tsConfigFilePath, paths} = resolvePaths(common.tsconfigPath, args.paths)
     const project = initProject({tsConfigFilePath})
     const reportNames = applyReportNames as TSR.ReportName[]
+
     // Survey, then reduce to the format subset refineRename actually needs.
     const report = await refineReport({project, paths: [], reportNames, output: NULL_SINK, log})
     const format = reportToFormatStyle(report)

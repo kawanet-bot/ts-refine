@@ -88,6 +88,7 @@ describe("refineFormat --semicolons off handles nested ASI-eligible statements",
         const text = sf.getFullText()
         assert.equal(text.includes("const x = 1;"), false, "inner const lost its ;")
         assert.equal(text.includes("inner(x);"), false, "inner call lost its ;")
+
         // The outer describe/it expression statements must also have lost the `;`
         // after the closing `})`; check by ensuring no `;` remains in the file.
         assert.equal(text.includes(";"), false, "no `;` should remain in the file")
@@ -113,8 +114,10 @@ describe("refineFormat --semicolons off keeps `;` at ASI-hazard sites", () => {
         await refineFormat({project, log, ...SEMI_OFF, format: {organizeImports: "off", semicolons: "off"}})
 
         const text = sf.getFullText()
+
         // The hazardous line must keep its `;` to avoid fusing into `1.toString()`.
         assert.match(text, /const x = 1;\n\.toString\(\)/)
+
         // Safe lines lose their `;`. The LS adds a trailing newline to
         // each formatted file, so the last-line anchor needs to allow it.
         assert.match(text, /const y = 2\n/)
@@ -132,6 +135,7 @@ describe("refineFormat --semicolons off and do-while statements", () => {
         await refineFormat({project, log, ...SEMI_OFF, format: {organizeImports: "off", semicolons: "off"}})
 
         const text = sf.getFullText()
+
         // Old action: `} while (x < 2);` retained. LS: `;` stripped.
         assert.match(text, /} while \(x < 2\)\n/)
         assert.match(text, /let x = 0\n/)

@@ -18,6 +18,7 @@ describe("refineReport", () => {
                 refineReport({
                     project,
                     log,
+
                     // Intentional typo. The typed surface narrows to known
                     // names, so the cast lets the test reach the runtime
                     // validation that the production CLI also relies on.
@@ -35,6 +36,7 @@ describe("refineReport", () => {
         await refineReport({
             project,
             log,
+
             // Input deliberately in reverse of registry order to confirm the
             // router re-orders. indent precedes semicolons in the registry.
             reportNames: ["semicolons", "indent"],

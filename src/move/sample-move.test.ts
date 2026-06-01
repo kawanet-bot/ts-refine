@@ -55,6 +55,7 @@ describe("refineMove against sample fixtures (one era per sample)", () => {
             await refineMove({project, log, sources: [path.join(workdir, "src/lib.ts")], dest: path.join(workdir, "src/util/"), dryRun: false, format: {}})
             const cli = await fs.readFile(path.join(workdir, "src/cli.ts"), "utf8")
             assert.ok(cli.includes('from "./util/lib"'), `cli.ts should reference ./util/lib; got:\n${cli}`)
+
             // And explicitly does NOT add `.ts` / `.js`.
             assert.ok(!cli.includes("./util/lib.ts"), `cli.ts should not gain .ts; got:\n${cli}`)
             assert.ok(!cli.includes("./util/lib.js"), `cli.ts should not gain .js; got:\n${cli}`)

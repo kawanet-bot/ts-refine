@@ -37,6 +37,7 @@ function acceptedSubcommands(): string {
 
 export const refineCLI: CLI = async (ctx) => {
     const {args: common, tokens, output} = ctx
+
     // Consume the leading globals (including -h/--help); the first token that
     // isn't one is the subcommand, and the tokens to its right go to that
     // command's handler.

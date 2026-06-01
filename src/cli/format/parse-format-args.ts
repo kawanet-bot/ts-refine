@@ -45,6 +45,7 @@ export function parseFormatArgs(sub: string[], common: CommonArgs): FormatArgs |
             if (!v || v.startsWith("-")) {
                 throw new Error("--indent requires a positive integer or 'tab' (e.g. --indent 4)")
             }
+
             // "tab" maps to tab indentation; otherwise a positive integer.
             if (v === "tab") {
                 overrides.indent = "tab"

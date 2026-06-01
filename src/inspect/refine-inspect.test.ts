@@ -17,12 +17,14 @@ describe("refineInspect", () => {
         const byName = Object.fromEntries(files.map((f) => [path.basename(f.file), f]))
         const used = byName["used.ts"]
         assert.ok(used.exports)
+
         // used.ts exports two values, both consumed by index.ts.
         assert.equal(used.exports.length, 2)
         for (const e of used.exports) {
             assert.equal(e.importers, 1)
             assert.equal(e.example, "sample/basic/src/index.ts")
         }
+
         // unused.ts has two exports, neither referenced externally.
         const unused = byName["unused.ts"]
         assert.deepEqual(
@@ -70,10 +72,12 @@ describe("refineInspect", () => {
         assert.deepEqual(got["type.ts"], {kinds: ["type"], names: ["T"]})
         assert.deepEqual(got["ns.ts"], {kinds: ["namespace"], names: ["* as A"]})
         assert.deepEqual(got["side.ts"], {kinds: ["side-effect"], names: ["(side effect)"]})
+
         // Re-export: `export {x}` adds the name, `export * from` adds the
         // wildcard token; both sorted alphabetically.
         assert.deepEqual(got["reexp.ts"], {kinds: ["re-export"], names: ["*", "x"]})
         assert.deepEqual(got["dyn.ts"], {kinds: ["dynamic"], names: ["(dynamic)"]})
+
         // Mixed: at least one value name → "value" (the value-includes
         // catch-all that pairs with the type-only "type" kind).
         assert.deepEqual(got["mixed.ts"], {kinds: ["value"], names: ["type T", "x"]})

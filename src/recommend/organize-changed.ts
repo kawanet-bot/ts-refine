@@ -11,6 +11,7 @@ import {formatStyleToSettings} from "./format-settings.ts"
 
 export function organizeChangedImports(files: Iterable<SourceFile>, format: TSR.FormatStyle): void {
     const resolved = formatStyleToSettings(format)
+
     // Honor the organize-imports gate the same way refineFormat does: a
     // `{organizeImports: "off"}` caller keeps its rewritten paths but skips the
     // re-sort (and the type-only settling that feeds it) entirely.

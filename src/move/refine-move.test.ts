@@ -36,6 +36,7 @@ describe("refineMove (in-memory, dry-run)", () => {
         const result = await refineMove({project, log, sources: ["/src/a.ts"], dest: "/src/sub/", dryRun: true, format: NO_SPACE})
 
         assert.deepEqual(result.moves, [{from: "/src/a.ts", to: "/src/sub/a.ts"}])
+
         // organizeImports re-sorts the import declarations (type, namespace,
         // named); the re-export and dynamic import keep their place. Each
         // specifier still carries its restored `.ts` extension.
@@ -58,6 +59,7 @@ describe("refineMove (in-memory, dry-run)", () => {
         project.createSourceFile("/src/a.ts", "export const x = 1\nexport const y = 2\n")
         const b = project.createSourceFile("/src/b.ts", 'import {y} from "./a.ts"\nimport {x} from "./a.ts"\nconst _ = x + y\n')
         await refineMove({project, log, sources: ["/src/a.ts"], dest: "/src/sub/", dryRun: true, format: {organizeImports: "off"}})
+
         // Specifiers are still rewritten, but the y-before-x order is untouched
         // and the two same-module imports are not combined.
         assert.equal(b.getFullText(), 'import {y} from "./sub/a.ts"\nimport {x} from "./sub/a.ts"\nconst _ = x + y\n')
@@ -93,6 +95,7 @@ describe("refineMove (in-memory, dry-run)", () => {
         project.createSourceFile("/src/a.ts", "export const x = 1\n")
         const b = project.createSourceFile("/src/b.ts", ['import {x as x1} from "./a.ts"', 'import {x as x2} from "./a.js"', 'import {x as x3} from "./a"', "const _ = x1 + x2 + x3", ""].join("\n"))
         await refineMove({project, log, sources: ["/src/a.ts"], dest: "/src/sub/", dryRun: true, format: NO_SPACE})
+
         // Each row keeps its own era's extension; nothing is migrated.
         // organizeImports sorts by specifier, so the bare-then-.js-then-.ts
         // order follows from string ordering of the rewritten paths.
@@ -156,6 +159,7 @@ describe("refineMove (in-memory, dry-run)", () => {
         // overwrite it on disk, so the planner has to consult the FS too.
         const project = newProject()
         project.createSourceFile("/src/a.ts", "export const x = 1\n")
+
         // Drop a file directly onto the in-memory FS without registering
         // it as a project SourceFile.
         project.getFileSystem().writeFileSync("/dist/precious.ts", "// excluded but real\n")
@@ -167,6 +171,7 @@ describe("refineMove (in-memory, dry-run)", () => {
         project.createSourceFile("/src/a.ts", "export const x = 1\n")
         const dts = project.createSourceFile("/src/ambient.d.ts", 'import {x} from "./a.ts"\ndeclare const _: typeof x\n')
         await refineMove({project, log, sources: ["/src/a.ts"], dest: "/src/sub/", dryRun: true, format: NO_SPACE})
+
         // The .d.ts specifier was rewritten AND its `.ts` extension was restored.
         assert.equal(dts.getFullText(), 'import {x} from "./sub/a.ts"\ndeclare const _: typeof x\n')
     })
@@ -179,15 +184,18 @@ describe("refineMove (in-memory, dry-run)", () => {
         project.createSourceFile("/src/feature/index.ts", "export const x = 1\n")
         const b = project.createSourceFile("/src/b.ts", 'const _ = import("./feature")\n')
         const result = await refineMove({project, log, sources: ["/src/feature/index.ts"], dest: "/src/sub/index.ts", dryRun: true, format: NO_SPACE})
+
         // b.ts must appear in touched (so it would be saved end-to-end).
         assert.ok(result.touched.includes(b.getFilePath()), `b.ts must be reported as touched; got: ${JSON.stringify(result.touched)}`)
     })
 
     it("recognizes in-memory directories without a trailing slash (project FS, not host FS)", async () => {
         const project = newProject()
+
         // An in-memory directory exists when any source file lives under it.
         project.createSourceFile("/src/a.ts", "export const x = 1\n")
         project.createSourceFile("/lib/keep.ts", "export const k = 0\n")
+
         // `/lib` has no trailing slash; the project's in-memory FS reports it
         // as a directory, so we treat the move as a directory move.
         const result = await refineMove({project, log, sources: ["/src/a.ts"], dest: "/lib", dryRun: true, format: NO_SPACE})
@@ -210,6 +218,7 @@ describe("refineMove (in-memory, dry-run)", () => {
         project.createSourceFile("/src/z.ts", "export const z = 1\n")
         const imp = project.createSourceFile("/src/imp.ts", ['import {z} from "./z.ts"', 'import {m} from "./m.ts"', "const _ = z + m", ""].join("\n"))
         await refineMove({project, log, sources: ["/src/m.ts"], dest: "/src/sub/", dryRun: true, format: NO_SPACE})
+
         // m moved under sub/, so "./sub/m.ts" sorts before "./z.ts" and the
         // two import lines swap — organizeImports ran on the changed file.
         assert.equal(imp.getFullText(), ['import {m} from "./sub/m.ts"', 'import {z} from "./z.ts"', "const _ = z + m", ""].join("\n"))
@@ -218,6 +227,7 @@ describe("refineMove (in-memory, dry-run)", () => {
     it("applies the surveyed no-space style, overriding the file's spaces", async () => {
         const project = newProject()
         project.createSourceFile("/src/a.ts", "export const x = 1\nexport const w = 2\n")
+
         // The file wrote `{ x, w }` (spaced) but the survey says no-space.
         const sp = project.createSourceFile("/src/sp.ts", ['import { x, w } from "./a.ts"', "const _ = x + w", ""].join("\n"))
         await refineMove({project, log, sources: ["/src/a.ts"], dest: "/src/sub/", dryRun: true, format: NO_SPACE})
@@ -227,6 +237,7 @@ describe("refineMove (in-memory, dry-run)", () => {
     it("applies the surveyed spaced style, overriding the file's no-space", async () => {
         const project = newProject()
         project.createSourceFile("/src/a.ts", "export const x = 1\nexport const w = 2\n")
+
         // The file wrote `{x,w}` (no space) but the survey says spaced.
         const ns = project.createSourceFile("/src/ns.ts", ['import {x,w} from "./a.ts"', "const _ = x + w", ""].join("\n"))
         await refineMove({project, log, sources: ["/src/a.ts"], dest: "/src/sub/", dryRun: true, format: SPACED})
@@ -238,10 +249,12 @@ describe("refineMove (in-memory, dry-run)", () => {
         project.createSourceFile("/src/a.ts", "export const x = 1\n")
         project.createSourceFile("/src/p.ts", "export const p = 1\n")
         project.createSourceFile("/src/q.ts", "export const q = 1\n")
+
         // Deliberately unsorted imports, none of them targeting the moved file.
         const u = project.createSourceFile("/src/u.ts", ['import {q} from "./q.ts"', 'import {p} from "./p.ts"', "const _ = p + q", ""].join("\n"))
         const result = await refineMove({project, log, sources: ["/src/a.ts"], dest: "/src/sub/", dryRun: true, format: NO_SPACE})
         assert.ok(!result.touched.includes("/src/u.ts"))
+
         // Its unsorted import block is left exactly as written.
         assert.equal(u.getFullText(), ['import {q} from "./q.ts"', 'import {p} from "./p.ts"', "const _ = p + q", ""].join("\n"))
     })
@@ -284,6 +297,7 @@ describe("refineMove (on disk)", () => {
             await fs.writeFile(path.join(sub, "src/unrelated.ts"), "export const z = 3 // ORIGINAL\n")
 
             const project = new Project({tsConfigFilePath: path.join(sub, "tsconfig.json")})
+
             // Caller's pending edit on a file refineMove never touches.
             project.getSourceFileOrThrow(path.join(sub, "src/unrelated.ts")).replaceWithText("export const z = 999 // CALLER EDIT\n")
             await refineMove({project, log, sources: [path.join(sub, "src/a.ts")], dest: path.join(sub, "lib/"), dryRun: false, format: NO_SPACE})
@@ -291,6 +305,7 @@ describe("refineMove (on disk)", () => {
             // unrelated.ts on disk must stay at the original content.
             const onDisk = await fs.readFile(path.join(sub, "src/unrelated.ts"), "utf8")
             assert.equal(onDisk, "export const z = 3 // ORIGINAL\n")
+
             // And the move itself still happened end-to-end.
             await assert.rejects(fs.access(path.join(sub, "src/a.ts")))
             assert.equal(await fs.readFile(path.join(sub, "lib/a.ts"), "utf8"), "export const x = 1\n")
@@ -308,6 +323,7 @@ describe("refineMove (on disk)", () => {
         await assert.rejects(fs.access(path.join(workdir, "src/a.ts")))
         const moved = await fs.readFile(path.join(workdir, "lib/a.ts"), "utf8")
         assert.equal(moved, "export const x = 1\n")
+
         // Importer's specifier rewritten on disk with `.ts` preserved.
         const importer = await fs.readFile(path.join(workdir, "src/b.ts"), "utf8")
         assert.equal(importer, 'import {x} from "../lib/a.ts"\nconst _ = x\n')

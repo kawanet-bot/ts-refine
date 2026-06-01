@@ -51,6 +51,7 @@ describe("refineCLI", () => {
     it("emits a prettier config via report --emit prettier", async () => {
         const r = await run(["report", "--emit", "prettier", "-p", SAMPLE])
         assert.equal(r.status, 0)
+
         // Output is JSON, not Markdown.
         assert.doesNotMatch(r.stdout, /^### /m)
         assert.match(r.stdout, /^\{/)
@@ -60,6 +61,7 @@ describe("refineCLI", () => {
         const r = await run(["format", "--dry-run", "-p", SAMPLE])
         assert.equal(r.status, 0)
         assert.match(r.stderr, /apply: would change/)
+
         // format never consumes member-separators, so it is not surveyed.
         assert.doesNotMatch(r.stderr, /report member-separators:/)
     })
@@ -67,6 +69,7 @@ describe("refineCLI", () => {
     it("skips surveying a field that a format override already pins", async () => {
         const r = await run(["format", "--indent", "4", "--dry-run", "-p", SAMPLE])
         assert.equal(r.status, 0)
+
         // --indent pins indent, so its survey is skipped; the rest still run.
         assert.doesNotMatch(r.stderr, /report indent:/)
         assert.match(r.stderr, /report semicolons:/)
@@ -75,6 +78,7 @@ describe("refineCLI", () => {
     it("exits non-zero with a fix hint when format --check finds changes", async () => {
         const r = await run(["format", "--check", "-p", SAMPLE])
         assert.notEqual(r.status, 0)
+
         // --check writes nothing (would-change), then points at the fix.
         assert.match(r.stderr, /apply: would change/)
         assert.match(r.stderr, /Run `ts-refine format` to fix\./)
@@ -102,6 +106,7 @@ describe("refineCLI", () => {
         const r = await run(["report", "-p", SAMPLE])
         assert.equal(r.status, 0)
         assert.match(r.stdout, /^### list --no-exports --no-importers --unused-exports$/m)
+
         // The list section precedes the first report table.
         assert.ok(r.stdout.indexOf("### list ") < r.stdout.indexOf("### semicolons"))
     })
@@ -109,6 +114,7 @@ describe("refineCLI", () => {
     it("inspects files via the inspect subcommand", async () => {
         const r = await run(["inspect", "--exports", "-p", SAMPLE, "src/used.ts"])
         assert.equal(r.status, 0)
+
         // One file heading, then the exports table.
         assert.match(r.stdout, /^## sample\/basic\/src\/used\.ts$/m)
         assert.match(r.stdout, /^### exports$/m)

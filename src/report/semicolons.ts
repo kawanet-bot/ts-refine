@@ -27,6 +27,7 @@ export async function runReportSemicolons({project, output, paths, log}: ReportO
             const member = isTypeMember(node)
             if (!member && !isSemiEligibleStatement(node)) return
             const text = node.getText()
+
             // Comma-separated members are outside the LS rewrite domain.
             if (member && text.endsWith(",")) return
             total++
@@ -59,6 +60,7 @@ export async function runReportSemicolons({project, output, paths, log}: ReportO
 
     output.write("### semicolons\n")
     output.write("\n")
+
     // `lines` (statement count) sits next to `files` so the table mirrors
     // the other reports and makes the tiebreaker rationale visible.
     output.write("| trailing `;` | lines | files | example |\n")
@@ -80,6 +82,7 @@ export async function runReportSemicolons({project, output, paths, log}: ReportO
     output.write(`| total | ${totalStmts} | ${perFile.length} | |\n`)
     output.write("\n")
     log.write(`report semicolons: ${perFile.length} files counted / ${sourceFiles.length} files total\n`)
+
     // The recommendation is rendered in the trailing `## recommendation`
     // section, so all we return here is the action params shape.
     return recommend ? {semicolons: recommend} : {}

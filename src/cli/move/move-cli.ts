@@ -21,6 +21,7 @@ export const moveCLI: CLI = async (ctx) => {
     const sources = paths.slice(0, -1)
     const dest = paths[paths.length - 1]
     const reportNames = applyReportNames as TSR.ReportName[]
+
     // Survey, then reduce to the format subset refineMove actually needs.
     const report = await refineReport({project, paths: [], reportNames, output: NULL_SINK, log})
     const format = reportToFormatStyle(report)

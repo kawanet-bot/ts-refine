@@ -31,6 +31,7 @@ export function detectIndent(text: string): IndentCounts {
 
     for (const line of text.split("\n")) {
         if (line.length === 0) continue
+
         // Detect leading whitespace shape.
         const first = line[0]
         const currentHasTab = first === "\t"
@@ -40,6 +41,7 @@ export function detectIndent(text: string): IndentCounts {
             if (currentIndent === line.length) continue // all-whitespace line
             if (line[currentIndent] === "*") continue // ` * ...` block-comment continuation
         }
+
         // Lines whose first non-space token is `*` were caught above; here
         // we still need to guard tab-leading "weird" cases, but tab itself
         // is the value we want to count.

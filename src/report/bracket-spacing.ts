@@ -64,6 +64,7 @@ export async function runReportBracketSpacing({project, output, paths, log}: Rep
     output.write("| --- | --- | --- | --- |\n")
     for (const k of DISPLAY_ORDER) {
         const b = buckets.get(k)
+
         // Both styles always get a row (0 when absent) so the two-way
         // comparison is always visible at a glance.
         if (b) {
@@ -92,6 +93,7 @@ function classifyBraces(text: string): Style | null {
     if (text.length < 2 || text[0] !== "{" || text[text.length - 1] !== "}") return null
     const inner = text.slice(1, -1)
     if (inner.trim().length === 0) return null
+
     // CR-only files (no LF) are rare but real; the new-line report
     // already classifies them, so the multi-line skip matches.
     if (/[\r\n]/.test(inner)) return null

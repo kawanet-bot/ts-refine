@@ -30,6 +30,7 @@ export const refineFormat: typeof declared.refineFormat = async (opts) => {
         // `only` leaves the surrounding text to another formatter and runs just
         // the organize pass below.
         if (!resolved.organizeImportsOnly) sf.formatText(resolved.formatSettings)
+
         // Same settings handed in so the rebuilt import block doesn't
         // drift from the just-formatted surrounding file.
         if (resolved.organizeImports) {

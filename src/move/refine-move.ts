@@ -167,6 +167,7 @@ function planMoves(project: Project, sources: string[], dest: string): {from: st
         if (toSet.has(to)) {
             throw new Error(`move: multiple sources map to the same destination: ${to}`)
         }
+
         // Overlap with an existing project file OR a file on the
         // project's filesystem that the tsconfig happens to exclude.
         // Either would be silently overwritten by sf.save(); reject both.
@@ -186,6 +187,7 @@ function planMoves(project: Project, sources: string[], dest: string): {from: st
 function isDirectoryDest(project: Project, dest: string): boolean {
     if (dest.endsWith("/") || dest.endsWith(path.sep)) return true
     if (project.getFileSystem().directoryExistsSync(dest)) return true
+
     // ts-morph's in-memory FS does not register parent dirs until the
     // child file is saved; infer dir-ness from the source-file layout
     // so a fresh createSourceFile + refineMove flow still works.

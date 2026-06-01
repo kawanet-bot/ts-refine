@@ -10,6 +10,7 @@ describe("refineFormat", () => {
         const project = new Project({useInMemoryFileSystem: true})
         const sf = project.createSourceFile("a.ts", "function f() {\n  return 1\n}\n")
         await refineFormat({project, log, dryRun: true, paths: [], format: {indent: 4}})
+
         // LS formatText re-indents the body to four spaces under the resolved settings.
         assert.match(sf.getFullText(), /\n {4}return 1\n/)
     })
@@ -40,6 +41,7 @@ describe("refineFormat", () => {
         project.createSourceFile("dep.ts", "export const used = 1\nexport const unused = 2\n")
         const sf = project.createSourceFile("a.ts", "import {unused, used} from './dep.ts'\nconst x = used\n")
         await refineFormat({project, log, dryRun: true, paths: [], format: {}})
+
         // Assertion only checks the dropped name and surviving import;
         // brace-spacing is not pinned here.
         const text = sf.getFullText()
@@ -52,6 +54,7 @@ describe("refineFormat", () => {
         project.createSourceFile("dep.ts", "export const used = 1\nexport const unused = 2\n")
         const sf = project.createSourceFile("a.ts", "import {unused, used} from './dep.ts'\nconst x = used\n")
         await refineFormat({project, log, dryRun: true, paths: [], format: {organizeImports: "off"}})
+
         // Without the organize pass, `unused` stays in the import list.
         assert.match(sf.getFullText(), /unused/)
     })
@@ -62,8 +65,10 @@ describe("refineFormat", () => {
         const sf = project.createSourceFile("a.ts", "import {b, a} from './dep.ts'\nconst   x = a+b\n")
         await refineFormat({project, log, dryRun: true, paths: [], format: {organizeImports: "only", semicolons: "on"}})
         const text = sf.getFullText()
+
         // imports are sorted...
         assert.match(text, /a, b/)
+
         // ...but formatText is skipped: the body keeps its odd spacing and no `;`.
         assert.match(text, /const {3}x = a\+b\n/)
     })
@@ -72,6 +77,7 @@ describe("refineFormat", () => {
         const project = new Project({useInMemoryFileSystem: true})
         const sf = project.createSourceFile("a.d.ts", "interface I { x:number }\n")
         await refineFormat({project, log, dryRun: true, paths: [], format: {bracketSpacing: "on"}})
+
         // .d.ts is now in scope; formatText tidies the member spacing.
         assert.equal(sf.getFullText(), "interface I { x: number }\n")
     })
@@ -80,6 +86,7 @@ describe("refineFormat", () => {
         const project = new Project({useInMemoryFileSystem: true})
         const sf = project.createSourceFile("a.ts", "const a = 1\n")
         await refineFormat({project, log, dryRun: true, paths: [], format: {semicolons: "on"}})
+
         // No throw → no real-fs write attempt; in-memory FS would have surfaced it.
         assert.match(sf.getFullText(), /const a = 1;\n/)
     })
@@ -89,6 +96,7 @@ describe("refineFormat", () => {
         const sf = project.createSourceFile("a.ts", "const a = 1\n")
         const changed = await refineFormat({project, log, dryRun: true, paths: [], format: {semicolons: "on"}})
         assert.deepEqual(changed.touched, [sf.getFilePath()])
+
         // The same pass over the now-formatted in-memory state changes nothing.
         const again = await refineFormat({project, log, dryRun: true, paths: [], format: {semicolons: "on"}})
         assert.deepEqual(again.touched, [])

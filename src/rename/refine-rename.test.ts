@@ -49,6 +49,7 @@ describe("refineRename", () => {
         await refineRename({project, log, from: "funcA", to: "funcB", file: "/a.ts", dryRun: true, format: NO_SPACE})
         assert.equal(a.getFullText(), "export function funcB() { return 1 }\n")
         assert.equal(ia.getFullText(), 'import {funcB} from "./a.ts"\nconst _ = funcB()\n')
+
         // b and its importer are untouched.
         assert.equal(b.getFullText(), "export function funcA() { return 2 }\n")
         assert.equal(ib.getFullText(), 'import {funcA} from "./b.ts"\nconst _ = funcA()\n')
@@ -104,6 +105,7 @@ describe("refineRename", () => {
         project.createSourceFile("/libs.ts", "export const aaa = 1\nexport const mmm = 2\n")
         const imp = project.createSourceFile("/imp.ts", 'import {aaa, mmm} from "./libs.ts"\nconst _ = aaa + mmm\n')
         await refineRename({project, log, from: "aaa", to: "zzz", file: null, dryRun: true, format: NO_SPACE})
+
         // aaa -> zzz pushes it past mmm, so organizeImports re-sorts the
         // named specifiers to {mmm, zzz}.
         assert.equal(imp.getFullText(), 'import {mmm, zzz} from "./libs.ts"\nconst _ = zzz + mmm\n')
@@ -116,6 +118,7 @@ describe("refineRename", () => {
         await refineRename({project, log, from: "NS.A", to: "NS.B", file: null, dryRun: true, format: NO_SPACE})
         assert.match(types.getFullText(), /interface B {/)
         assert.doesNotMatch(types.getFullText(), /interface A {/)
+
         // The qualified reference follows the member rename.
         assert.match(c.getFullText(), /const _: NS\.B =/)
     })
@@ -146,6 +149,7 @@ describe("refineRename", () => {
 
     it("finds a member declared in a later merged namespace block", async () => {
         const project = newProject()
+
         // Two `namespace NS {}` blocks in one file; the target is in the second.
         const types = project.createSourceFile("/types.ts", "export declare namespace NS {\n    interface A {}\n}\nexport declare namespace NS {\n    interface C {}\n}\n")
         const c = project.createSourceFile("/c.ts", 'import type {NS} from "./types.ts"\nconst _: NS.C = {}\n')
@@ -158,17 +162,20 @@ describe("refineRename", () => {
         const project = newProject()
         project.createSourceFile("/a.ts", "export declare namespace NS {\n    interface A {}\n}\n")
         project.createSourceFile("/b.ts", "export declare namespace NS {\n    interface B {}\n}\n")
+
         // Scoped to a.ts, but `NS.B` already exists in b.ts (same merged namespace).
         await assert.rejects(refineRename({project, log, from: "NS.A", to: "NS.B", file: "/a.ts", dryRun: true, format: NO_SPACE}), /already exists/)
     })
 
     it("renames every block of a merged-interface member (file-scoped)", async () => {
         const project = newProject()
+
         // `interface A` is declared in two merged NS blocks — one symbol.
         const types = project.createSourceFile("/types.ts", "export declare namespace NS {\n    interface A {\n        x: number\n    }\n}\nexport declare namespace NS {\n    interface A {\n        y: number\n    }\n}\n")
         await refineRename({project, log, from: "NS.A", to: "NS.B", file: "/types.ts", dryRun: true, format: NO_SPACE})
         const text = types.getFullText()
         assert.doesNotMatch(text, /interface A {/)
+
         // Both merged declarations follow the single symbol's rename.
         assert.equal((text.match(/interface B {/g) ?? []).length, 2)
     })

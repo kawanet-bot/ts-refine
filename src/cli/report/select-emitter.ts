@@ -41,6 +41,7 @@ export function selectEmitter(name: string | null, output: TSR.Writer): EmitterD
             finalize: (report) => writeFormatCommand(report, output),
         }
     }
+
     // emitNames is exhaustive — this guards future entries that forget to add a branch.
     throw new Error(`unhandled --emit: ${name}`)
 }

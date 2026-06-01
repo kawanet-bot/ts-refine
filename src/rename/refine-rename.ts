@@ -68,6 +68,7 @@ export const refineRename: typeof declared.refineRename = async (opts) => {
 
     const touched = [...targetFiles]
     if (!dryRun) for (const sf of touched) await sf.save()
+
     // Per-file progress on the log (stdout is reserved for command results);
     // the verb tracks dryRun.
     for (const sf of touched) {

@@ -43,6 +43,7 @@ describe("runReportMemberSeparators (sample/members-mixed)", () => {
         const lines: string[] = []
         const ret = await runReportMemberSeparators({project, log, output: {write: (l) => lines.push(l)}, paths: []})
         const out = lines.join("")
+
         // Recommendation is no longer inlined in the Markdown.
         assert.equal(/^recommendation:/m.test(out), false)
         assert.deepEqual(ret, {separator: "semi"})
@@ -50,6 +51,7 @@ describe("runReportMemberSeparators (sample/members-mixed)", () => {
 
     it("breaks a file-count tie by the higher member count and emits a recommendation", async () => {
         const project = new Project({useInMemoryFileSystem: true})
+
         // 1 file with 5 `;` members vs 1 file with 1 `,` member.
         project.createSourceFile("a.ts", "export interface A {\n    a: number;\n    b: number;\n    c: number;\n    d: number;\n    e: number;\n}\n")
         project.createSourceFile("b.ts", "export interface B {\n    a: number,\n}\n")
@@ -73,9 +75,11 @@ describe("runReportMemberSeparators (sample/members-mixed)", () => {
         const lines: string[] = []
         await runReportMemberSeparators({project, log, output: {write: (l) => lines.push(l)}, paths: []})
         const out = lines.join("")
+
         // No members remain after the `}`-trailing skip; the file should
         // not be counted.
         assert.match(out, /\| total \| 0 \| 0 \| \|/)
+
         // `\n` and `;` keep a 0-row; `,` is omitted when absent.
         assert.match(out, /\| `\\n` \| 0 \| 0 \|\|/)
         assert.match(out, /\| `;` \| 0 \| 0 \|\|/)

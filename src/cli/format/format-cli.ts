@@ -18,6 +18,7 @@ export const formatCLI: CLI = async (ctx) => {
     if (common.help) throw new Error("--help is not supported for the format command")
     const {tsConfigFilePath, paths} = resolvePaths(common.tsconfigPath, args.paths)
     const project = initProject({tsConfigFilePath})
+
     // Skip surveying any field the CLI already pinned; a fully-pinned run
     // makes this an empty set and refineReport does no work.
     const reportNames = reportNamesForFormat(args.applyOverrides)
@@ -26,6 +27,7 @@ export const formatCLI: CLI = async (ctx) => {
     // Merge the survey recommendation (base) with the CLI overrides (win per
     // field) here, so refineFormat just applies the result.
     const format = mergeFormatStyles(reportToFormatStyle(report), overridesToFormatStyle(args.applyOverrides))
+
     // `cr` is dropped from FormatStyle, so flag it from the report: the survey
     // recommended CR-only newlines but no override forced an applicable value.
     if (args.applyOverrides.newLine === undefined && report.newLine?.newLine === "cr") {

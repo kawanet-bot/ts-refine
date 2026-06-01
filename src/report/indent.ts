@@ -76,6 +76,7 @@ export async function runReportIndent({project, output, paths, log}: ReportOpts)
     output.write(`| total | ${totalLines} | ${perFile.length} | |\n`)
     output.write("\n")
     log.write(`report indent: ${perFile.length} files counted / ${sourceFiles.length} files total\n`)
+
     // The recommendation is rendered in the `## recommendation` section
     // at the end of the Markdown survey. Both a numeric width and a "tab"
     // majority are actionable (LS convertTabsToSpaces / Prettier useTabs),

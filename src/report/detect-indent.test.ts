@@ -20,6 +20,7 @@ describe("detectIndent", () => {
 
     it("skips ` *` block-comment continuation lines so they do not appear under width 1", () => {
         const counts = detectIndent("/**\n * doc line\n * doc line\n */\nfunction f() {\n    return 1\n}\n")
+
         // 0→4 and 4→0 each contribute one diff-4 entry.
         assert.equal(counts.get(4), 2)
         assert.equal(counts.has(1), false)

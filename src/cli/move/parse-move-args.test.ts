@@ -11,6 +11,7 @@ describe("parseMove", () => {
     it("keeps positionals raw as a flat list (resolve + split happen in the runner)", () => {
         const r = parseMoveArgs(["a.ts", "b.ts", "dest/"], common())
         assert.ok(r)
+
         // Trailing `/` is preserved verbatim so the runner can detect a directory dest.
         assert.deepEqual(r.paths, ["a.ts", "b.ts", "dest/"])
     })

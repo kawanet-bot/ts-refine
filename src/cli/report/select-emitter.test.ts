@@ -20,6 +20,7 @@ describe("selectOutput", () => {
     it("swaps the report stream for a sink and writes prettier JSON on finalize", () => {
         const {writer, out} = makeStdout()
         const f = selectEmitter("prettier", writer)
+
         // Markdown body would have been written here — sink swallows it.
         f.reportStream.write("### dropped\n")
         assert.equal(out(), "")
@@ -36,6 +37,7 @@ describe("selectOutput", () => {
         f.reportStream.write("### dropped\n")
         assert.equal(out(), "")
         f.finalize({semicolons: {semicolons: "off"}, indent: {width: 4}, memberSeparators: {separator: "none"}})
+
         // Two-line form: `ts-refine \` continuation, then the flags
         // indented by two spaces so `grep '^ +--'` picks them up.
         // member-separators is report-only, so it never reaches the command.

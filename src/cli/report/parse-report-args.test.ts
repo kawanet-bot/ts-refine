@@ -45,6 +45,7 @@ describe("parseReport", () => {
     it("runs every registered report under a bare `report` (survey default)", () => {
         const r = parseReportArgs([], common())
         assert.ok(r)
+
         // Survey-style default: every report in the registry runs.
         assert.ok(r.reportNames.includes("semicolons"))
         assert.ok(r.reportNames.includes("bracket-spacing"))

@@ -21,6 +21,7 @@ describe("writeInspectFile", () => {
         assert.match(out, /^## src\/a\.ts\n/)
         assert.match(out, /^### exports$/m)
         assert.match(out, /\| 3 \| const \| x \| 2 \| src\/cli\.ts \|/)
+
         // Unused exports show **unused** in the example column.
         assert.match(out, /\| 8 \| type \| T \| 0 \| \*\*unused\*\* \|/)
     })

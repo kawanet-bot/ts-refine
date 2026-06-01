@@ -85,6 +85,7 @@ export async function runReportMemberSeparators({project, output, paths, log}: R
     output.write("| --- | --- | --- | --- |\n")
     for (const s of DISPLAY_ORDER) {
         const b = buckets.get(s)
+
         // `\n` and `;` always get a row (0 when absent); `,` only appears
         // when present, since a comma style is unusual enough to be noise
         // as a permanent 0-row.
@@ -97,6 +98,7 @@ export async function runReportMemberSeparators({project, output, paths, log}: R
     output.write(`| total | ${totalLines} | ${perFile.length} | |\n`)
     output.write("\n")
     log.write(`report member-separators: ${perFile.length} files counted / ${sourceFiles.length} files total\n`)
+
     // The recommendation is rendered in the trailing `## recommendation`
     // section, so all we return is the action params shape. An ambiguous
     // file-count majority (no strict winner) returns an empty partial.

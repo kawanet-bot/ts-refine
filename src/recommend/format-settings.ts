@@ -8,6 +8,7 @@ import type {TSR} from "ts-refine"
 interface FormatSettings {
     formatSettings: FormatCodeSettings
     organizeImports: boolean
+
     // "only": organize imports but skip the surrounding reformat (formatText
     // and newline normalization), leaving the rest to another formatter.
     organizeImportsOnly: boolean

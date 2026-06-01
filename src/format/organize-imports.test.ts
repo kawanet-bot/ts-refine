@@ -33,11 +33,13 @@ describe("refineFormat (organize-imports path, dry-run, sample/basic)", () => {
 
     it("uses braces without surrounding spaces (`{A}` style) when bracket-spacing off is in effect", async () => {
         const project = new Project({tsConfigFilePath: SAMPLE_TSCONFIG})
+
         // Old action hard-coded brace-spacing off; refineFormat drives it via
         // the merged settings, so pin the override here.
         await refineFormat({project, log, dryRun: true, paths: [], format: {bracketSpacing: "off"}})
 
         const text = project.getSourceFile(INDEX)!.getFullText()
+
         // `{ usedConst,` with a leading space would indicate brace-spacing on.
         assert.ok(/import\s*\{usedConst/.test(text), `expected {A} style; got: ${text}`)
     })

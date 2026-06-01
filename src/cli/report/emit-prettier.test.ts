@@ -85,6 +85,7 @@ describe("writePrettierMarkdown", () => {
 
     it("wraps the JSON in a `### .prettierrc` fenced block ending in a trailing blank line", () => {
         const out = captureMd({semicolons: {semicolons: "off"}, indent: {width: 4}})
+
         // Section header + table-style blank + fence open + body + fence close + trailing blank.
         assert.match(out, /^### \.prettierrc\n\n```json\n/)
         assert.match(out, /\n```\n\n$/)

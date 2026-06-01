@@ -10,10 +10,13 @@ import {type CommonArgs, parseCommonArgs} from "../parse-common-args.ts"
 // Raw values only: the runner resolves `paths` into absolute paths.
 export interface ReportArgs {
     paths: string[]
+
     // The requested selectors, or the full registry when none are given.
     reportNames: string[]
+
     // Suppress Markdown and emit the named output instead.
     emit: string | null
+
     // True only for a bare `report` (no selectors, no --emit); gates the
     // recommendation + .prettierrc blocks under the per-report Markdown.
     surveyDefault: boolean
