@@ -32,7 +32,7 @@ export const formatCLI: CLI = async (ctx) => {
     // it surveys once and applies a single style.
     let format: TSR.FormatOpts["format"]
     if (args.organizeImports === "only") {
-        format = (file) => refineReport({project, paths: [file], reportNames, log: NULL_SINK}).then((r) => mergeFormatStyles(reportToFormatStyle(r), overrides))
+        format = (file) => refineReport({project, paths: [file], reportNames, importsOnly: true, log: NULL_SINK}).then((r) => mergeFormatStyles(reportToFormatStyle(r), overrides))
     } else {
         const report = await refineReport({project, paths, reportNames, log})
         format = mergeFormatStyles(reportToFormatStyle(report), overrides)

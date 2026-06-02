@@ -13,7 +13,7 @@ describe("runReportMemberSeparators (sample/members-mixed)", () => {
     it("groups files by primary separator and recommends the file-count majority", async () => {
         const project = initTestProject(SAMPLE_TSCONFIG)
         const lines: string[] = []
-        await runReportMemberSeparators({sourceFiles: selectSourceFiles(project, {paths: []}), log, output: {write: (l) => lines.push(l)}})
+        await runReportMemberSeparators({sourceFiles: selectSourceFiles(project, {paths: []}), log, output: {write: (l) => lines.push(l)}, importsOnly: false})
 
         const out = lines.join("")
         assert.match(out, /^### member-separators\n/)
@@ -42,7 +42,7 @@ describe("runReportMemberSeparators (sample/members-mixed)", () => {
         project.createSourceFile("b.ts", "export interface B {\n    a: number;\n    b: number;\n}\n")
         project.createSourceFile("c.ts", "export interface C {\n    a: number,\n}\n")
         const lines: string[] = []
-        const ret = await runReportMemberSeparators({sourceFiles: selectSourceFiles(project, {paths: []}), log, output: {write: (l) => lines.push(l)}})
+        const ret = await runReportMemberSeparators({sourceFiles: selectSourceFiles(project, {paths: []}), log, output: {write: (l) => lines.push(l)}, importsOnly: false})
         const out = lines.join("")
 
         // Recommendation is no longer inlined in the Markdown.
@@ -57,7 +57,7 @@ describe("runReportMemberSeparators (sample/members-mixed)", () => {
         project.createSourceFile("a.ts", "export interface A {\n    a: number;\n    b: number;\n    c: number;\n    d: number;\n    e: number;\n}\n")
         project.createSourceFile("b.ts", "export interface B {\n    a: number,\n}\n")
         const lines: string[] = []
-        const ret = await runReportMemberSeparators({sourceFiles: selectSourceFiles(project, {paths: []}), log, output: {write: (l) => lines.push(l)}})
+        const ret = await runReportMemberSeparators({sourceFiles: selectSourceFiles(project, {paths: []}), log, output: {write: (l) => lines.push(l)}, importsOnly: false})
         assert.deepEqual(ret, {separator: "semi"})
     })
 
@@ -66,7 +66,7 @@ describe("runReportMemberSeparators (sample/members-mixed)", () => {
         project.createSourceFile("a.ts", "export interface A {\n    a: number;\n    b: number;\n}\n")
         project.createSourceFile("b.ts", "export interface B {\n    a: number,\n    b: number,\n}\n")
         const lines: string[] = []
-        const ret = await runReportMemberSeparators({sourceFiles: selectSourceFiles(project, {paths: []}), log, output: {write: (l) => lines.push(l)}})
+        const ret = await runReportMemberSeparators({sourceFiles: selectSourceFiles(project, {paths: []}), log, output: {write: (l) => lines.push(l)}, importsOnly: false})
         assert.deepEqual(ret, {})
     })
 
@@ -74,7 +74,7 @@ describe("runReportMemberSeparators (sample/members-mixed)", () => {
         const project = initInMemoryTestProject()
         project.createSourceFile("m.ts", "export class M {\n    x() { return 1 }\n    y() { return 2 }\n}\n")
         const lines: string[] = []
-        await runReportMemberSeparators({sourceFiles: selectSourceFiles(project, {paths: []}), log, output: {write: (l) => lines.push(l)}})
+        await runReportMemberSeparators({sourceFiles: selectSourceFiles(project, {paths: []}), log, output: {write: (l) => lines.push(l)}, importsOnly: false})
         const out = lines.join("")
 
         // No members remain after the `}`-trailing skip; the file should
@@ -91,7 +91,7 @@ describe("runReportMemberSeparators (sample/members-mixed)", () => {
         const project = initInMemoryTestProject()
         project.createSourceFile("props.ts", "export class Props {\n    config = {}\n    fn = function () {}\n    semi = {};\n}\n")
         const lines: string[] = []
-        await runReportMemberSeparators({sourceFiles: selectSourceFiles(project, {paths: []}), log, output: {write: (l) => lines.push(l)}})
+        await runReportMemberSeparators({sourceFiles: selectSourceFiles(project, {paths: []}), log, output: {write: (l) => lines.push(l)}, importsOnly: false})
         const out = lines.join("")
 
         assert.match(out, /\| `\\n` \| 2 \| 1 \| props\.ts \|/)

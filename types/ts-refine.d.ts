@@ -61,6 +61,12 @@ export declare namespace TSR {
         // recommendations only (callers that just want the ReportResult).
         output?: Writer
         reportNames: ReportName[]
+
+        // Restrict the brace/semicolon tallies to import/export statements
+        // (default false = whole file). The per-file move/rename/`format
+        // --organize-imports only` surveys set this so the recommendation
+        // reflects only the lines those commands actually rewrite.
+        importsOnly?: boolean
     }
 
     // Per-report recommendations. A missing key means the report didn't run

@@ -3,6 +3,7 @@
 // interface/type-literal members (comma-separated members excluded).
 // Helps decide which direction minimizes churn when standardizing.
 
+import {Node} from "ts-morph"
 import type {TSR} from "ts-refine"
 import {logging} from "../lib/logging.ts"
 import {displayPath} from "../lib/source-files.ts"
@@ -15,14 +16,14 @@ import type {ReportRunOpts} from "./types.ts"
 // too sparse to be useful — every middle bucket was empty for typical files.
 const BUCKET_LABELS = ["0%", "1-10%", "11-49%", "50%", "51-89%", "90-99%", "100%"] as const
 
-export async function runReportSemicolons({sourceFiles, output, log}: ReportRunOpts): Promise<Partial<TSR.SemicolonsOpts>> {
+export async function runReportSemicolons({sourceFiles, output, log, importsOnly}: ReportRunOpts): Promise<Partial<TSR.SemicolonsOpts>> {
     type PerFile = {path: string; total: number; withSemi: number}
     const perFile: PerFile[] = []
 
     for (const sf of sourceFiles) {
         let total = 0
         let withSemi = 0
-        sf.forEachDescendant((node) => {
+        const consider = (node: Node) => {
             const member = isTypeMember(node)
             if (!member && !isSemiEligibleStatement(node)) return
             const text = node.getText()
@@ -31,7 +32,14 @@ export async function runReportSemicolons({sourceFiles, output, log}: ReportRunO
             if (member && text.endsWith(",")) return
             total++
             if (text.endsWith(";")) withSemi++
-        })
+        }
+        // importsOnly: only the import/export statements are rewritten, so weigh
+        // just their trailing `;` (the statements themselves, not descendants).
+        if (importsOnly) {
+            for (const decl of [...sf.getImportDeclarations(), ...sf.getExportDeclarations()]) consider(decl)
+        } else {
+            sf.forEachDescendant(consider)
+        }
         if (total === 0) continue
         perFile.push({
             path: displayPath(sf.getFilePath()),

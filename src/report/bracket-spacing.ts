@@ -23,19 +23,27 @@ const STYLE_LABEL: Record<Style, string> = {
 
 type Bucket = {lines: number; files: number; topPath: string; topLines: number}
 
-export async function runReportBracketSpacing({sourceFiles, output, log}: ReportRunOpts): Promise<Partial<TSR.BracketSpacingOpts>> {
+export async function runReportBracketSpacing({sourceFiles, output, log, importsOnly}: ReportRunOpts): Promise<Partial<TSR.BracketSpacingOpts>> {
     type PerFile = {path: string; counts: Map<Style, number>; primary: Style}
     const perFile: PerFile[] = []
 
     for (const sf of sourceFiles) {
         const counts = new Map<Style, number>()
-        sf.forEachDescendant((node) => {
+        const visit = (node: Node) => {
             const braces = braceSpan(node)
             if (braces === null) return
             const style = classifyBraces(braces)
             if (style === null) return
             counts.set(style, (counts.get(style) ?? 0) + 1)
-        })
+        }
+        // importsOnly: only the import/export statements are rewritten by
+        // organizeImports, so count the braces inside them (named bindings +
+        // import attributes), not the whole file.
+        if (importsOnly) {
+            for (const decl of [...sf.getImportDeclarations(), ...sf.getExportDeclarations()]) decl.forEachDescendant(visit)
+        } else {
+            sf.forEachDescendant(visit)
+        }
         if (counts.size === 0) continue
         perFile.push({path: displayPath(sf.getFilePath()), counts, primary: pickPrimary(counts)})
     }
