@@ -26,12 +26,6 @@ npx ts-refine help
 # show each file's exports and how they're used
 npx ts-refine list
 
-# survey the code style and print recommendations
-npx ts-refine report
-
-# apply the surveyed style and organize imports
-npx ts-refine format --dry-run
-
 # show only files that reference an identifier
 npx ts-refine list --ref funcA
 
@@ -43,6 +37,15 @@ npx ts-refine move fileA.ts fileB.ts --dry-run
 
 # rename an export across the whole project
 npx ts-refine rename --from funcA --to funcB --dry-run
+
+# survey the code style and print recommendations
+npx ts-refine report
+
+# apply the surveyed style and organize imports
+npx ts-refine format --dry-run
+
+# organize imports only, leaving the rest of formatting to another tool
+npx ts-refine format --organize-imports only
 ```
 
 ## Install
@@ -75,11 +78,11 @@ ts-refine help
 | -------- | ------------------------------------------------------------------ |
 | `help`   | Show usage (also `-h`, `--help`, or no args)                       |
 | `list`   | List files with export / unused / importer counts                  |
-| `report` | Survey the codebase and print Markdown reports + recommendations   |
-| `format` | Apply the surveyed style to disk and organize imports              |
 | `inspect` | Show per-file exports and importer details                        |
 | `move`   | Move `.ts` files and rewrite every import that references them      |
 | `rename` | Rename an exported identifier and every reference across the project |
+| `report` | Survey the codebase and print Markdown reports + recommendations   |
+| `format` | Apply the surveyed style to disk and organize imports              |
 
 Global options may appear on either side of the command:
 
@@ -115,64 +118,6 @@ npx ts-refine list --ref nsA.typeB.propC
 ```
 
 The `--ref` target may be declared in the project or imported from a dependency.
-
-## Report
-
-`report` surveys the code style and prints a recommendation per dimension —
-semicolons, indent, member-separators, new-line, bracket-spacing.
-
-```sh
-# survey every dimension and print the recommendation tables
-npx ts-refine report
-
-# restrict to specific dimensions
-npx ts-refine report --semicolons --indent
-
-# emit a .prettierrc from the survey instead of Markdown
-npx ts-refine report --emit prettier
-
-# emit a runnable `format` command instead of Markdown
-npx ts-refine report --emit ts-refine
-```
-
-## Format
-
-`format` rewrites every file to the surveyed conventions and organizes imports.
-Any field can be pinned instead of following the survey.
-
-```sh
-# apply the surveyed style and organize imports
-npx ts-refine format
-
-# preview the changes without writing
-npx ts-refine format --dry-run
-
-# report only, exiting non-zero if any file would change (for CI)
-npx ts-refine format --check
-
-# pin the indent width (a number, or `tab`)
-npx ts-refine format --indent 2
-
-# pin semicolon insertion
-npx ts-refine format --semicolons off
-
-# pin the end-of-line
-npx ts-refine format --new-line lf
-
-# pin inner-brace spacing
-npx ts-refine format --bracket-spacing off
-
-# skip organizing imports (on by default)
-npx ts-refine format --organize-imports off
-
-# organize imports only, leaving the rest of formatting to another tool
-npx ts-refine format --organize-imports only
-```
-
-Organizing imports sorts and combines declarations and drops unused ones. Under
-`verbatimModuleSyntax` it also adds `type` markers to imports and exports that
-are only used as types; `isolatedModules` alone applies this to type-only
-re-exports only. Projects with neither flag see no type-only change.
 
 ## Inspect
 
@@ -232,6 +177,64 @@ npx ts-refine rename --from typeA.propB --to typeA.propC
 # rename a property of a namespace-nested interface or class
 npx ts-refine rename --from nsA.typeB.propC --to nsA.typeB.propD
 ```
+
+## Report
+
+`report` surveys the code style and prints a recommendation per dimension —
+semicolons, indent, member-separators, new-line, bracket-spacing.
+
+```sh
+# survey every dimension and print the recommendation tables
+npx ts-refine report
+
+# restrict to specific dimensions
+npx ts-refine report --semicolons --indent
+
+# emit a .prettierrc from the survey instead of Markdown
+npx ts-refine report --emit prettier
+
+# emit a runnable `format` command instead of Markdown
+npx ts-refine report --emit ts-refine
+```
+
+## Format
+
+`format` rewrites every file to the surveyed conventions and organizes imports.
+Any field can be pinned instead of following the survey.
+
+```sh
+# apply the surveyed style and organize imports
+npx ts-refine format
+
+# preview the changes without writing
+npx ts-refine format --dry-run
+
+# report only, exiting non-zero if any file would change (for CI)
+npx ts-refine format --check
+
+# pin the indent width (a number, or `tab`)
+npx ts-refine format --indent 2
+
+# pin semicolon insertion
+npx ts-refine format --semicolons off
+
+# pin the end-of-line
+npx ts-refine format --new-line lf
+
+# pin inner-brace spacing
+npx ts-refine format --bracket-spacing off
+
+# skip organizing imports (on by default)
+npx ts-refine format --organize-imports off
+
+# organize imports only, leaving the rest of formatting to another tool
+npx ts-refine format --organize-imports only
+```
+
+Organizing imports sorts and combines declarations and drops unused ones. Under
+`verbatimModuleSyntax` it also adds `type` markers to imports and exports that
+are only used as types; `isolatedModules` alone applies this to type-only
+re-exports only. Projects with neither flag see no type-only change.
 
 ## FAQ
 

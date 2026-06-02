@@ -23,12 +23,12 @@ import {usage} from "./usage.ts"
 // membership here is what makes a name valid. Insertion order also drives the
 // accepted-subcommand error message.
 const COMMAND_TABLE = new Map<string, CLI>([
-    ["report", reportCLI],
-    ["format", formatCLI],
     ["list", listCLI],
     ["inspect", inspectCLI],
     ["move", moveCLI],
     ["rename", renameCLI],
+    ["report", reportCLI],
+    ["format", formatCLI],
 ])
 
 function acceptedSubcommands(): string {
