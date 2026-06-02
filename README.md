@@ -112,10 +112,6 @@ npx ts-refine list --ref funcA
 npx ts-refine list --ref nsA.funcB
 npx ts-refine list --ref typeA.propB
 npx ts-refine list --ref nsA.typeB.propC
-
-# also works for a symbol imported from a dependency, and its members
-npx ts-refine list --ref Project                # files importing/using ts-morph's Project
-npx ts-refine list --ref Project.getSourceFiles # files calling that method
 ```
 
 ## Report
