@@ -4,7 +4,7 @@
 // (rename rewrites it, list finds its references). Collision detection is
 // rename-specific and stays in refine-rename.
 
-import {type ClassDeclaration, type Identifier, type InterfaceDeclaration, type ModuleDeclaration, Node, type Project} from "ts-morph"
+import {type ClassDeclaration, type Identifier, type InterfaceDeclaration, type ModuleDeclaration, Node, type Project, type Symbol as TsSymbol} from "ts-morph"
 import {displayPath, inProjectSourceFileOrThrow, inProjectSourceFiles} from "./source-files.ts"
 
 export const IDENT = /^[A-Za-z_$][A-Za-z0-9_$]*$/
@@ -67,51 +67,57 @@ export function resolveTargetNode(project: Project, spec: string, file: string |
     return resolveTarget(project, spec, file).node
 }
 
-// `list --ref` anchor: the node a reference search starts from. An in-project
-// declaration resolves as usual; a plain name the project only *imports* (e.g.
-// a dependency type like ts-morph's `Project`) falls back to its import binding
-// so external symbols are searchable too. Read-only — rename must not use this,
-// or it could rename into a dependency.
+// `list --ref` anchor: resolves the same dotted forms as rename, but symbol-
+// based — so a symbol the project only imports from a dependency, and its
+// members, are searchable too (e.g. `Project.getSourceFiles`). Read-only;
+// rename keeps the strict resolver so it can never reach into a dependency.
 export function resolveReferenceTarget(project: Project, spec: string): Identifier {
-    const {path, name} = parseTarget(spec)
-    for (const part of [...path, name]) {
-        if (!IDENT.test(part)) throw new Error(`refine: not a valid identifier: ${part}`)
+    const segments = spec.split(".")
+    for (const seg of segments) {
+        if (!IDENT.test(seg)) throw new Error(`refine: not a valid identifier: ${seg}`)
     }
 
-    // Dotted spec: an in-project container (exported type / namespace) resolves
-    // strictly. Otherwise an imported container (e.g. a dependency class) anchors
-    // on its member declaration, so `Project.getSourceFiles` finds the method's
-    // callers. Nested imported members are out of scope — fall through to strict.
-    if (path.length > 0) {
-        if (path.length === 1 && !isInProjectContainer(project, path[0])) {
-            const binding = firstImportBinding(project, path[0])
-            if (binding) {
-                const node = importedMemberNode(binding, name)
-                if (node) return node
-                throw new Error(`refine: ${path[0]} has no member named: ${name}`)
-            }
-        }
-        return resolveTarget(project, spec, null).node
+    let symbol = rootSymbol(project, segments[0])
+    if (!symbol) throw new Error(`refine: no exported or imported identifier named: ${segments[0]}`)
+    for (let i = 1; i < segments.length; i++) {
+        const member = symbol.getExport(segments[i]) ?? symbol.getMember(segments[i])
+        if (!member) throw new Error(`refine: ${segments.slice(0, i).join(".")} has no member named: ${segments[i]}`)
+        symbol = member
     }
 
-    const exported = new Set<Node>()
+    const node = symbolNameNode(symbol)
+    if (!node) throw new Error(`refine: cannot resolve \`${spec}\` to a named declaration`)
+    return node
+}
+
+// The symbol the root name resolves to as the project sees it: an in-project
+// export or namespace, else the declaration an in-project import binding points
+// at (following the alias into the dependency). Undefined when it is neither.
+function rootSymbol(project: Project, name: string): TsSymbol | undefined {
     for (const sf of inProjectSourceFiles(project)) {
         const decls = sf.getExportedDeclarations().get(name)
-        if (decls) for (const d of decls) exported.add(d)
+        if (decls && decls.length > 0) return decls[0].getSymbol()
+        for (const mod of sf.getModules()) {
+            if (mod.getName() === name) return mod.getSymbol()
+        }
     }
-    if (exported.size > 1) {
-        throw new Error(`refine: \`${name}\` is exported from multiple places; pass the defining file to disambiguate`)
-    }
-    if (exported.size === 1) return nameIdentifier([...exported][0], name)
+    const sym = firstImportBinding(project, name)?.getSymbol()
+    return sym?.getAliasedSymbol() ?? sym
+}
 
-    const binding = firstImportBinding(project, name)
-    if (binding) return binding
-    throw new Error(`refine: no exported or imported identifier named: ${name}`)
+// The name Identifier of the symbol's first declaration that carries one — the
+// node a reference search anchors on.
+function symbolNameNode(symbol: TsSymbol): Identifier | undefined {
+    for (const decl of symbol.getDeclarations()) {
+        const nn = (decl as {getNameNode?: () => Node | undefined}).getNameNode?.()
+        if (nn && Node.isIdentifier(nn)) return nn
+    }
+    return undefined
 }
 
 // The local name node of the first in-project import binding called `name`
-// (default / namespace / named, alias respected). Anchors a reference search
-// on a symbol the project imports rather than declares.
+// (default / namespace / named, alias respected). Lets the root resolve to a
+// symbol the project imports rather than declares.
 function firstImportBinding(project: Project, name: string): Identifier | undefined {
     for (const sf of inProjectSourceFiles(project)) {
         for (const imp of sf.getImportDeclarations()) {
@@ -130,29 +136,6 @@ function firstImportBinding(project: Project, name: string): Identifier | undefi
                     if (local.getText() === name && Node.isIdentifier(local)) return local
                 }
             }
-        }
-    }
-    return undefined
-}
-
-// Whether `seg` names an in-project container — a namespace or an exported
-// interface/class — so a dotted spec resolves against the project, not a
-// same-named imported type.
-function isInProjectContainer(project: Project, seg: string): boolean {
-    if (isNamespace(project, seg)) return true
-    return inProjectSourceFiles(project).some((sf) => sf.getExportedDeclarations().has(seg))
-}
-
-// The member name node of the interface/class an import binding refers to —
-// following the import alias to its declaration (e.g. ts-morph's `Project`
-// class) and looking up `member`. Lets `--ref` anchor on a dependency method.
-function importedMemberNode(binding: Identifier, member: string): Identifier | undefined {
-    const sym = binding.getSymbol()
-    const aliased = sym?.getAliasedSymbol() ?? sym
-    for (const d of aliased?.getDeclarations() ?? []) {
-        if (Node.isClassDeclaration(d) || Node.isInterfaceDeclaration(d)) {
-            const node = memberNameNode(d, member)
-            if (node) return node
         }
     }
     return undefined

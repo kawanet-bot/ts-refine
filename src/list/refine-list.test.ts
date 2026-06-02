@@ -222,4 +222,18 @@ describe("refineList --ref", () => {
         assert.ok(files.includes("a.ts") && files.includes("b.ts"), `expected a.ts and b.ts, got ${files.join(", ")}`)
         assert.ok(!files.includes("c.ts"), `c.ts uses .name, not .render: ${files.join(", ")}`)
     })
+
+    it("resolves members of an imported (dependency) namespace, including nested types", async () => {
+        // The same dotted forms that work for an in-project namespace must work
+        // when the namespace is imported from a dependency.
+        const project = initInMemoryTestProject(BUNDLER)
+        project.createSourceFile("/shims.d.ts", 'declare module "lib" {\n    export namespace NS {\n        export interface Box {\n            w: number\n        }\n        export function fn(): void\n    }\n}\n')
+        project.createSourceFile("/a.ts", 'import {NS} from "lib"\nexport const f = (b: NS.Box) => b.w\n')
+        project.createSourceFile("/b.ts", 'import {NS} from "lib"\nexport const g = () => NS.fn()\n')
+
+        const refFiles = async (ref: string) => (await refineList({project, log, paths: [], filters: {ref}})).map((e) => e.file)
+        assert.ok((await refFiles("NS.Box")).includes("a.ts")) // ns.member
+        assert.ok((await refFiles("NS.Box.w")).includes("a.ts")) // ns.Type.prop
+        assert.ok((await refFiles("NS.fn")).includes("b.ts")) // ns.member (function)
+    })
 })
