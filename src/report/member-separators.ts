@@ -77,26 +77,30 @@ export async function runReportMemberSeparators({project, output, paths, log}: R
     // Recommendation: file-count majority, line count breaks ties.
     const recommendSep = pickRecommendByFiles(DISPLAY_ORDER, (s) => buckets.get(s))
 
-    const totalLines = [...buckets.values()].reduce((s, b) => s + b.lines, 0)
+    // The Markdown table is for display only; skip it (and its formatting)
+    // when no output sink is given — the recommendation above is the result.
+    if (output) {
+        const totalLines = [...buckets.values()].reduce((s, b) => s + b.lines, 0)
 
-    output.write("### member-separators\n")
-    output.write("\n")
-    output.write("| separator | lines | files | example |\n")
-    output.write("| --- | --- | --- | --- |\n")
-    for (const s of DISPLAY_ORDER) {
-        const b = buckets.get(s)
+        output.write("### member-separators\n")
+        output.write("\n")
+        output.write("| separator | lines | files | example |\n")
+        output.write("| --- | --- | --- | --- |\n")
+        for (const s of DISPLAY_ORDER) {
+            const b = buckets.get(s)
 
-        // `\n` and `;` always get a row (0 when absent); `,` only appears
-        // when present, since a comma style is unusual enough to be noise
-        // as a permanent 0-row.
-        if (b) {
-            output.write(`| ${SEP_LABEL[s]} | ${b.lines} | ${b.files} | ${b.topPath} |\n`)
-        } else if (s !== ",") {
-            output.write(`| ${SEP_LABEL[s]} | 0 | 0 ||\n`)
+            // `\n` and `;` always get a row (0 when absent); `,` only appears
+            // when present, since a comma style is unusual enough to be noise
+            // as a permanent 0-row.
+            if (b) {
+                output.write(`| ${SEP_LABEL[s]} | ${b.lines} | ${b.files} | ${b.topPath} |\n`)
+            } else if (s !== ",") {
+                output.write(`| ${SEP_LABEL[s]} | 0 | 0 ||\n`)
+            }
         }
+        output.write(`| total | ${totalLines} | ${perFile.length} | |\n`)
+        output.write("\n")
     }
-    output.write(`| total | ${totalLines} | ${perFile.length} | |\n`)
-    output.write("\n")
     log.write(`report member-separators: ${perFile.length} files counted / ${sourceFiles.length} files total\n`)
 
     // The recommendation is rendered in the trailing `## recommendation`

@@ -53,7 +53,10 @@ export declare namespace TSR {
 
     interface ReportOpts extends CommonOpts {
         paths: string[]
-        output: Writer
+
+        // Markdown sink for the per-report tables. Omit it to compute the
+        // recommendations only (callers that just want the ReportResult).
+        output?: Writer
         reportNames: ReportName[]
     }
 

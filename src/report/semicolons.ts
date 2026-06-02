@@ -58,29 +58,33 @@ export async function runReportSemicolons({project, output, paths, log}: ReportO
     const aboveStmts = above.reduce((s, f) => s + f.total, 0)
     const recommend: "on" | "off" | undefined = belowFiles > aboveFiles ? "off" : aboveFiles > belowFiles ? "on" : belowStmts > aboveStmts ? "off" : aboveStmts > belowStmts ? "on" : undefined
 
-    output.write("### semicolons\n")
-    output.write("\n")
+    // The Markdown table is for display only; skip it (and its formatting)
+    // when no output sink is given — the recommendation above is the result.
+    if (output) {
+        output.write("### semicolons\n")
+        output.write("\n")
 
-    // `lines` (statement count) sits next to `files` so the table mirrors
-    // the other reports and makes the tiebreaker rationale visible.
-    output.write("| trailing `;` | lines | files | example |\n")
-    output.write("| --- | --- | --- | --- |\n")
-    let totalStmts = 0
-    for (let i = 0; i < BUCKET_LABELS.length; i++) {
-        const files = bucketFiles[i]
-        const bucketStmts = files.reduce((s, f) => s + f.total, 0)
-        totalStmts += bucketStmts
-        if (files.length === 0) {
-            output.write(`| ${BUCKET_LABELS[i]} | 0 | 0 ||\n`)
-        } else {
-            // The example column shows the file with the largest statement count
-            // in the bucket; ties resolved lexicographically by path.
-            const example = files.slice().sort((a, b) => b.total - a.total || a.path.localeCompare(b.path))[0]
-            output.write(`| ${BUCKET_LABELS[i]} | ${bucketStmts} | ${files.length} | ${example.path} |\n`)
+        // `lines` (statement count) sits next to `files` so the table mirrors
+        // the other reports and makes the tiebreaker rationale visible.
+        output.write("| trailing `;` | lines | files | example |\n")
+        output.write("| --- | --- | --- | --- |\n")
+        let totalStmts = 0
+        for (let i = 0; i < BUCKET_LABELS.length; i++) {
+            const files = bucketFiles[i]
+            const bucketStmts = files.reduce((s, f) => s + f.total, 0)
+            totalStmts += bucketStmts
+            if (files.length === 0) {
+                output.write(`| ${BUCKET_LABELS[i]} | 0 | 0 ||\n`)
+            } else {
+                // The example column shows the file with the largest statement count
+                // in the bucket; ties resolved lexicographically by path.
+                const example = files.slice().sort((a, b) => b.total - a.total || a.path.localeCompare(b.path))[0]
+                output.write(`| ${BUCKET_LABELS[i]} | ${bucketStmts} | ${files.length} | ${example.path} |\n`)
+            }
         }
+        output.write(`| total | ${totalStmts} | ${perFile.length} | |\n`)
+        output.write("\n")
     }
-    output.write(`| total | ${totalStmts} | ${perFile.length} | |\n`)
-    output.write("\n")
     log.write(`report semicolons: ${perFile.length} files counted / ${sourceFiles.length} files total\n`)
 
     // The recommendation is rendered in the trailing `## recommendation`

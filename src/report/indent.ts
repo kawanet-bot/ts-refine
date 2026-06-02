@@ -59,22 +59,26 @@ export async function runReportIndent({project, output, paths, log}: ReportOpts)
     // An empty "tab" bucket is skipped inside pickRecommendByFiles.
     const recommendWidth = pickRecommendByFiles(widths, (w) => buckets.get(w))
 
-    const totalLines = [...buckets.values()].reduce((s, b) => s + b.lines, 0)
+    // The Markdown table is for display only; skip it (and its formatting)
+    // when no output sink is given — the recommendation above is the result.
+    if (output) {
+        const totalLines = [...buckets.values()].reduce((s, b) => s + b.lines, 0)
 
-    output.write("### indent\n")
-    output.write("\n")
-    output.write("| indent | lines | files | example |\n")
-    output.write("| --- | --- | --- | --- |\n")
-    for (const w of widths) {
-        const b = buckets.get(w)
-        if (b) {
-            output.write(`| ${w} | ${b.lines} | ${b.files} | ${b.topPath} |\n`)
-        } else {
-            output.write(`| ${w} | 0 | 0 ||\n`)
+        output.write("### indent\n")
+        output.write("\n")
+        output.write("| indent | lines | files | example |\n")
+        output.write("| --- | --- | --- | --- |\n")
+        for (const w of widths) {
+            const b = buckets.get(w)
+            if (b) {
+                output.write(`| ${w} | ${b.lines} | ${b.files} | ${b.topPath} |\n`)
+            } else {
+                output.write(`| ${w} | 0 | 0 ||\n`)
+            }
         }
+        output.write(`| total | ${totalLines} | ${perFile.length} | |\n`)
+        output.write("\n")
     }
-    output.write(`| total | ${totalLines} | ${perFile.length} | |\n`)
-    output.write("\n")
     log.write(`report indent: ${perFile.length} files counted / ${sourceFiles.length} files total\n`)
 
     // The recommendation is rendered in the `## recommendation` section
