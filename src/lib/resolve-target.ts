@@ -67,6 +67,61 @@ export function resolveTargetNode(project: Project, spec: string, file: string |
     return resolveTarget(project, spec, file).node
 }
 
+// `list --ref` anchor: the node a reference search starts from. An in-project
+// declaration resolves as usual; a plain name the project only *imports* (e.g.
+// a dependency type like ts-morph's `Project`) falls back to its import binding
+// so external symbols are searchable too. Read-only — rename must not use this,
+// or it could rename into a dependency.
+export function resolveReferenceTarget(project: Project, spec: string): Identifier {
+    const {path, name} = parseTarget(spec)
+    for (const part of [...path, name]) {
+        if (!IDENT.test(part)) throw new Error(`refine: not a valid identifier: ${part}`)
+    }
+
+    // Dotted specs resolve against in-project declarations only (like rename).
+    if (path.length > 0) return resolveTarget(project, spec, null).node
+
+    const exported = new Set<Node>()
+    for (const sf of inProjectSourceFiles(project)) {
+        const decls = sf.getExportedDeclarations().get(name)
+        if (decls) for (const d of decls) exported.add(d)
+    }
+    if (exported.size > 1) {
+        throw new Error(`refine: \`${name}\` is exported from multiple places; pass the defining file to disambiguate`)
+    }
+    if (exported.size === 1) return nameIdentifier([...exported][0], name)
+
+    const binding = firstImportBinding(project, name)
+    if (binding) return binding
+    throw new Error(`refine: no exported or imported identifier named: ${name}`)
+}
+
+// The local name node of the first in-project import binding called `name`
+// (default / namespace / named, alias respected). Anchors a reference search
+// on a symbol the project imports rather than declares.
+function firstImportBinding(project: Project, name: string): Identifier | undefined {
+    for (const sf of inProjectSourceFiles(project)) {
+        for (const imp of sf.getImportDeclarations()) {
+            const clause = imp.getImportClause()
+            if (!clause) continue
+            const def = clause.getDefaultImport()
+            if (def && def.getText() === name) return def
+            const named = clause.getNamedBindings()
+            if (!named) continue
+            if (Node.isNamespaceImport(named)) {
+                const nn = named.getNameNode()
+                if (nn.getText() === name) return nn
+            } else if (Node.isNamedImports(named)) {
+                for (const el of named.getElements()) {
+                    const local = el.getAliasNode() ?? el.getNameNode()
+                    if (local.getText() === name && Node.isIdentifier(local)) return local
+                }
+            }
+        }
+    }
+    return undefined
+}
+
 // Locate the renameable name node for a top-level exported identifier.
 function resolveExportedName(project: Project, from: string, file: string | null): Identifier {
     return nameIdentifier(resolveExportedDecl(project, from, file), from)

@@ -185,9 +185,26 @@ describe("refineList --ref", () => {
         assert.deepEqual(got, ["imp.ts"])
     })
 
-    it("throws when the target is not found", async () => {
+    it("throws when the target is neither exported nor imported", async () => {
         const project = initInMemoryTestProject(BUNDLER)
         project.createSourceFile("/libs.ts", "export const x = 1\n")
-        await assert.rejects(refineList({project, log, paths: [], filters: {ref: "nope"}}), /no exported identifier/)
+        await assert.rejects(refineList({project, log, paths: [], filters: {ref: "nope"}}), /no exported or imported identifier/)
+    })
+
+    it("falls back to an import binding for a symbol the project only imports (e.g. a dependency type)", async () => {
+        // `Widget` is not exported by any in-project file — it comes from an
+        // ambient (dependency-like) module. `--ref` should still find every
+        // in-project file that imports/uses it, via the import binding.
+        const project = initInMemoryTestProject(BUNDLER)
+        project.createSourceFile("/shims.d.ts", 'declare module "somelib" {\n    export class Widget {}\n}\n')
+        project.createSourceFile("/main.ts", 'import {Widget} from "somelib"\nexport const f = (w: Widget) => w\n')
+        project.createSourceFile("/other.ts", 'import {Widget} from "somelib"\nexport const g = (w: Widget) => w\n')
+        project.createSourceFile("/nouse.ts", "export const z = 1\n")
+
+        const entries = await refineList({project, log, paths: [], filters: {ref: "Widget"}})
+        assert.deepEqual(
+            entries.map((e) => e.file).sort(),
+            ["main.ts", "other.ts", "shims.d.ts"],
+        )
     })
 })

@@ -11,7 +11,7 @@ import {Node, type Project} from "ts-morph"
 import type * as declared from "ts-refine"
 import type {TSR} from "ts-refine"
 import {resolveProject} from "../common/init-project.ts"
-import {resolveTargetNode} from "../lib/resolve-target.ts"
+import {resolveReferenceTarget} from "../lib/resolve-target.ts"
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
 
 export const refineList: typeof declared.refineList = async (opts) => {
@@ -76,11 +76,12 @@ function keepEntry(e: TSR.ListEntry, f: TSR.ListFilters): boolean {
     return true
 }
 
-// Display paths of every file that references `spec` — the declaring file plus
-// each file with an import binding or usage of it. Mirrors the file set the
-// rename command computes for the same target forms.
+// Display paths of every file that references `spec` — the anchor's file plus
+// each file with an import binding or usage of it. The anchor is an in-project
+// declaration, or (for a name the project only imports) its import binding, so
+// `--ref` also covers symbols pulled from dependencies.
 function referencedFiles(project: Project, spec: string): Set<string> {
-    const node = resolveTargetNode(project, spec, null)
+    const node = resolveReferenceTarget(project, spec)
     const files = new Set<string>([displayPath(node.getSourceFile().getFilePath())])
     for (const ref of node.findReferencesAsNodes()) {
         files.add(displayPath(ref.getSourceFile().getFilePath()))
