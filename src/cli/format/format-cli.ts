@@ -29,7 +29,7 @@ export const formatCLI: CLI = async (ctx) => {
     // file on its own: an un-unified project then keeps every file's existing
     // style and changes the least. Full format instead unifies the project, so
     // it surveys once and applies a single style.
-    let format: TSR.FormatStyle | ((file: string) => Promise<TSR.FormatStyle>)
+    let format: TSR.FormatOpts["format"]
     if (args.organizeImports === "only") {
         format = (file) => refineReport({project, paths: [file], reportNames, output: NULL_SINK, log}).then((r) => mergeFormatStyles(reportToFormatStyle(r), overrides))
     } else {
