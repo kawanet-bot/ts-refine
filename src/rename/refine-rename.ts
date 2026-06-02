@@ -48,12 +48,15 @@ export const refineRename: typeof declared.refineRename = async (opts) => {
         throw new Error(`rename: \`${to}\` already exists in: ${where} (aliasing on collision is not supported yet)`)
     }
 
+    // Sample each file's organize style before the rename edits anything, so it
+    // reflects the file's pristine state — mirrors move's pre-move sampling.
+    // Keyed by SourceFile; applied after the rename.
+    const stylesByFile = await resolveFormatByFile(targetFiles, format)
+
     node.rename(toT.name)
 
     // Re-sort imports in every file the rename edited, so a changed import
-    // binding leaves a tidy, conventionally-ordered block. Paths are stable
-    // across a rename, so each file's style is sampled at its own path.
-    const stylesByFile = await resolveFormatByFile(targetFiles, format)
+    // binding leaves a tidy, conventionally-ordered block.
     organizeChangedImports(stylesByFile)
 
     const touched = [...targetFiles]
