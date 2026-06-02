@@ -4,6 +4,7 @@
 // Helps decide which direction minimizes churn when standardizing.
 
 import type {TSR} from "ts-refine"
+import {logging} from "../lib/logging.ts"
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
 import {isSemiEligibleStatement, isTypeMember} from "./statement-kinds.ts"
 import type {ReportOpts} from "./types.ts"
@@ -85,7 +86,7 @@ export async function runReportSemicolons({project, output, paths, log}: ReportO
         output.write(`| total | ${totalStmts} | ${perFile.length} | |\n`)
         output.write("\n")
     }
-    log.write(`report semicolons: ${perFile.length} files counted / ${sourceFiles.length} files total\n`)
+    logging(log, `report semicolons: ${perFile.length} files counted / ${sourceFiles.length} files total`)
 
     // The recommendation is rendered in the trailing `## recommendation`
     // section, so all we return here is the action params shape.

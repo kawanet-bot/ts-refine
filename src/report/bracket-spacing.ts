@@ -5,6 +5,7 @@
 
 import {Node} from "ts-morph"
 import type {TSR} from "ts-refine"
+import {logging} from "../lib/logging.ts"
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
 import {pickRecommendByFiles} from "../recommend/pick-recommend.ts"
 import type {ReportOpts} from "./types.ts"
@@ -79,7 +80,7 @@ export async function runReportBracketSpacing({project, output, paths, log}: Rep
         output.write(`| total | ${totalLines} | ${perFile.length} | |\n`)
         output.write("\n")
     }
-    log.write(`report bracket-spacing: ${perFile.length} files counted / ${sourceFiles.length} files total\n`)
+    logging(log, `report bracket-spacing: ${perFile.length} files counted / ${sourceFiles.length} files total`)
     return recommend !== undefined ? {bracketSpacing: recommend} : {}
 }
 

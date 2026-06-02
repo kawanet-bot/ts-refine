@@ -10,6 +10,7 @@
 import {Node, type Project, type SourceFile} from "ts-morph"
 import type * as declared from "ts-refine"
 import {resolveProject} from "../common/init-project.ts"
+import {logging} from "../lib/logging.ts"
 import {parseTarget, resolveInProjectAnchors} from "../lib/resolve-target.ts"
 import {displayPath} from "../lib/source-files.ts"
 import {organizeChangedImports, resolveFormatByFile} from "../recommend/organize-changed.ts"
@@ -65,11 +66,11 @@ export const refineRename: typeof declared.refineRename = async (opts) => {
     // Per-file progress on the log (stdout is reserved for command results);
     // the verb tracks dryRun.
     for (const sf of touched) {
-        log.write(`${dryRun ? "would update" : "updated"}: ${displayPath(sf.getFilePath())}\n`)
+        logging(log, `${dryRun ? "would update" : "updated"}: ${displayPath(sf.getFilePath())}`)
     }
 
     const verb = dryRun ? "would rename" : "renamed"
-    log.write(`rename: ${verb} ${from} -> ${to} in ${touched.length} file${touched.length === 1 ? "" : "s"}\n`)
+    logging(log, `rename: ${verb} ${from} -> ${to} in ${touched.length} file${touched.length === 1 ? "" : "s"}`)
 
     return {from, to, touched: touched.map((sf) => sf.getFilePath())}
 }

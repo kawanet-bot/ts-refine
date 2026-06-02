@@ -12,6 +12,7 @@
 import type {ClassMemberTypes, TypeElementTypes} from "ts-morph"
 import {Node} from "ts-morph"
 import type {TSR} from "ts-refine"
+import {logging} from "../lib/logging.ts"
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
 import {pickRecommendByFiles} from "../recommend/pick-recommend.ts"
 import type {ReportOpts} from "./types.ts"
@@ -101,7 +102,7 @@ export async function runReportMemberSeparators({project, output, paths, log}: R
         output.write(`| total | ${totalLines} | ${perFile.length} | |\n`)
         output.write("\n")
     }
-    log.write(`report member-separators: ${perFile.length} files counted / ${sourceFiles.length} files total\n`)
+    logging(log, `report member-separators: ${perFile.length} files counted / ${sourceFiles.length} files total`)
 
     // The recommendation is rendered in the trailing `## recommendation`
     // section, so all we return is the action params shape. An ambiguous

@@ -3,6 +3,7 @@
 // and Prettier's `endOfLine`.
 
 import type {TSR} from "ts-refine"
+import {logging} from "../lib/logging.ts"
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
 import {pickRecommendByFiles} from "../recommend/pick-recommend.ts"
 import type {ReportOpts} from "./types.ts"
@@ -66,7 +67,7 @@ export async function runReportNewLine({project, output, paths, log}: ReportOpts
         output.write(`| total | ${totalLines} | ${perFile.length} | |\n`)
         output.write("\n")
     }
-    log.write(`report new-line: ${perFile.length} files counted / ${sourceFiles.length} files total\n`)
+    logging(log, `report new-line: ${perFile.length} files counted / ${sourceFiles.length} files total`)
     return recommend !== undefined ? {newLine: recommend} : {}
 }
 

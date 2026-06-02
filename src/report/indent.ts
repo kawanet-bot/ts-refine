@@ -8,6 +8,7 @@
 // the report just picks the per-file mode out of that map.
 
 import type {TSR} from "ts-refine"
+import {logging} from "../lib/logging.ts"
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
 import {pickRecommendByFiles} from "../recommend/pick-recommend.ts"
 import {detectIndent, type IndentCounts, type IndentWidth, primaryIndentWidth} from "./detect-indent.ts"
@@ -79,7 +80,7 @@ export async function runReportIndent({project, output, paths, log}: ReportOpts)
         output.write(`| total | ${totalLines} | ${perFile.length} | |\n`)
         output.write("\n")
     }
-    log.write(`report indent: ${perFile.length} files counted / ${sourceFiles.length} files total\n`)
+    logging(log, `report indent: ${perFile.length} files counted / ${sourceFiles.length} files total`)
 
     // The recommendation is rendered in the `## recommendation` section
     // at the end of the Markdown survey. Both a numeric width and a "tab"

@@ -11,6 +11,7 @@ import {Node, type Project} from "ts-morph"
 import type * as declared from "ts-refine"
 import type {TSR} from "ts-refine"
 import {resolveProject} from "../common/init-project.ts"
+import {logging} from "../lib/logging.ts"
 import {resolveImportedAnchors, resolveInProjectAnchors} from "../lib/resolve-target.ts"
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
 
@@ -62,7 +63,7 @@ export const refineList: typeof declared.refineList = async (opts) => {
 
     // Emitted before the table: report what matched against the total scanned,
     // so a filtered run does not look like it mislabelled the whole project.
-    log.write(`list: ${result.length} files found / ${entries.length} files total\n`)
+    logging(log, `list: ${result.length} files found / ${entries.length} files total`)
     return result
 }
 

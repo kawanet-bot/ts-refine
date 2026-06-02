@@ -19,6 +19,7 @@ import path from "node:path"
 import {type ExportDeclaration, type ImportDeclaration, Node, type Project, type SourceFile, type StringLiteral, ts} from "ts-morph"
 import type * as declared from "ts-refine"
 import {resolveProject} from "../common/init-project.ts"
+import {logging} from "../lib/logging.ts"
 import {displayPath, inProjectSourceFiles} from "../lib/source-files.ts"
 import {organizeChangedImports, resolveFormatByFile} from "../recommend/organize-changed.ts"
 
@@ -121,15 +122,15 @@ export const refineMove: typeof declared.refineMove = async (opts) => {
     // streams. A moved file's new path is in destPaths, so the second loop
     // reports only the importers.
     for (const {from, to} of plan) {
-        log.write(`${dryRun ? "would move" : "moved"}: ${displayPath(from)} -> ${displayPath(to)}\n`)
+        logging(log, `${dryRun ? "would move" : "moved"}: ${displayPath(from)} -> ${displayPath(to)}`)
     }
     for (const sf of touchedFiles) {
         const p = sf.getFilePath()
-        if (!destPaths.has(p)) log.write(`${dryRun ? "would update" : "updated"}: ${displayPath(p)}\n`)
+        if (!destPaths.has(p)) logging(log, `${dryRun ? "would update" : "updated"}: ${displayPath(p)}`)
     }
 
     const verb = dryRun ? "would move" : "moved"
-    log.write(`move: ${verb} ${plan.length} file${plan.length === 1 ? "" : "s"} (${touchedFiles.size} touched)\n`)
+    logging(log, `move: ${verb} ${plan.length} file${plan.length === 1 ? "" : "s"} (${touchedFiles.size} touched)`)
 
     return {
         moves: plan.map(({from, to}) => ({from, to})),

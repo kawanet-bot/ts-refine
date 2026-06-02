@@ -6,6 +6,7 @@ import type {TSR} from "ts-refine"
 import {reportToFormatStyle} from "../../common/format-style.ts"
 import {initProject} from "../../common/init-project.ts"
 import {refineFormat, refineReport} from "../../index.ts"
+import {logging} from "../../lib/logging.ts"
 import {type CLI, NULL_SINK} from "../cli-io.ts"
 import {buildFormatTokens} from "../report/emit-ts-refine.ts"
 import {resolvePaths} from "../resolve-paths.ts"
@@ -39,9 +40,9 @@ export const formatCLI: CLI = async (ctx) => {
         // `cr` is dropped from FormatStyle, so flag it from the report: the survey
         // recommended CR-only newlines but no override forced an applicable value.
         if (args.applyOverrides.newLine === undefined && report.newLine?.newLine === "cr") {
-            log.write("note: report recommends CR-only newlines; not applied (LS formatter supports LF/CRLF only)\n")
+            logging(log, "note: report recommends CR-only newlines; not applied (LS formatter supports LF/CRLF only)")
         }
-        log.write(`format: ${buildFormatTokens(format).join(" ")}\n`)
+        logging(log, `format: ${buildFormatTokens(format).join(" ")}`)
     }
 
     // `--check` reports without writing, so it forces dry-run; the per-file
@@ -49,7 +50,7 @@ export const formatCLI: CLI = async (ctx) => {
     const dryRun = common.dryRun || args.check
     const result = await refineFormat({project, paths, dryRun, organizeImports: args.organizeImports, format, log})
     if (args.check && result.touched.length > 0) {
-        log.write("Run `ts-refine format` to fix.\n")
+        logging(log, "Run `ts-refine format` to fix.")
         return 1
     }
     return 0

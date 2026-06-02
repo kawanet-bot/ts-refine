@@ -7,6 +7,7 @@ import fs from "node:fs/promises"
 import type * as declared from "ts-refine"
 import type {TSR} from "ts-refine"
 import {resolveProject} from "../common/init-project.ts"
+import {logging} from "../lib/logging.ts"
 import {applyOrganizeImports} from "../lib/organize-imports.ts"
 import {selectSourceFiles} from "../lib/source-files.ts"
 import {formatStyleToSettings, normalizeNewLines} from "../recommend/format-settings.ts"
@@ -69,15 +70,15 @@ export const refineFormat: typeof declared.refineFormat = async (opts) => {
 
         touched.push(filePath)
         if (dryRun) {
-            log.write(`would update: ${filePath}\n`)
+            logging(log, `would update: ${filePath}`)
         } else {
             await fs.writeFile(filePath, after)
-            log.write(`updated: ${filePath}\n`)
+            logging(log, `updated: ${filePath}`)
         }
     }
 
     const verb = dryRun ? "would change" : "changed"
-    log.write(`format: ${verb} ${touched.length} / ${totalCount} files\n`)
+    logging(log, `format: ${verb} ${touched.length} / ${totalCount} files`)
 
     return {touched}
 }
