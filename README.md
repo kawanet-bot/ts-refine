@@ -114,10 +114,7 @@ npx ts-refine list --ref typeA.propB
 npx ts-refine list --ref nsA.typeB.propC
 ```
 
-`--ref` takes the same target shapes as `rename --from`. The name need not be
-declared in this project — a symbol imported from a dependency works too, so
-`--ref Project` or `--ref Project.getSourceFiles` lists the files that use that
-dependency type or method. A name with several declarations unions their uses.
+The `--ref` target may be declared in the project or imported from a dependency.
 
 ## Report
 
