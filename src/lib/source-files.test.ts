@@ -3,7 +3,35 @@ import fs from "node:fs"
 import os from "node:os"
 import path from "node:path"
 import {describe, it} from "node:test"
-import {displayPath} from "./source-files.ts"
+import {initInMemoryTestProject} from "../test-utils/init-test-project.ts"
+import {displayPath, selectSourceFiles} from "./source-files.ts"
+
+describe("selectSourceFiles", () => {
+    it("returns the matched in-project files", () => {
+        const p = initInMemoryTestProject()
+        p.createSourceFile("/a.ts", "export const a = 1\n")
+        p.createSourceFile("/b.ts", "export const b = 1\n")
+        assert.equal(selectSourceFiles(p, {paths: ["/a.ts"]}).length, 1)
+        assert.equal(selectSourceFiles(p, {paths: []}).length, 2)
+    })
+
+    it("throws and names the paths when an explicit path matches nothing", () => {
+        const p = initInMemoryTestProject()
+        p.createSourceFile("/a.ts", "export const a = 1\n")
+        assert.throws(() => selectSourceFiles(p, {paths: ["/nope.ts"]}), /no project files matched:.*nope\.ts/)
+    })
+
+    it("throws generically on a partial miss", () => {
+        const p = initInMemoryTestProject()
+        p.createSourceFile("/a.ts", "export const a = 1\n")
+        assert.throws(() => selectSourceFiles(p, {paths: ["/a.ts", "/nope.ts"]}), /some target paths matched no project files/)
+    })
+
+    it("throws when the project itself has no source files", () => {
+        const p = initInMemoryTestProject()
+        assert.throws(() => selectSourceFiles(p, {paths: []}), /no source files found in the project/)
+    })
+})
 
 describe("displayPath", () => {
     it("keeps a single leading parent segment as useful context", () => {

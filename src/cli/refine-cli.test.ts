@@ -43,9 +43,15 @@ describe("refineCLI", () => {
     })
 
     it("runs the report subcommand and prints Markdown", async () => {
-        const r = await run(["report", "semicolons", "-p", SAMPLE])
+        const r = await run(["report", "--semicolons", "-p", SAMPLE])
         assert.equal(r.status, 0)
         assert.match(r.stdout, /### semicolons/)
+    })
+
+    it("errors on a target path that matches no project file", async () => {
+        const r = await run(["list", "not-found.ts", "-p", SAMPLE])
+        assert.notEqual(r.status, 0)
+        assert.match(r.stderr, /no project files matched/)
     })
 
     it("emits a prettier config via report --emit prettier", async () => {
@@ -123,10 +129,10 @@ describe("refineCLI", () => {
     })
 
     it("accepts -p on either side of the subcommand", async () => {
-        const left = await run(["-p", SAMPLE, "report", "semicolons"])
+        const left = await run(["-p", SAMPLE, "report", "--semicolons"])
         assert.equal(left.status, 0)
         assert.match(left.stdout, /### semicolons/)
-        const right = await run(["report", "semicolons", "-p", SAMPLE])
+        const right = await run(["report", "--semicolons", "-p", SAMPLE])
         assert.equal(right.status, 0)
         assert.match(right.stdout, /### semicolons/)
     })
