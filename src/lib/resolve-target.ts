@@ -4,7 +4,7 @@
 // (rename rewrites it, list finds its references). Collision detection is
 // rename-specific and stays in refine-rename.
 
-import {type ClassDeclaration, type Identifier, type InterfaceDeclaration, type ModuleDeclaration, Node, type Project} from "ts-morph"
+import {type ClassDeclaration, type Identifier, type InterfaceDeclaration, type ModuleDeclaration, Node, type Project, type Symbol as TsSymbol} from "ts-morph"
 import {displayPath, inProjectSourceFileOrThrow, inProjectSourceFiles} from "./source-files.ts"
 
 export const IDENT = /^[A-Za-z_$][A-Za-z0-9_$]*$/
@@ -65,6 +65,87 @@ export function resolveTarget(project: Project, spec: string, file: string | nul
 // Convenience for callers that only need the name node (e.g. list --ref).
 export function resolveTargetNode(project: Project, spec: string, file: string | null): Identifier {
     return resolveTarget(project, spec, file).node
+}
+
+// `list --ref` anchor: the node a reference search starts from. An in-project
+// name resolves through the very same resolver rename uses (resolveTarget —
+// same dotted forms, same ambiguity errors). Only a name the project merely
+// imports falls back to the dependency symbol it aliases (and its members), so
+// `--ref` reaches dependency symbols too. Read-only; rename never takes the
+// fallback, so it can never reach into a dependency.
+export function resolveReferenceTarget(project: Project, spec: string): Identifier {
+    const segments = spec.split(".")
+    for (const seg of segments) {
+        if (!IDENT.test(seg)) throw new Error(`refine: not a valid identifier: ${seg}`)
+    }
+
+    // Shared in-project path: identical resolution (and errors) to rename.
+    if (isInProjectRoot(project, segments[0])) {
+        return resolveTarget(project, spec, null).node
+    }
+
+    // Fallback (list-only): a name the project only imports. A bare root anchors
+    // on the import binding itself (works even for an anonymous default export);
+    // a member path resolves the aliased dependency symbol and walks its members
+    // via the checker, then anchors on the member declaration.
+    const binding = firstImportBinding(project, segments[0])
+    if (!binding) throw new Error(`refine: no exported or imported identifier named: ${segments[0]}`)
+    if (segments.length === 1) return binding
+
+    const bindingSymbol = binding.getSymbol()
+    let symbol = bindingSymbol?.getAliasedSymbol() ?? bindingSymbol
+    for (let i = 1; i < segments.length; i++) {
+        const member = symbol?.getExport(segments[i]) ?? symbol?.getMember(segments[i])
+        if (!member) throw new Error(`refine: ${segments.slice(0, i).join(".")} has no member named: ${segments[i]}`)
+        symbol = member
+    }
+
+    const node = symbol && symbolNameNode(symbol)
+    if (!node) throw new Error(`refine: cannot resolve \`${spec}\` to a named declaration`)
+    return node
+}
+
+// Whether the project itself declares `name` — an exported member or a
+// namespace — so a `--ref` spec rooted there resolves in-project (shared with
+// rename) instead of falling back to a same-named imported symbol.
+function isInProjectRoot(project: Project, name: string): boolean {
+    return inProjectSourceFiles(project).some((sf) => sf.getExportedDeclarations().has(name) || sf.getModules().some((m) => m.getName() === name))
+}
+
+// The name Identifier of the symbol's first declaration that carries one — the
+// node a reference search anchors on.
+function symbolNameNode(symbol: TsSymbol): Identifier | undefined {
+    for (const decl of symbol.getDeclarations()) {
+        const nn = (decl as {getNameNode?: () => Node | undefined}).getNameNode?.()
+        if (nn && Node.isIdentifier(nn)) return nn
+    }
+    return undefined
+}
+
+// The local name node of the first in-project import binding called `name`
+// (default / namespace / named, alias respected). Lets the root resolve to a
+// symbol the project imports rather than declares.
+function firstImportBinding(project: Project, name: string): Identifier | undefined {
+    for (const sf of inProjectSourceFiles(project)) {
+        for (const imp of sf.getImportDeclarations()) {
+            const clause = imp.getImportClause()
+            if (!clause) continue
+            const def = clause.getDefaultImport()
+            if (def && def.getText() === name) return def
+            const named = clause.getNamedBindings()
+            if (!named) continue
+            if (Node.isNamespaceImport(named)) {
+                const nn = named.getNameNode()
+                if (nn.getText() === name) return nn
+            } else if (Node.isNamedImports(named)) {
+                for (const el of named.getElements()) {
+                    const local = el.getAliasNode() ?? el.getNameNode()
+                    if (local.getText() === name && Node.isIdentifier(local)) return local
+                }
+            }
+        }
+    }
+    return undefined
 }
 
 // Locate the renameable name node for a top-level exported identifier.
