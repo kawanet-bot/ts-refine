@@ -23,7 +23,8 @@ NAMED_EXPORTS := $(shell sed -nE 's/^export declare function ([a-zA-Z_$$]+).*/\1
 # of a transitive dep (which would be hundreds of KB); fail the build so it
 # cannot slip in. Sized with headroom over the real bundle so ordinary feature
 # growth doesn't trip it — only a transitive dep would.
-MAX_BYTES := 80000
+MJS_MAX_BYTES := 80000
+CLI_MAX_BYTES := 40000
 
 ALL := $(MJS_DST) $(CLI_DST)
 
@@ -51,7 +52,7 @@ $(MJS_DST): $(MJS_CONFIG) $(SRC) $(BUILDER_SRC)
 	@mkdir -p $(dir $@)
 	../node_modules/.bin/rollup -c $<
 	@ls -l $@
-	@test "$$(wc -c < $@)" -le $(MAX_BYTES) || { echo "ERROR: $@ exceeds $(MAX_BYTES) byte cap" >&2; exit 1; }
+	@test "$$(wc -c < $@)" -le $(MJS_MAX_BYTES) || { echo "ERROR: $@ exceeds $(MJS_MAX_BYTES) byte cap" >&2; exit 1; }
 	@echo ""
 
 $(CLI_DST): $(CLI_CONFIG) $(SRC) $(BUILDER_SRC)
@@ -59,7 +60,7 @@ $(CLI_DST): $(CLI_CONFIG) $(SRC) $(BUILDER_SRC)
 	../node_modules/.bin/rollup -c $<
 	chmod a+x $@
 	@ls -l $@
-	@test "$$(wc -c < $@)" -le $(MAX_BYTES) || { echo "ERROR: $@ exceeds $(MAX_BYTES) byte cap" >&2; exit 1; }
+	@test "$$(wc -c < $@)" -le $(CLI_MAX_BYTES) || { echo "ERROR: $@ exceeds $(CLI_MAX_BYTES) byte cap" >&2; exit 1; }
 	@echo ""
 
 # Verify the bundle by importing the package itself through the public
