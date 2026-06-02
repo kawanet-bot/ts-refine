@@ -2,16 +2,12 @@ import type {FormatCodeSettings} from "ts-morph"
 import {ts} from "ts-morph"
 import type {TSR} from "ts-refine"
 
-// LS settings + refineFormat-only concerns (organize gate, newline post-pass).
+// LS settings + the newline post-pass refineFormat runs after formatText.
 // Local-ish shape — refineFormat reads it; the CR diagnostic is computed at
-// the apply entry from the report, not carried here.
+// the apply entry from the report, not carried here. The organize-imports
+// gate lives on FormatOpts now, so it is resolved separately by the caller.
 interface FormatSettings {
     formatSettings: FormatCodeSettings
-    organizeImports: boolean
-
-    // "only": organize imports but skip the surrounding reformat (formatText
-    // and newline normalization), leaving the rest to another formatter.
-    organizeImportsOnly: boolean
     newLineNormalize: "\n" | "\r\n" | undefined
 }
 
@@ -53,10 +49,7 @@ export function formatStyleToSettings(options: TSR.FormatStyle): FormatSettings 
         newLineNormalize = "\r\n"
     }
 
-    const organizeImports = options.organizeImports !== "off"
-    const organizeImportsOnly = options.organizeImports === "only"
-
-    return {formatSettings, organizeImports, organizeImportsOnly, newLineNormalize}
+    return {formatSettings, newLineNormalize}
 }
 
 // Normalizes pre-existing terminators that the LS won't touch.

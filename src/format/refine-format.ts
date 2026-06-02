@@ -11,9 +11,15 @@ import {selectSourceFiles} from "../lib/source-files.ts"
 import {formatStyleToSettings, normalizeNewLines} from "../recommend/format-settings.ts"
 
 export const refineFormat: typeof declared.refineFormat = async (opts) => {
-    const {dryRun, paths, format, log} = opts
+    const {dryRun, paths, format, organizeImports, log} = opts
     const project = resolveProject(opts)
-    const resolved = formatStyleToSettings(format)
+    const {formatSettings, newLineNormalize} = formatStyleToSettings(format)
+
+    // organizeImports is a behavior flag, not a surveyed style: default "on"
+    // re-sorts after formatting, "off" skips the re-sort, "only" organizes
+    // without reformatting the surrounding text.
+    const organize = organizeImports !== "off"
+    const organizeOnly = organizeImports === "only"
 
     const sourceFiles = selectSourceFiles(project, {paths})
 
@@ -29,20 +35,20 @@ export const refineFormat: typeof declared.refineFormat = async (opts) => {
 
         // `only` leaves the surrounding text to another formatter and runs just
         // the organize pass below.
-        if (!resolved.organizeImportsOnly) sf.formatText(resolved.formatSettings)
+        if (!organizeOnly) sf.formatText(formatSettings)
 
         // Same settings handed in so the rebuilt import block doesn't
         // drift from the just-formatted surrounding file.
-        if (resolved.organizeImports) {
-            applyOrganizeImports(sf, resolved.formatSettings)
+        if (organize) {
+            applyOrganizeImports(sf, formatSettings)
         }
 
         // LS `newLineCharacter` only governs inserted text; existing
         // terminators are normalized here. Push the result back into the
         // SourceFile so in-memory state matches what gets written.
         let after = sf.getFullText()
-        if (!resolved.organizeImportsOnly && resolved.newLineNormalize !== undefined) {
-            const normalized = normalizeNewLines(after, resolved.newLineNormalize)
+        if (!organizeOnly && newLineNormalize !== undefined) {
+            const normalized = normalizeNewLines(after, newLineNormalize)
             if (normalized !== after) {
                 sf.replaceWithText(normalized)
                 after = normalized

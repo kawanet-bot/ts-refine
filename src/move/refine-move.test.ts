@@ -67,17 +67,6 @@ describe("refineMove (in-memory, dry-run)", () => {
         assert.equal(c.getFullText(), 'import {x} from "./sub/a"\nconst _ = x\n')
     })
 
-    it("rewrites paths but skips the import re-sort when organizeImports is off", async () => {
-        const project = newProject()
-        project.createSourceFile("/src/a.ts", "export const x = 1\nexport const y = 2\n")
-        const b = project.createSourceFile("/src/b.ts", 'import {y} from "./a.ts"\nimport {x} from "./a.ts"\nconst _ = x + y\n')
-        await refineMove({project, log, sources: ["/src/a.ts"], dest: "/src/sub/", dryRun: true, format: {organizeImports: "off"}})
-
-        // Specifiers are still rewritten, but the y-before-x order is untouched
-        // and the two same-module imports are not combined.
-        assert.equal(b.getFullText(), 'import {y} from "./sub/a.ts"\nimport {x} from "./sub/a.ts"\nconst _ = x + y\n')
-    })
-
     it("preserves the dynamic-import extension across the NodeNext js↔ts mapping (.mjs → .mts source)", async () => {
         // import("./a.mjs") resolves to /src/a.mts under NodeNext. The
         // restoration must put `.mjs` back, not strip to bare `./a`.

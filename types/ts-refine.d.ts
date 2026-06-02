@@ -67,14 +67,11 @@ export declare namespace TSR {
         bracketSpacing?: Partial<BracketSpacingOpts>
     }
 
-    // Per-field format intent: the actionable subset of a report recommendation
-    // and what the CLI overrides feed. `newLine` is lf|crlf only — a `cr`
-    // recommendation is neither a runnable flag nor an LS setting, so it never
-    // enters here. refineMove/refineRename take this directly to organize imports.
+    // Per-field format intent derived from a report recommendation, and what the
+    // CLI overrides feed. `newLine` is lf|crlf only — a `cr` recommendation is
+    // neither a runnable flag nor an LS setting, so it never enters here.
+    // refineMove/refineRename take this to organize the imports they rewrote.
     interface FormatStyle {
-        // "only" organizes imports without reformatting anything else — for
-        // projects that leave the rest of formatting to (say) prettier.
-        organizeImports?: "on" | "off" | "only"
         indent?: number | "tab"
         semicolons?: "on" | "off"
         newLine?: "lf" | "crlf"
@@ -82,10 +79,13 @@ export declare namespace TSR {
     }
 
     // Input to `refineFormat`: the already-merged style to apply (survey
-    // recommendation + CLI overrides; `organizeImports` defaults to "on").
+    // recommendation + CLI overrides). `organizeImports` is a behavior flag,
+    // not a surveyed style: "on" (default) re-sorts imports after formatting,
+    // "off" skips it, "only" organizes without reformatting anything else.
     interface FormatOpts extends CommonOpts {
         paths: string[]
         dryRun: boolean
+        organizeImports?: "on" | "off" | "only"
         format: FormatStyle
     }
 
