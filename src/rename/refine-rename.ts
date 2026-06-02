@@ -10,7 +10,7 @@
 import {Node, type Project, type SourceFile} from "ts-morph"
 import type * as declared from "ts-refine"
 import {resolveProject} from "../common/init-project.ts"
-import {IDENT, parseTarget, resolveInProjectAnchors} from "../lib/resolve-target.ts"
+import {parseTarget, resolveInProjectAnchors} from "../lib/resolve-target.ts"
 import {displayPath} from "../lib/source-files.ts"
 import {organizeChangedImports} from "../recommend/organize-changed.ts"
 
@@ -18,16 +18,13 @@ export const refineRename: typeof declared.refineRename = async (opts) => {
     const {from, to, file, dryRun, format, log} = opts
     const project = resolveProject(opts)
 
+    // parseTarget validates both identifiers (a `refine: not a valid identifier`
+    // surfaces here for either side); rename adds its own policy checks.
     const fromT = parseTarget(from)
     const toT = parseTarget(to)
     if (from === to) throw new Error("rename: --from and --to are the same")
     if (fromT.path.join(".") !== toT.path.join(".")) {
         throw new Error(`rename: --from and --to must keep the same container (moving across namespaces or types is out of scope): ${from} -> ${to}`)
-    }
-
-    // `from` is validated while resolving; the new name `to` is checked here.
-    for (const part of [...toT.path, toT.name]) {
-        if (!IDENT.test(part)) throw new Error(`rename: not a valid identifier: ${part}`)
     }
 
     // rename targets a single in-project symbol: refuse a missing or ambiguous
