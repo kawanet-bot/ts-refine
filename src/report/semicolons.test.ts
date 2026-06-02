@@ -95,6 +95,18 @@ describe("runReportSemicolons (sample/semicolons-mixed)", () => {
         assert.match(out, /\| 0% \| \d+ \| 1 \| /)
         assert.match(out, /\| total \| \d+ \| 1 \| \|/)
     })
+
+    it("with importsOnly, weighs only import/export statement semicolons", async () => {
+        const project = initInMemoryTestProject()
+
+        // The import line carries a `;`; the body statements do not. Whole-file
+        // would lean "off" (1 of 3 with `;`); importsOnly sees only the import,
+        // which is 100% — so the recommendation flips to "on".
+        project.createSourceFile("a.ts", ['import {a} from "./x.ts";', "const _ = a", "const b = 2", ""].join("\n"))
+        const lines: string[] = []
+        const ret = await runReportSemicolons({sourceFiles: selectSourceFiles(project, {paths: []}), log, output: {write: (l) => lines.push(l)}, importsOnly: true})
+        assert.deepEqual(ret, {semicolons: "on"})
+    })
 })
 
 function statements(withSemi: number, total: number): string {

@@ -18,13 +18,13 @@ describe("runReportBracketSpacing (sample/braces-mixed)", () => {
         const out = lines.join("")
         assert.match(out, /^### bracket-spacing\n/)
 
-        // spaced-a.ts: 3 spaced (2 ObjectLiteral + 1 ObjectBindingPattern)
+        // spaced-a.ts: 4 spaced (2 ObjectLiteral + 1 ObjectBindingPattern + 1 TypeLiteral)
         // spaced-b.ts: 2 spaced
-        // tight.ts:    3 tight (2 ObjectLiteral + 1 ObjectBindingPattern)
+        // tight.ts:    4 tight (2 ObjectLiteral + 1 ObjectBindingPattern + 1 TypeLiteral)
         // no-object.ts: skipped
-        assert.match(out, /\| `\{ x \}` \| 5 \| 2 \| /)
-        assert.match(out, /\| `\{x\}` \| 3 \| 1 \| /)
-        assert.match(out, /\| total \| 8 \| 3 \| \|/)
+        assert.match(out, /\| `\{ x \}` \| 6 \| 2 \| /)
+        assert.match(out, /\| `\{x\}` \| 4 \| 1 \| /)
+        assert.match(out, /\| total \| 10 \| 3 \| \|/)
         assert.equal(/no-object\.ts/.test(out), false)
         assert.deepEqual(ret, {bracketSpacing: "on"})
     })
@@ -87,10 +87,25 @@ describe("runReportBracketSpacing (sample/braces-mixed)", () => {
         const lines: string[] = []
         const ret = await runReportBracketSpacing({sourceFiles: selectSourceFiles(project, {paths: []}), log, output: {write: (l) => lines.push(l)}})
 
-        // Only the binding pattern (`{ a, b }`) is counted; the type literal
-        // `{a: 1; b: 2}` is a TypeLiteralNode and out of scope.
+        // The binding pattern `{ a, b }` (spaced) and the type literal
+        // `{a: 1; b: 2}` (tight) are both counted now; the file ties and
+        // resolves to the spaced primary (display order), so `{ x }` shows 1.
         assert.match(lines.join(""), /\| `\{ x \}` \| 1 \| 1 \| /)
         assert.deepEqual(ret, {bracketSpacing: "on"})
+    })
+
+    it("counts TS type-literal / interface / enum bodies and import attributes", async () => {
+        const project = initInMemoryTestProject()
+        project.createSourceFile("spaced.ts", ['import D from "./d.json" with { type: "json" }', "type T = { a: number }", "interface I { b: number }", "enum E { A, B }", "const _ = D", ""].join("\n"))
+        project.createSourceFile("tight.ts", ['import E2 from "./e.json" with {type: "json"}', "type U = {a: number}", "interface J {b: number}", "enum F {A, B}", "const _ = E2", ""].join("\n"))
+        const lines: string[] = []
+        await runReportBracketSpacing({sourceFiles: selectSourceFiles(project, {paths: []}), log, output: {write: (l) => lines.push(l)}})
+        const out = lines.join("")
+
+        // Each file: import attributes + type literal + interface + enum = 4 nodes.
+        assert.match(out, /\| `\{ x \}` \| 4 \| 1 \| /)
+        assert.match(out, /\| `\{x\}` \| 4 \| 1 \| /)
+        assert.match(out, /\| total \| 8 \| 2 \| \|/)
     })
 
     it("counts named bindings of import / export declarations", async () => {
@@ -108,5 +123,21 @@ describe("runReportBracketSpacing (sample/braces-mixed)", () => {
         assert.match(out, /\| `\{x\}` \| 2 \| 1 \| /)
         assert.match(out, /\| total \| 4 \| 2 \| \|/)
         assert.deepEqual(ret, {})
+    })
+
+    it("with importsOnly, counts only import/export braces and ignores the body", async () => {
+        const project = initInMemoryTestProject()
+
+        // Tight import binding, but spaced body braces (object literal + type
+        // literal) that importsOnly must exclude — only what organizeImports
+        // rewrites should drive the recommendation.
+        project.createSourceFile("a.ts", ['import {a} from "./x.ts"', "export const o = { y: 1 }", "type T = { z: number }", "const _ = a", ""].join("\n"))
+        const lines: string[] = []
+        const ret = await runReportBracketSpacing({sourceFiles: selectSourceFiles(project, {paths: []}), log, output: {write: (l) => lines.push(l)}, importsOnly: true})
+        const out = lines.join("")
+
+        assert.match(out, /\| `\{x\}` \| 1 \| 1 \| /)
+        assert.match(out, /\| total \| 1 \| 1 \| \|/)
+        assert.deepEqual(ret, {bracketSpacing: "off"})
     })
 })

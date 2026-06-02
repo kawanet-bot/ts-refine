@@ -1,9 +1,11 @@
 // report bracket-spacing: classify brace pairs by inner padding
 // (`{ a }` vs `{a}`). Scope mirrors what FormatCodeSettings'
-// insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces rewrites —
-// object literals, destructuring, and import/export named bindings.
+// insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces rewrites — object
+// literals, destructuring, named import/export bindings and their import
+// attributes, plus the TS type-literal / interface / enum bodies. Single-line
+// statement blocks are deliberately left out (not a bracketSpacing concept).
 
-import {Node} from "ts-morph"
+import {Node, SyntaxKind} from "ts-morph"
 import type {TSR} from "ts-refine"
 import {logging} from "../lib/logging.ts"
 import {displayPath} from "../lib/source-files.ts"
@@ -21,18 +23,28 @@ const STYLE_LABEL: Record<Style, string> = {
 
 type Bucket = {lines: number; files: number; topPath: string; topLines: number}
 
-export async function runReportBracketSpacing({sourceFiles, output, log}: ReportRunOpts): Promise<Partial<TSR.BracketSpacingOpts>> {
+export async function runReportBracketSpacing({sourceFiles, output, log, importsOnly}: ReportRunOpts): Promise<Partial<TSR.BracketSpacingOpts>> {
     type PerFile = {path: string; counts: Map<Style, number>; primary: Style}
     const perFile: PerFile[] = []
 
     for (const sf of sourceFiles) {
         const counts = new Map<Style, number>()
-        sf.forEachDescendant((node) => {
-            if (!isBraceCarrier(node)) return
-            const style = classifyBraces(node.getText())
+        const visit = (node: Node) => {
+            const braces = braceSpan(node)
+            if (braces === null) return
+            const style = classifyBraces(braces)
             if (style === null) return
             counts.set(style, (counts.get(style) ?? 0) + 1)
-        })
+        }
+        // importsOnly: only the import/export statements are rewritten by
+        // organizeImports, so count the braces inside them (named bindings +
+        // import attributes), not the whole file.
+        if (importsOnly) {
+            sf.getImportDeclarations().forEach((d) => d.forEachDescendant(visit))
+            sf.getExportDeclarations().forEach((d) => d.forEachDescendant(visit))
+        } else {
+            sf.forEachDescendant(visit)
+        }
         if (counts.size === 0) continue
         perFile.push({path: displayPath(sf.getFilePath()), counts, primary: pickPrimary(counts)})
     }
@@ -82,10 +94,33 @@ export async function runReportBracketSpacing({sourceFiles, output, log}: Report
     return recommend !== undefined ? {bracketSpacing: recommend} : {}
 }
 
-// The four node kinds whose getText() begins/ends with the braces the
-// LS formatter would re-space — kept identical to format's scope.
+// Node kinds whose own brace pair the LS formatter re-spaces. ImportAttributes
+// covers both `import ... with {…}` and the export form. The TS bodies
+// (type literal / interface / enum) are re-spaced by formatText just like
+// object literals; import attributes are re-spaced by organizeImports.
 function isBraceCarrier(node: Node): boolean {
-    return Node.isObjectLiteralExpression(node) || Node.isObjectBindingPattern(node) || Node.isNamedImports(node) || Node.isNamedExports(node)
+    return (
+        Node.isObjectLiteralExpression(node) ||
+        Node.isObjectBindingPattern(node) ||
+        Node.isNamedImports(node) ||
+        Node.isNamedExports(node) ||
+        Node.isTypeLiteral(node) ||
+        Node.isInterfaceDeclaration(node) ||
+        Node.isEnumDeclaration(node) ||
+        Node.isImportAttributes(node)
+    )
+}
+
+// The carrier's own brace pair as source text (e.g. `{ a: number }` from an
+// interface, `{type:"json"}` from import attributes), or null when the node
+// is not a carrier or has no braces. Uses the immediate brace tokens, so a
+// header like `interface I<X = {}>` never picks up the type-parameter braces.
+function braceSpan(node: Node): string | null {
+    if (!isBraceCarrier(node)) return null
+    const open = node.getFirstChildByKind(SyntaxKind.OpenBraceToken)
+    const close = node.getLastChildByKind(SyntaxKind.CloseBraceToken)
+    if (!open || !close) return null
+    return node.getSourceFile().getFullText().slice(open.getStart(), close.getEnd())
 }
 
 // Returns the inner-padding style for a brace pair, or null if the node

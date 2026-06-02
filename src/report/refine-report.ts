@@ -19,7 +19,7 @@ import {runReportSemicolons} from "./semicolons.ts"
 import type {ReportRunOpts} from "./types.ts"
 
 export const refineReport: typeof declared.refineReport = async (opts) => {
-    const {output, reportNames: requested, paths, log} = opts
+    const {output, reportNames: requested, paths, log, importsOnly = false} = opts
     const project = resolveProject(opts)
 
     // Validate every requested name up-front so a typo fails before any
@@ -39,7 +39,7 @@ export const refineReport: typeof declared.refineReport = async (opts) => {
     // the project scan runs a single time instead of per report.
     const sourceFiles = selectSourceFiles(project, {paths})
 
-    const reportOpts: ReportRunOpts = {sourceFiles, output, log}
+    const reportOpts: ReportRunOpts = {sourceFiles, output, log, importsOnly}
 
     if (requested.includes("semicolons")) {
         report.semicolons = await runReportSemicolons(reportOpts)
