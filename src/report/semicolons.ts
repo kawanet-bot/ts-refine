@@ -36,7 +36,8 @@ export async function runReportSemicolons({sourceFiles, output, log, importsOnly
         // importsOnly: only the import/export statements are rewritten, so weigh
         // just their trailing `;` (the statements themselves, not descendants).
         if (importsOnly) {
-            for (const decl of [...sf.getImportDeclarations(), ...sf.getExportDeclarations()]) consider(decl)
+            sf.getImportDeclarations().forEach(consider)
+            sf.getExportDeclarations().forEach(consider)
         } else {
             sf.forEachDescendant(consider)
         }

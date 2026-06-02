@@ -40,7 +40,8 @@ export async function runReportBracketSpacing({sourceFiles, output, log, imports
         // organizeImports, so count the braces inside them (named bindings +
         // import attributes), not the whole file.
         if (importsOnly) {
-            for (const decl of [...sf.getImportDeclarations(), ...sf.getExportDeclarations()]) decl.forEachDescendant(visit)
+            sf.getImportDeclarations().forEach((d) => d.forEachDescendant(visit))
+            sf.getExportDeclarations().forEach((d) => d.forEachDescendant(visit))
         } else {
             sf.forEachDescendant(visit)
         }
