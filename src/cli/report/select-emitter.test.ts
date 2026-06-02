@@ -17,13 +17,12 @@ describe("selectOutput", () => {
         assert.equal(out(), "")
     })
 
-    it("swaps the report stream for a sink and writes prettier JSON on finalize", () => {
+    it("leaves the report stream unset and writes prettier JSON on finalize", () => {
         const {writer, out} = makeStdout()
         const f = selectEmitter("prettier", writer)
 
-        // Markdown body would have been written here — sink swallows it.
-        f.reportStream.write("### dropped\n")
-        assert.equal(out(), "")
+        // No report stream: refineReport skips the Markdown body entirely.
+        assert.equal(f.reportStream, undefined)
         f.finalize({semicolons: {semicolons: "off"}, indent: {width: 4}})
         const json = JSON.parse(out())
         assert.equal(json.semi, false)
@@ -31,11 +30,10 @@ describe("selectOutput", () => {
         assert.equal(json.useTabs, false)
     })
 
-    it("swaps the report stream for a sink and writes the format command on finalize", () => {
+    it("leaves the report stream unset and writes the format command on finalize", () => {
         const {writer, out} = makeStdout()
         const f = selectEmitter("ts-refine", writer)
-        f.reportStream.write("### dropped\n")
-        assert.equal(out(), "")
+        assert.equal(f.reportStream, undefined)
         f.finalize({semicolons: {semicolons: "off"}, indent: {width: 4}, memberSeparators: {separator: "none"}})
 
         // Two-line form: `ts-refine \` continuation, then the flags
