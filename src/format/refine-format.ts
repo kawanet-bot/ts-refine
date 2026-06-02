@@ -5,6 +5,7 @@
 
 import fs from "node:fs/promises"
 import type * as declared from "ts-refine"
+import type {TSR} from "ts-refine"
 import {resolveProject} from "../common/init-project.ts"
 import {applyOrganizeImports} from "../lib/organize-imports.ts"
 import {selectSourceFiles} from "../lib/source-files.ts"
@@ -20,10 +21,10 @@ export const refineFormat: typeof declared.refineFormat = async (opts) => {
     const organize = organizeImports !== "off"
     const organizeOnly = organizeImports === "only"
 
-    // `format` is one style for every file, or a per-file resolver (the `only`
-    // CLI path passes a resolver so each file is organized in its own style).
-    // A static style is wrapped so the loop below reads a single way.
-    const resolveStyle = typeof format === "function" ? format : (_file: string) => Promise.resolve(format)
+    // `format` is one style for everyone, or a per-file resolver (the `only`
+    // CLI path). A static style is converted once here; a resolver is surveyed
+    // per file inside the loop.
+    const resolveSettings = perFileSettings(format)
 
     const sourceFiles = selectSourceFiles(project, {paths})
 
@@ -37,10 +38,10 @@ export const refineFormat: typeof declared.refineFormat = async (opts) => {
         const filePath = sf.getFilePath()
         const before = sf.getFullText()
 
-        // Resolve this file's style (per-file under a resolver; the same style
-        // for everyone otherwise). format does not repath files, so reading the
+        // Resolve this file's settings (per-file under a resolver; the shared
+        // precomputed value otherwise). format does not repath files, so the
         // current path is enough.
-        const {formatSettings, newLineNormalize} = formatStyleToSettings(await resolveStyle(filePath))
+        const {formatSettings, newLineNormalize} = await resolveSettings(filePath)
 
         // `only` leaves the surrounding text to another formatter and runs just
         // the organize pass below.
@@ -79,4 +80,13 @@ export const refineFormat: typeof declared.refineFormat = async (opts) => {
     log.write(`format: ${verb} ${touched.length} / ${totalCount} files\n`)
 
     return {touched}
+}
+
+// Resolve a file's formatter settings: surveyed per file under a resolver, or
+// converted once for a single style so the common (static) case is not
+// recomputed for every file.
+function perFileSettings(format: TSR.FormatOpts["format"]) {
+    if (typeof format === "function") return (file: string) => format(file).then(formatStyleToSettings)
+    const settings = formatStyleToSettings(format)
+    return (_file: string) => Promise.resolve(settings)
 }
