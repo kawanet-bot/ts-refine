@@ -71,15 +71,14 @@ smoke: $(MJS_DST)
 	@test -n "$(NAMED_EXPORTS)" || { echo "ERROR: NAMED_EXPORTS empty — check the sed pattern against $(TYPES)" >&2; exit 1; }
 	cd .. && node --input-type=module -e 'const m = await import("ts-refine"); for (const k of process.argv.slice(1)) { if (typeof m[k] !== "function") { console.error("missing MJS export:", k); process.exit(1); } console.log("MJS export OK:", k); }' $(NAMED_EXPORTS)
 
-# Build, run smoke tests, and conditionally run full tests (tsc and node:test).
-# Consumer `npm install` skips the heavy test-ts step to keep install fast.
+# Consumer `npm install` skips the heavy test-full step to keep install fast.
 test: all $(TYPES)
 	@case "$$npm_command" in \
 		install|ci) echo "npm $$npm_command detected: skipping full tests." ;; \
-		*) $(MAKE) smoke test-ts ;; \
+		*) $(MAKE) test-full ;; \
 	esac
 
-test-ts:
+test-full: smoke
 	cd .. && ./node_modules/.bin/tsc --noEmit
 	cd .. && node --test 'src/**/*.test.ts'
 	cd .. && node dist/ts-refine.cli.mjs format --check
