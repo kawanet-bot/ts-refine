@@ -14,8 +14,20 @@ function isInProject(sf: SourceFile): boolean {
 }
 
 export function selectSourceFiles(project: Project, {paths}: Pick<TSR.ReportOpts, "paths">): SourceFile[] {
-    const files = paths.length > 0 ? project.getSourceFiles(paths) : project.getSourceFiles()
-    return files.filter(isInProject)
+    if (paths.length > 0) {
+        const targets = project.getSourceFiles(paths).filter(isInProject)
+
+        // A typo'd / non-project path would otherwise pass silently as "0
+        // files". Only the all-missed case is caught: a partial miss is left
+        // alone because a duplicate or over-matching glob makes the resolved
+        // count unreliable (getSourceFiles dedups), risking false positives.
+        if (targets.length === 0) throw new Error(`refine: no project files matched: ${paths.map(displayPath).join(", ")}`)
+        return targets
+    }
+
+    const all = project.getSourceFiles().filter(isInProject)
+    if (all.length === 0) throw new Error("refine: no source files found in the project")
+    return all
 }
 
 // Every in-project source file, unscoped — for whole-project symbol resolution
