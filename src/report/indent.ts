@@ -8,7 +8,7 @@
 // the report just picks the per-file mode out of that map.
 
 import type {TSR} from "ts-refine"
-import {logging} from "../lib/logging.ts"
+import {logging} from "../common/logging.ts"
 import {displayPath} from "../lib/source-files.ts"
 import {pickRecommendByFiles} from "../recommend/pick-recommend.ts"
 import {detectIndent, type IndentCounts, type IndentWidth, primaryIndentWidth} from "./detect-indent.ts"
