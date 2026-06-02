@@ -13,13 +13,17 @@ import {formatStyleToSettings, normalizeNewLines} from "../recommend/format-sett
 export const refineFormat: typeof declared.refineFormat = async (opts) => {
     const {dryRun, paths, format, organizeImports, log} = opts
     const project = resolveProject(opts)
-    const {formatSettings, newLineNormalize} = formatStyleToSettings(format)
 
     // organizeImports is a behavior flag, not a surveyed style: default "on"
     // re-sorts after formatting, "off" skips the re-sort, "only" organizes
     // without reformatting the surrounding text.
     const organize = organizeImports !== "off"
     const organizeOnly = organizeImports === "only"
+
+    // `format` is one style for every file, or a per-file resolver (the `only`
+    // CLI path passes a resolver so each file is organized in its own style).
+    // A static style is wrapped so the loop below reads a single way.
+    const resolveStyle = typeof format === "function" ? format : (_file: string) => Promise.resolve(format)
 
     const sourceFiles = selectSourceFiles(project, {paths})
 
@@ -32,6 +36,11 @@ export const refineFormat: typeof declared.refineFormat = async (opts) => {
         totalCount++
         const filePath = sf.getFilePath()
         const before = sf.getFullText()
+
+        // Resolve this file's style (per-file under a resolver; the same style
+        // for everyone otherwise). format does not repath files, so reading the
+        // current path is enough.
+        const {formatSettings, newLineNormalize} = formatStyleToSettings(await resolveStyle(filePath))
 
         // `only` leaves the surrounding text to another formatter and runs just
         // the organize pass below.
