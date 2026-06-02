@@ -7,7 +7,7 @@ LS-based semantic refactoring for TypeScript codebases. `ts-refine` conforms
 to your codebase's **own** conventions instead of imposing its own: it infers
 how your project already writes code, then moves files, renames exports,
 rewrites imports, organizes imports, and formats small edits so they blend in.
-No `.prettierrc`, no rule config: the codebase is the spec.
+No config to maintain — the codebase itself is the style guide.
 
 - Built on the TypeScript Language Service (via
   [ts-morph](https://github.com/dsherret/ts-morph)) — the same engine your
@@ -15,7 +15,7 @@ No `.prettierrc`, no rule config: the codebase is the spec.
 - Useful when AI coding agents would otherwise reach for grep/sed and miss a
   semantic import, move, or rename edge case.
 - Safe, low-friction cleanup after code changes — start with read commands or
-  `--dry-run`, then apply the same recommendation.
+  `--dry-run`, then apply.
 
 ## Synopsis
 
@@ -65,7 +65,7 @@ npm install --save-dev ts-refine
 npx ts-refine help
 ```
 
-For frequent command-line use, install it globally:
+To run it across projects from anywhere, install it globally:
 
 ```sh
 npm install -g ts-refine
@@ -94,8 +94,8 @@ Global options may appear on either side of the command:
 
 ## List
 
-`list` reports each file's export, unused-export, and importer counts. Filters
-combine with AND.
+`list` reports each file's export, unused-export, and importer counts; `--ref`
+finds every file that references a given symbol. Filters combine with AND.
 
 ```sh
 # every file with its export / unused / importer counts
@@ -238,17 +238,17 @@ re-exports only. Projects with neither flag see no type-only change.
 
 ## FAQ
 
-- **Does it replace Prettier?**
-  - No. Comprehensive style enforcement is typically Prettier's job. While
-    `ts-refine` includes a `format` command, its primary goal is to ensure that
-    automated edits blend into your existing codebase's inferred style rather
-    than providing exhaustive configuration options.
-
 - **What is the core value of `ts-refine`?**
   - The value lies in **semantic, graph-aware refactoring**. Unlike text-based
     tools, it understands your code via the TypeScript Language Service. This
     allows it to move files, organize imports, and rename exported symbols
     project-wide with high precision.
+
+- **Does it replace Prettier?**
+  - No. Comprehensive style enforcement is typically Prettier's job. While
+    `ts-refine` includes a `format` command, its primary goal is to ensure that
+    automated edits blend into your existing codebase's inferred style rather
+    than providing exhaustive configuration options.
 
 - **Can it delete unused code like Knip?**
   - No. Knip is specialized in finding and removing unused files and
