@@ -11,7 +11,7 @@ export interface ReportRunOpts {
     log?: TSR.Writer
 
     // Restrict scanning to import/export statements (see TSR.ReportOpts).
-    // Only bracket-spacing and semicolons honor it; indent/new-line are
-    // whole-file by nature, so they ignore it.
-    importsOnly: boolean
+    // Omitted = false. Only bracket-spacing and semicolons honor it;
+    // indent/new-line are whole-file by nature, so they ignore it.
+    importsOnly?: boolean
 }
