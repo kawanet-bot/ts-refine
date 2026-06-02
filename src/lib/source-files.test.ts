@@ -21,10 +21,10 @@ describe("selectSourceFiles", () => {
         assert.throws(() => selectSourceFiles(p, {paths: ["/nope.ts"]}), /no project files matched:.*nope\.ts/)
     })
 
-    it("throws generically on a partial miss", () => {
+    it("does not flag a partial miss (a duplicate or over-matching glob would make the count unreliable)", () => {
         const p = initInMemoryTestProject()
         p.createSourceFile("/a.ts", "export const a = 1\n")
-        assert.throws(() => selectSourceFiles(p, {paths: ["/a.ts", "/nope.ts"]}), /some target paths matched no project files/)
+        assert.equal(selectSourceFiles(p, {paths: ["/a.ts", "/a.ts"]}).length, 1)
     })
 
     it("throws when the project itself has no source files", () => {

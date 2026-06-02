@@ -18,11 +18,10 @@ export function selectSourceFiles(project: Project, {paths}: Pick<TSR.ReportOpts
         const targets = project.getSourceFiles(paths).filter(isInProject)
 
         // A typo'd / non-project path would otherwise pass silently as "0
-        // files". Fewer resolved than given means something matched nothing:
-        // name them when nothing matched, stay generic on a partial miss
-        // (pinpointing which of several missed is not worth the lookup).
+        // files". Only the all-missed case is caught: a partial miss is left
+        // alone because a duplicate or over-matching glob makes the resolved
+        // count unreliable (getSourceFiles dedups), risking false positives.
         if (targets.length === 0) throw new Error(`refine: no project files matched: ${paths.map(displayPath).join(", ")}`)
-        if (targets.length < paths.length) throw new Error("refine: some target paths matched no project files")
         return targets
     }
 
