@@ -15,6 +15,7 @@ import type * as declared from "ts-refine"
 import type {TSR} from "ts-refine"
 import {resolveProject} from "../common/init-project.ts"
 import {inspectorNames} from "../common/inspector-names.ts"
+import {logging} from "../lib/logging.ts"
 import {displayPath, inProjectSourceFiles, selectSourceFiles} from "../lib/source-files.ts"
 
 export const refineInspect: typeof declared.refineInspect = async (opts) => {
@@ -43,7 +44,7 @@ export const refineInspect: typeof declared.refineInspect = async (opts) => {
     }
 
     results.sort((a, b) => a.file.localeCompare(b.file))
-    log.write(`inspect: ${results.length} files\n`)
+    logging(log, `inspect: ${results.length} files`)
     return results
 }
 

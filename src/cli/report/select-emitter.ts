@@ -6,8 +6,8 @@
 //
 // A null name means "no output selected"; the Markdown report stream is
 // untouched and `finalize` is a no-op. A selecting output ("prettier")
-// swaps the report stream for a sink so the Markdown body doesn't mix
-// into the rendered output.
+// leaves the report stream unset so refineReport skips the Markdown body,
+// keeping it out of the rendered output.
 
 import type {TSR} from "ts-refine"
 import {writePrettierConfig} from "./emit-prettier.ts"
@@ -16,11 +16,9 @@ import {writeFormatCommand} from "./emit-ts-refine.ts"
 export const emitNames = ["prettier", "ts-refine"] as const
 
 interface EmitterDispatch {
-    reportStream: TSR.Writer
+    reportStream?: TSR.Writer
     finalize: (report: TSR.ReportResult) => void
 }
-
-const NULL_SINK: TSR.Writer = {write: () => {}}
 
 export function selectEmitter(name: string | null, output: TSR.Writer): EmitterDispatch {
     if (name === null) {
@@ -31,13 +29,11 @@ export function selectEmitter(name: string | null, output: TSR.Writer): EmitterD
     }
     if (name === "prettier") {
         return {
-            reportStream: NULL_SINK,
             finalize: (report) => writePrettierConfig(report, output),
         }
     }
     if (name === "ts-refine") {
         return {
-            reportStream: NULL_SINK,
             finalize: (report) => writeFormatCommand(report, output),
         }
     }

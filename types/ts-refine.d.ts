@@ -19,7 +19,10 @@ export declare namespace TSR {
     interface CommonOpts {
         project?: Project
         tsConfigFilePath?: string
-        log: Writer
+
+        // Progress sink. Omit it to send progress lines to console.warn instead
+        // (see the `logging` helper); pass a no-op Writer to silence them.
+        log?: Writer
     }
 
     // Recommendation shapes. Not runtime inputs — they describe the value
@@ -53,7 +56,10 @@ export declare namespace TSR {
 
     interface ReportOpts extends CommonOpts {
         paths: string[]
-        output: Writer
+
+        // Markdown sink for the per-report tables. Omit it to compute the
+        // recommendations only (callers that just want the ReportResult).
+        output?: Writer
         reportNames: ReportName[]
     }
 

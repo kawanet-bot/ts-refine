@@ -5,6 +5,7 @@
 
 import {Node} from "ts-morph"
 import type {TSR} from "ts-refine"
+import {logging} from "../lib/logging.ts"
 import {displayPath, selectSourceFiles} from "../lib/source-files.ts"
 import {pickRecommendByFiles} from "../recommend/pick-recommend.ts"
 import type {ReportOpts} from "./types.ts"
@@ -56,26 +57,30 @@ export async function runReportBracketSpacing({project, output, paths, log}: Rep
 
     const recommend = pickRecommendByFiles(DISPLAY_ORDER, (k) => buckets.get(k))
 
-    const totalLines = [...buckets.values()].reduce((s, b) => s + b.lines, 0)
+    // The Markdown table is for display only; skip it (and its formatting)
+    // when no output sink is given — the recommendation above is the result.
+    if (output) {
+        const totalLines = [...buckets.values()].reduce((s, b) => s + b.lines, 0)
 
-    output.write("### bracket-spacing\n")
-    output.write("\n")
-    output.write("| style | nodes | files | example |\n")
-    output.write("| --- | --- | --- | --- |\n")
-    for (const k of DISPLAY_ORDER) {
-        const b = buckets.get(k)
+        output.write("### bracket-spacing\n")
+        output.write("\n")
+        output.write("| style | nodes | files | example |\n")
+        output.write("| --- | --- | --- | --- |\n")
+        for (const k of DISPLAY_ORDER) {
+            const b = buckets.get(k)
 
-        // Both styles always get a row (0 when absent) so the two-way
-        // comparison is always visible at a glance.
-        if (b) {
-            output.write(`| ${STYLE_LABEL[k]} | ${b.lines} | ${b.files} | ${b.topPath} |\n`)
-        } else {
-            output.write(`| ${STYLE_LABEL[k]} | 0 | 0 ||\n`)
+            // Both styles always get a row (0 when absent) so the two-way
+            // comparison is always visible at a glance.
+            if (b) {
+                output.write(`| ${STYLE_LABEL[k]} | ${b.lines} | ${b.files} | ${b.topPath} |\n`)
+            } else {
+                output.write(`| ${STYLE_LABEL[k]} | 0 | 0 ||\n`)
+            }
         }
+        output.write(`| total | ${totalLines} | ${perFile.length} | |\n`)
+        output.write("\n")
     }
-    output.write(`| total | ${totalLines} | ${perFile.length} | |\n`)
-    output.write("\n")
-    log.write(`report bracket-spacing: ${perFile.length} files counted / ${sourceFiles.length} files total\n`)
+    logging(log, `report bracket-spacing: ${perFile.length} files counted / ${sourceFiles.length} files total`)
     return recommend !== undefined ? {bracketSpacing: recommend} : {}
 }
 
