@@ -19,7 +19,7 @@ import path from "node:path"
 import {type ExportDeclaration, type ImportDeclaration, Node, type Project, type SourceFile, type StringLiteral, ts} from "ts-morph"
 import type * as declared from "ts-refine"
 import {resolveProject} from "../common/init-project.ts"
-import {logging} from "../lib/logging.ts"
+import {logging} from "../common/logging.ts"
 import {displayPath, inProjectSourceFiles} from "../lib/source-files.ts"
 import {organizeChangedImports, resolveFormatByFile} from "../recommend/organize-changed.ts"
 

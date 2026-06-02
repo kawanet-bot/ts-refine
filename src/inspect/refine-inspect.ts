@@ -15,7 +15,7 @@ import type * as declared from "ts-refine"
 import type {TSR} from "ts-refine"
 import {resolveProject} from "../common/init-project.ts"
 import {inspectorNames} from "../common/inspector-names.ts"
-import {logging} from "../lib/logging.ts"
+import {logging} from "../common/logging.ts"
 import {displayPath, inProjectSourceFiles, selectSourceFiles} from "../lib/source-files.ts"
 
 export const refineInspect: typeof declared.refineInspect = async (opts) => {

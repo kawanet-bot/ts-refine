@@ -7,7 +7,7 @@
 
 import {Node, SyntaxKind} from "ts-morph"
 import type {TSR} from "ts-refine"
-import {logging} from "../lib/logging.ts"
+import {logging} from "../common/logging.ts"
 import {displayPath} from "../lib/source-files.ts"
 import {pickRecommendByFiles} from "../recommend/pick-recommend.ts"
 import type {ReportRunOpts} from "./types.ts"
