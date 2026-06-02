@@ -78,8 +78,21 @@ export function resolveReferenceTarget(project: Project, spec: string): Identifi
         if (!IDENT.test(part)) throw new Error(`refine: not a valid identifier: ${part}`)
     }
 
-    // Dotted specs resolve against in-project declarations only (like rename).
-    if (path.length > 0) return resolveTarget(project, spec, null).node
+    // Dotted spec: an in-project container (exported type / namespace) resolves
+    // strictly. Otherwise an imported container (e.g. a dependency class) anchors
+    // on its member declaration, so `Project.getSourceFiles` finds the method's
+    // callers. Nested imported members are out of scope — fall through to strict.
+    if (path.length > 0) {
+        if (path.length === 1 && !isInProjectContainer(project, path[0])) {
+            const binding = firstImportBinding(project, path[0])
+            if (binding) {
+                const node = importedMemberNode(binding, name)
+                if (node) return node
+                throw new Error(`refine: ${path[0]} has no member named: ${name}`)
+            }
+        }
+        return resolveTarget(project, spec, null).node
+    }
 
     const exported = new Set<Node>()
     for (const sf of inProjectSourceFiles(project)) {
@@ -117,6 +130,29 @@ function firstImportBinding(project: Project, name: string): Identifier | undefi
                     if (local.getText() === name && Node.isIdentifier(local)) return local
                 }
             }
+        }
+    }
+    return undefined
+}
+
+// Whether `seg` names an in-project container — a namespace or an exported
+// interface/class — so a dotted spec resolves against the project, not a
+// same-named imported type.
+function isInProjectContainer(project: Project, seg: string): boolean {
+    if (isNamespace(project, seg)) return true
+    return inProjectSourceFiles(project).some((sf) => sf.getExportedDeclarations().has(seg))
+}
+
+// The member name node of the interface/class an import binding refers to —
+// following the import alias to its declaration (e.g. ts-morph's `Project`
+// class) and looking up `member`. Lets `--ref` anchor on a dependency method.
+function importedMemberNode(binding: Identifier, member: string): Identifier | undefined {
+    const sym = binding.getSymbol()
+    const aliased = sym?.getAliasedSymbol() ?? sym
+    for (const d of aliased?.getDeclarations() ?? []) {
+        if (Node.isClassDeclaration(d) || Node.isInterfaceDeclaration(d)) {
+            const node = memberNameNode(d, member)
+            if (node) return node
         }
     }
     return undefined

@@ -207,4 +207,19 @@ describe("refineList --ref", () => {
             ["main.ts", "other.ts", "shims.d.ts"],
         )
     })
+
+    it("resolves a member of an imported (dependency) type — e.g. Project.getSourceFiles", async () => {
+        // `Widget.render` is the method of a dependency class; --ref should find
+        // only the files that call `.render()`, not those using other members.
+        const project = initInMemoryTestProject(BUNDLER)
+        project.createSourceFile("/shims.d.ts", 'declare module "somelib" {\n    export class Widget {\n        render(): void\n        name: string\n    }\n}\n')
+        project.createSourceFile("/a.ts", 'import {Widget} from "somelib"\nexport const f = (w: Widget) => w.render()\n')
+        project.createSourceFile("/b.ts", 'import {Widget} from "somelib"\nexport const g = (w: Widget) => w.render()\n')
+        project.createSourceFile("/c.ts", 'import {Widget} from "somelib"\nexport const h = (w: Widget) => w.name\n')
+
+        const entries = await refineList({project, log, paths: [], filters: {ref: "Widget.render"}})
+        const files = entries.map((e) => e.file)
+        assert.ok(files.includes("a.ts") && files.includes("b.ts"), `expected a.ts and b.ts, got ${files.join(", ")}`)
+        assert.ok(!files.includes("c.ts"), `c.ts uses .name, not .render: ${files.join(", ")}`)
+    })
 })
