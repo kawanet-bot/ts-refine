@@ -84,20 +84,22 @@ export function resolveReferenceTarget(project: Project, spec: string): Identifi
         return resolveTarget(project, spec, null).node
     }
 
-    // Fallback (list-only): the root is only imported. Resolve the dependency
-    // symbol it aliases and walk dotted members via the checker. The anchor may
-    // be a declaration in a dependency .d.ts — its references still include this
-    // project's uses (which is what the listing keeps).
-    let symbol = firstImportBinding(project, segments[0])?.getSymbol()
-    symbol = symbol?.getAliasedSymbol() ?? symbol
-    if (!symbol) throw new Error(`refine: no exported or imported identifier named: ${segments[0]}`)
+    // Fallback (list-only): a name the project only imports. A bare root anchors
+    // on the import binding itself (works even for an anonymous default export);
+    // a member path resolves the aliased dependency symbol and walks its members
+    // via the checker, then anchors on the member declaration.
+    const binding = firstImportBinding(project, segments[0])
+    if (!binding) throw new Error(`refine: no exported or imported identifier named: ${segments[0]}`)
+    if (segments.length === 1) return binding
+
+    let symbol = binding.getSymbol()?.getAliasedSymbol() ?? binding.getSymbol()
     for (let i = 1; i < segments.length; i++) {
-        const member = symbol.getExport(segments[i]) ?? symbol.getMember(segments[i])
+        const member = symbol?.getExport(segments[i]) ?? symbol?.getMember(segments[i])
         if (!member) throw new Error(`refine: ${segments.slice(0, i).join(".")} has no member named: ${segments[i]}`)
         symbol = member
     }
 
-    const node = symbolNameNode(symbol)
+    const node = symbol && symbolNameNode(symbol)
     if (!node) throw new Error(`refine: cannot resolve \`${spec}\` to a named declaration`)
     return node
 }

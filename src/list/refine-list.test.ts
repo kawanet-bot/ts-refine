@@ -232,6 +232,18 @@ describe("refineList --ref", () => {
         assert.ok(!files.includes("c.ts"), `c.ts uses .name, not .render: ${files.join(", ")}`)
     })
 
+    it("anchors a bare imported root on its binding, even for an anonymous default export", async () => {
+        // The dependency's default export has no name; anchoring on the local
+        // import binding still finds every file that uses it.
+        const project = initInMemoryTestProject(BUNDLER)
+        project.createSourceFile("/shims.d.ts", 'declare module "anon" {\n    export default function (): number\n}\n')
+        project.createSourceFile("/a.ts", 'import run from "anon"\nexport const x = run()\n')
+        project.createSourceFile("/b.ts", 'import run from "anon"\nexport const y = run()\n')
+
+        const files = (await refineList({project, log, paths: [], filters: {ref: "run"}})).map((e) => e.file)
+        assert.ok(files.includes("a.ts") && files.includes("b.ts"), `expected a.ts and b.ts, got ${files.join(", ")}`)
+    })
+
     it("resolves members of an imported (dependency) namespace, including nested types", async () => {
         // The same dotted forms that work for an in-project namespace must work
         // when the namespace is imported from a dependency.
