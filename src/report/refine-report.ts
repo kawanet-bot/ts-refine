@@ -30,11 +30,15 @@ export const refineReport: typeof declared.refineReport = async (opts) => {
         }
     }
 
+    const report: TSR.ReportResult = {}
+
+    // No reports requested: skip the project scan entirely.
+    if (requested.length === 0) return report
+
     // Select the in-project files once and share them across the reports, so
     // the project scan runs a single time instead of per report.
     const sourceFiles = selectSourceFiles(project, {paths})
 
-    const report: TSR.ReportResult = {}
     const reportOpts: ReportRunOpts = {sourceFiles, output, log}
 
     if (requested.includes("semicolons")) {
