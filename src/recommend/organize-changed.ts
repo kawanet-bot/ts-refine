@@ -10,13 +10,11 @@ import {applyOrganizeImports} from "../lib/organize-imports.ts"
 import {formatStyleToSettings} from "./format-settings.ts"
 
 export function organizeChangedImports(files: Iterable<SourceFile>, format: TSR.FormatStyle): void {
-    const resolved = formatStyleToSettings(format)
-
-    // Honor the organize-imports gate the same way refineFormat does: a
-    // `{organizeImports: "off"}` caller keeps its rewritten paths but skips the
-    // re-sort (and the type-only settling that feeds it) entirely.
-    if (!resolved.organizeImports) return
+    // move/rename always re-sort the files they rewrote — organizeImports is a
+    // `format`-only behavior flag and never gates this path. The surveyed style
+    // only supplies the sort settings.
+    const {formatSettings} = formatStyleToSettings(format)
     for (const sf of files) {
-        applyOrganizeImports(sf, resolved.formatSettings)
+        applyOrganizeImports(sf, formatSettings)
     }
 }

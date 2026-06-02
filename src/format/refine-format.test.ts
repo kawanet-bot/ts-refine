@@ -68,11 +68,11 @@ describe("refineFormat", () => {
         assert.equal(/unused/.test(text), false)
     })
 
-    it("skips organize-imports when format.organizeImports is 'off'", async () => {
+    it("skips organize-imports when organizeImports is 'off'", async () => {
         const project = initInMemoryTestProject()
         project.createSourceFile("dep.ts", "export const used = 1\nexport const unused = 2\n")
         const sf = project.createSourceFile("a.ts", "import {unused, used} from './dep.ts'\nconst x = used\n")
-        await refineFormat({project, log, dryRun: true, paths: [], format: {organizeImports: "off"}})
+        await refineFormat({project, log, dryRun: true, paths: [], organizeImports: "off", format: {}})
 
         // Without the organize pass, `unused` stays in the import list.
         assert.match(sf.getFullText(), /unused/)
@@ -82,7 +82,7 @@ describe("refineFormat", () => {
         const project = initInMemoryTestProject()
         project.createSourceFile("dep.ts", "export const a = 1\nexport const b = 2\n")
         const sf = project.createSourceFile("a.ts", "import {b, a} from './dep.ts'\nconst   x = a+b\n")
-        await refineFormat({project, log, dryRun: true, paths: [], format: {organizeImports: "only", semicolons: "on"}})
+        await refineFormat({project, log, dryRun: true, paths: [], organizeImports: "only", format: {semicolons: "on"}})
         const text = sf.getFullText()
 
         // imports are sorted...

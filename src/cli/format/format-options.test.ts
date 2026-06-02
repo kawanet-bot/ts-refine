@@ -4,10 +4,9 @@ import {mergeFormatStyles, overridesToFormatStyle, reportNamesForFormat} from ".
 
 describe("overridesToFormatStyle", () => {
     it("copies the override fields into options", () => {
-        const o = overridesToFormatStyle({indent: "tab", semicolons: "off", organizeImports: "off"})
+        const o = overridesToFormatStyle({indent: "tab", semicolons: "off"})
         assert.equal(o.indent, "tab")
         assert.equal(o.semicolons, "off")
-        assert.equal(o.organizeImports, "off")
     })
 })
 
@@ -36,9 +35,5 @@ describe("reportNamesForFormat", () => {
     it("returns an empty set when every surveyed field is pinned", () => {
         const all = {semicolons: "on", indent: 2, newLine: "lf", bracketSpacing: "off"} as const
         assert.deepEqual(reportNamesForFormat(all), [])
-    })
-
-    it("ignores organize-imports, which has no report to skip", () => {
-        assert.deepEqual(reportNamesForFormat({organizeImports: "off"}), ["semicolons", "indent", "new-line", "bracket-spacing"])
     })
 })

@@ -39,7 +39,7 @@ export const formatCLI: CLI = async (ctx) => {
     // `--check` reports without writing, so it forces dry-run; the per-file
     // list and summary are already on the log, so only the fix hint is added.
     const dryRun = common.dryRun || args.check
-    const result = await refineFormat({project, paths, dryRun, format, log})
+    const result = await refineFormat({project, paths, dryRun, organizeImports: args.organizeImports, format, log})
     if (args.check && result.touched.length > 0) {
         log.write("Run `ts-refine format` to fix.\n")
         return 1

@@ -45,12 +45,6 @@ describe("formatStyleToSettings", () => {
         assert.equal(r.formatSettings.newLineCharacter, "\r\n")
         assert.equal(r.newLineNormalize, "\r\n")
     })
-
-    it("organizeImports defaults to true and is suppressed only by off", () => {
-        assert.equal(formatStyleToSettings({}).organizeImports, true)
-        assert.equal(formatStyleToSettings({organizeImports: "on"}).organizeImports, true)
-        assert.equal(formatStyleToSettings({organizeImports: "off"}).organizeImports, false)
-    })
 })
 
 describe("normalizeNewLines", () => {

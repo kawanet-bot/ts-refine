@@ -72,9 +72,9 @@ describe("parseFormat", () => {
     })
 
     it("accepts --organize-imports on|off|only", () => {
-        assert.equal(parseFormatArgs(["--organize-imports", "on"], common())?.applyOverrides.organizeImports, "on")
-        assert.equal(parseFormatArgs(["--organize-imports", "off"], common())?.applyOverrides.organizeImports, "off")
-        assert.equal(parseFormatArgs(["--organize-imports", "only"], common())?.applyOverrides.organizeImports, "only")
+        assert.equal(parseFormatArgs(["--organize-imports", "on"], common())?.organizeImports, "on")
+        assert.equal(parseFormatArgs(["--organize-imports", "off"], common())?.organizeImports, "off")
+        assert.equal(parseFormatArgs(["--organize-imports", "only"], common())?.organizeImports, "only")
     })
 
     it("rejects bare --organize-imports without an on|off argument", () => {

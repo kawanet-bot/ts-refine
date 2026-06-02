@@ -10,9 +10,9 @@
 import type {TSR} from "ts-refine"
 import {applyReportNames} from "../../common/report-names.ts"
 
-// A CLI override pins a field, so surveying the matching report is redundant;
-// organizeImports has no report. reportNamesForFormat trims the apply set to
-// the reports still worth running — a fully-pinned format skips the survey.
+// A CLI override pins a field, so surveying the matching report is redundant.
+// reportNamesForFormat trims the apply set to the reports still worth running —
+// a fully-pinned format skips the survey.
 const reportByOverride: {field: keyof TSR.FormatStyle; report: TSR.ReportName}[] = [
     {field: "semicolons", report: "semicolons"},
     {field: "indent", report: "indent"},
@@ -29,7 +29,6 @@ export function reportNamesForFormat(overrides: TSR.FormatStyle): TSR.ReportName
 // the FormatStyle vocabulary; the shapes happen to line up today.
 export function overridesToFormatStyle(overrides: TSR.FormatStyle): TSR.FormatStyle {
     return {
-        organizeImports: overrides.organizeImports,
         indent: overrides.indent,
         semicolons: overrides.semicolons,
         newLine: overrides.newLine,
@@ -40,7 +39,6 @@ export function overridesToFormatStyle(overrides: TSR.FormatStyle): TSR.FormatSt
 // Per-field precedence: override wins over base, else base, else unset.
 export function mergeFormatStyles(base: TSR.FormatStyle, override: TSR.FormatStyle): TSR.FormatStyle {
     return {
-        organizeImports: override.organizeImports ?? base.organizeImports,
         indent: override.indent ?? base.indent,
         semicolons: override.semicolons ?? base.semicolons,
         newLine: override.newLine ?? base.newLine,
