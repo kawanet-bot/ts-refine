@@ -5,7 +5,7 @@
 // passed in, so they stay as-is until `format` unifies them.
 
 import type {FormatCodeSettings, SourceFile} from "ts-morph"
-import {formatSettingsForFiles} from "./format-settings.ts"
+import {formatSettingsForFile} from "./format-settings.ts"
 import {applyOrganizeImports} from "./organize-imports.ts"
 
 // Survey each file's organize settings now (before move/rename edits), keyed
@@ -15,7 +15,7 @@ import {applyOrganizeImports} from "./organize-imports.ts"
 export async function resolveImportSettings(files: Iterable<SourceFile>): Promise<Map<SourceFile, FormatCodeSettings>> {
     const byFile = new Map<SourceFile, FormatCodeSettings>()
     for (const sf of files) {
-        byFile.set(sf, await formatSettingsForFiles([sf], true))
+        byFile.set(sf, await formatSettingsForFile(sf))
     }
     return byFile
 }
