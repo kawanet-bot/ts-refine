@@ -20,6 +20,19 @@ describe("refineImports", () => {
         assert.equal(/unused/.test(text), false)
     })
 
+    it("organizes with the LS defaults when format is omitted", async () => {
+        const project = initInMemoryTestProject()
+        project.createSourceFile("dep.ts", "export const used = 1\nexport const unused = 2\n")
+        const sf = project.createSourceFile("a.ts", "import {unused, used} from './dep.ts'\nconst x = used\n")
+
+        // No `format`: organizes with the TS language service defaults.
+        await refineImports({project, log, dryRun: true, paths: []})
+
+        const text = sf.getFullText()
+        assert.match(text, /import \{ ?used ?\}/)
+        assert.equal(/unused/.test(text), false)
+    })
+
     it("organizes imports but does not reformat the surrounding text", async () => {
         const project = initInMemoryTestProject()
         project.createSourceFile("dep.ts", "export const a = 1\nexport const b = 2\n")

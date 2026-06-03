@@ -11,17 +11,18 @@ import {formatStyleToSettings} from "./format-settings.ts"
 
 // One style for every file, or a resolver the caller invokes at each file's
 // current path. move samples this before relocation (a moved file is reported
-// at its original path); see refineMove.
+// at its original path); see refineMove. Omitted means the empty style, i.e.
+// the TS language service defaults.
 type FormatStyleSource = TSR.FormatStyle | ((file: string) => Promise<TSR.FormatStyle>)
 
 // Sample each file's organize settings now (before move/rename edits), keyed
 // by SourceFile — not its path — so a later move() that repaths the node still
-// resolves to the right entry. A static style maps every file to the same
-// settings without per-file work.
-export async function resolveFormatByFile(files: Iterable<SourceFile>, format: FormatStyleSource): Promise<Map<SourceFile, FormatCodeSettings>> {
+// resolves to the right entry. A static (or omitted) style maps every file to
+// the same settings without per-file work.
+export async function resolveFormatByFile(files: Iterable<SourceFile>, format?: FormatStyleSource): Promise<Map<SourceFile, FormatCodeSettings>> {
     const byFile = new Map<SourceFile, FormatCodeSettings>()
     if (typeof format !== "function") {
-        const {formatSettings} = formatStyleToSettings(format)
+        const {formatSettings} = formatStyleToSettings(format ?? {})
         for (const sf of files) byFile.set(sf, formatSettings)
         return byFile
     }

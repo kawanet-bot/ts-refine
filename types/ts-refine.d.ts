@@ -111,11 +111,12 @@ export declare namespace TSR {
     // merge, drop unused, settle type-only markers) without reformatting the
     // surrounding text. `format` supplies the sort settings — one style, or a
     // per-file resolver so each file keeps its own conventions and the project's
-    // existing style barely shifts.
+    // existing style barely shifts. Omit it to organize with the TS language
+    // service defaults (no project survey; the CLI always passes a surveyed one).
     interface ImportsOpts extends CommonOpts {
         paths: string[]
         dryRun: boolean
-        format: FormatStyle | ((file: string) => Promise<FormatStyle>)
+        format?: FormatStyle | ((file: string) => Promise<FormatStyle>)
     }
 
     // refineImports returns the in-project files whose import block was rewritten,
@@ -194,12 +195,13 @@ export declare namespace TSR {
     // source files; `dest` is an existing directory (multi-source) or a
     // destination file path (single-source rename). After moving, the changed
     // files are re-sorted (organizeImports) using `format`: a single style, or
-    // a per-file resolver sampled at each file's pre-move path.
+    // a per-file resolver sampled at each file's pre-move path. Omit it to
+    // re-sort with the TS language service defaults (no project survey).
     interface MoveOpts extends CommonOpts {
         sources: string[]
         dest: string
         dryRun: boolean
-        format: FormatStyle | ((file: string) => Promise<FormatStyle>)
+        format?: FormatStyle | ((file: string) => Promise<FormatStyle>)
     }
 
     // refineMove returns the planned moves (from → to) and the set of in-project
@@ -215,13 +217,14 @@ export declare namespace TSR {
     // (ns.member, Type.prop, ns.Type.prop) renames a member of a matching
     // container. `file` scopes the lookup; null requires a project-unique symbol.
     // Touched files' imports are re-sorted (organizeImports) using `format`:
-    // a single style, or a per-file resolver keyed on each file's path.
+    // a single style, or a per-file resolver keyed on each file's path. Omit it
+    // to re-sort with the TS language service defaults (no project survey).
     interface RenameOpts extends CommonOpts {
         from: string
         to: string
         file: string | null
         dryRun: boolean
-        format: FormatStyle | ((file: string) => Promise<FormatStyle>)
+        format?: FormatStyle | ((file: string) => Promise<FormatStyle>)
     }
 
     // refineRename returns the applied rename and the in-project files whose text
