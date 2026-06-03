@@ -32,7 +32,7 @@ export const refineImports: typeof declared.refineImports = async (opts) => {
         const filePath = sf.getFilePath()
         const before = sf.getFullText()
 
-        const {settings} = await resolveSettings(filePath)
+        const settings = await resolveSettings(filePath)
         applyOrganizeImports(sf, settings)
 
         const after = sf.getFullText()

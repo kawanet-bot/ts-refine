@@ -33,15 +33,16 @@ export const refineFormat: typeof declared.refineFormat = async (opts) => {
         // Resolve this file's settings (per-file under a resolver; the shared
         // precomputed value otherwise). format does not repath files, so the
         // current path is enough.
-        const {settings, newLine} = await resolveSettings(filePath)
+        const settings = await resolveSettings(filePath)
 
         sf.formatText(settings)
 
         // LS `newLineCharacter` only governs inserted text; existing
-        // terminators are normalized here. Push the result back into the
-        // SourceFile so in-memory state matches what gets written.
+        // terminators are normalized here to the same target. Push the result
+        // back into the SourceFile so in-memory state matches what gets written.
         let after = sf.getFullText()
-        if (newLine !== undefined) {
+        const newLine = settings.newLineCharacter
+        if (newLine === "\n" || newLine === "\r\n") {
             const normalized = normalizeNewLines(after, newLine)
             if (normalized !== after) {
                 sf.replaceWithText(normalized)

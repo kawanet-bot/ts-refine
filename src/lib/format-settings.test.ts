@@ -6,44 +6,40 @@ import {formatStyleToSettings, normalizeNewLines} from "./format-settings.ts"
 describe("formatStyleToSettings", () => {
     it("maps a numeric indent to indentSize/tabSize + convertTabsToSpaces", () => {
         const r = formatStyleToSettings({indent: 2})
-        assert.equal(r.settings.indentSize, 2)
-        assert.equal(r.settings.tabSize, 2)
-        assert.equal(r.settings.convertTabsToSpaces, true)
+        assert.equal(r.indentSize, 2)
+        assert.equal(r.tabSize, 2)
+        assert.equal(r.convertTabsToSpaces, true)
     })
 
     it("maps indent=tab → convertTabsToSpaces:false without indentSize", () => {
         const r = formatStyleToSettings({indent: "tab"})
-        assert.equal(r.settings.convertTabsToSpaces, false)
-        assert.equal(r.settings.indentSize, undefined)
-        assert.equal(r.settings.tabSize, undefined)
+        assert.equal(r.convertTabsToSpaces, false)
+        assert.equal(r.indentSize, undefined)
+        assert.equal(r.tabSize, undefined)
     })
 
     it("leaves indent fields undefined when indent is unset", () => {
         const r = formatStyleToSettings({})
-        assert.equal(r.settings.indentSize, undefined)
-        assert.equal(r.settings.convertTabsToSpaces, undefined)
+        assert.equal(r.indentSize, undefined)
+        assert.equal(r.convertTabsToSpaces, undefined)
     })
 
     it("maps semicolons on/off to the SemicolonPreference", () => {
-        assert.equal(formatStyleToSettings({semicolons: "on"}).settings.semicolons, ts.SemicolonPreference.Insert)
-        assert.equal(formatStyleToSettings({semicolons: "off"}).settings.semicolons, ts.SemicolonPreference.Remove)
+        assert.equal(formatStyleToSettings({semicolons: "on"}).semicolons, ts.SemicolonPreference.Insert)
+        assert.equal(formatStyleToSettings({semicolons: "off"}).semicolons, ts.SemicolonPreference.Remove)
     })
 
     it("maps bracketSpacing on/off to the brace-padding flag", () => {
-        assert.equal(formatStyleToSettings({bracketSpacing: "on"}).settings.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces, true)
-        assert.equal(formatStyleToSettings({bracketSpacing: "off"}).settings.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces, false)
+        assert.equal(formatStyleToSettings({bracketSpacing: "on"}).insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces, true)
+        assert.equal(formatStyleToSettings({bracketSpacing: "off"}).insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces, false)
     })
 
-    it("maps newLine lf → \\n + normalize target", () => {
-        const r = formatStyleToSettings({newLine: "lf"})
-        assert.equal(r.settings.newLineCharacter, "\n")
-        assert.equal(r.newLine, "\n")
+    it("maps newLine lf → \\n in newLineCharacter", () => {
+        assert.equal(formatStyleToSettings({newLine: "lf"}).newLineCharacter, "\n")
     })
 
-    it("maps newLine crlf → \\r\\n + normalize target", () => {
-        const r = formatStyleToSettings({newLine: "crlf"})
-        assert.equal(r.settings.newLineCharacter, "\r\n")
-        assert.equal(r.newLine, "\r\n")
+    it("maps newLine crlf → \\r\\n in newLineCharacter", () => {
+        assert.equal(formatStyleToSettings({newLine: "crlf"}).newLineCharacter, "\r\n")
     })
 })
 
