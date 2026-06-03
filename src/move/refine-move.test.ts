@@ -44,6 +44,18 @@ describe("refineMove (in-memory, dry-run)", () => {
         )
     })
 
+    it("re-sorts touched imports with the LS defaults when format is omitted", async () => {
+        const project = newProject()
+        project.createSourceFile("/src/a.ts", "export const x = 1\n")
+        const b = project.createSourceFile("/src/b.ts", 'import {x} from "./a.ts"\nconst _ = x\n')
+
+        // No `format`: re-sorts touched imports with the TS language service defaults.
+        const result = await refineMove({project, log, sources: ["/src/a.ts"], dest: "/src/sub/", dryRun: true})
+
+        assert.deepEqual(result.moves, [{from: "/src/a.ts", to: "/src/sub/a.ts"}])
+        assert.match(b.getFullText(), /import \{ ?x ?\} from "\.\/sub\/a\.ts"/)
+    })
+
     it("preserves the mandatory `.json` extension when moving a file that imports JSON", async () => {
         const project = initInMemoryTestProject({
             module: ts.ModuleKind.ESNext,

@@ -30,6 +30,20 @@ describe("refineRename", () => {
         assert.deepEqual([...result.touched].sort(), ["/imp.ts", "/libs.ts"])
     })
 
+    it("renames with the LS defaults when format is omitted", async () => {
+        const project = newProject()
+        const libs = project.createSourceFile("/libs.ts", "export function funcA() { return 1 }\n")
+        const imp = project.createSourceFile("/imp.ts", 'import {funcA} from "./libs.ts"\nconst _ = funcA()\n')
+
+        // No `format`: re-sorts touched imports with the TS language service defaults.
+        const result = await refineRename({project, log, from: "funcA", to: "funcB", file: null, dryRun: true})
+
+        assert.equal(libs.getFullText(), "export function funcB() { return 1 }\n")
+        assert.match(imp.getFullText(), /import \{ ?funcB ?\} from "\.\/libs\.ts"/)
+        assert.match(imp.getFullText(), /const _ = funcB\(\)/)
+        assert.deepEqual([...result.touched].sort(), ["/imp.ts", "/libs.ts"])
+    })
+
     it("renames only the imported binding, keeping an importer's alias", async () => {
         const project = newProject()
         project.createSourceFile("/libs.ts", "export function funcA() { return 1 }\n")
