@@ -71,8 +71,8 @@ describe("parseFormat", () => {
         assert.equal(parseFormatArgs(["--bracket-spacing", "off"], common())?.applyOverrides.bracketSpacing, "off")
     })
 
-    it("rejects --organize-imports, now removed in favor of the imports command", () => {
-        assert.throws(() => parseFormatArgs(["--organize-imports", "only"], common()), /unknown option/)
+    it("rejects --organize-imports with a redirect to the imports command", () => {
+        assert.throws(() => parseFormatArgs(["--organize-imports", "only"], common()), /--organize-imports was removed; use `ts-refine imports` instead/)
     })
 
     it("consumes a trailing --dry-run into the common args", () => {

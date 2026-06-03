@@ -26,7 +26,11 @@ export function parseFormatArgs(sub: string[], common: CommonArgs): FormatArgs |
         }
 
         const a = sub[i]
-        if (a === "--semicolons") {
+        if (a === "--organize-imports") {
+            // Removed: organizing imports is now its own command. Named back
+            // explicitly so existing scripts get a redirect, not "unknown option".
+            throw new Error("--organize-imports was removed; use `ts-refine imports` instead")
+        } else if (a === "--semicolons") {
             const v = sub[i + 1]
             if (v !== "on" && v !== "off") {
                 throw new Error(`--semicolons expects 'on' or 'off'; got: ${v ?? "(missing)"}`)
