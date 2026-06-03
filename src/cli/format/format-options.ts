@@ -3,7 +3,7 @@
 // the ts-refine command output and the actual apply derive from one
 // value — guaranteeing they agree. The pipeline is:
 //   ReportResult ── reportToFormatStyle────┐
-//                                          ├─ mergeFormatStyles ── formatStyleToSettings ─▶ FormatSettings
+//                                          ├─ mergeFormatStyles ── formatStyleToSettings ─▶ FormatCodeSettings
 //   FormatStyle ── overridesToFormatStyle──┘
 // and buildFormatTokens renders the same FormatStyle back to argv.
 

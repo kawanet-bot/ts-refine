@@ -61,12 +61,6 @@ export declare namespace TSR {
         // recommendations only (callers that just want the ReportResult).
         output?: Writer
         reportNames: ReportName[]
-
-        // Restrict the brace/semicolon tallies to import/export statements
-        // (default false = whole file). The per-file imports/move/rename surveys
-        // set this so the recommendation reflects only the lines those commands
-        // actually rewrite.
-        importsOnly?: boolean
     }
 
     // Per-report recommendations. A missing key means the report didn't run
@@ -92,12 +86,11 @@ export declare namespace TSR {
 
     // Input to `refineFormat`: the style to apply (survey recommendation + CLI
     // overrides). Reformats the surrounding text only; organizing imports is the
-    // separate `imports` command. `format` is one style for the whole run, or a
-    // per-file resolver so each file can follow its own conventions.
+    // separate `imports` command. `format` is one style applied to the whole run.
     interface FormatOpts extends CommonOpts {
         paths: string[]
         dryRun: boolean
-        format: FormatStyle | ((file: string) => Promise<FormatStyle>)
+        format: FormatStyle
     }
 
     // refineFormat returns the in-project files whose text was rewritten, so a
@@ -109,14 +102,11 @@ export declare namespace TSR {
 
     // Input to `refineImports`: organize each file's import/export block (sort,
     // merge, drop unused, settle type-only markers) without reformatting the
-    // surrounding text. `format` supplies the sort settings — one style, or a
-    // per-file resolver so each file keeps its own conventions and the project's
-    // existing style barely shifts. Omit it to organize with the TS language
-    // service defaults (no project survey; the CLI always passes a surveyed one).
+    // surrounding text. Each file is surveyed on its own (import/export tallies)
+    // and organized in that style, so the project's existing style barely shifts.
     interface ImportsOpts extends CommonOpts {
         paths: string[]
         dryRun: boolean
-        format?: FormatStyle | ((file: string) => Promise<FormatStyle>)
     }
 
     // refineImports returns the in-project files whose import block was rewritten,
@@ -193,15 +183,13 @@ export declare namespace TSR {
 
     // Input to `refineMove`. `sources` are absolute paths of existing project
     // source files; `dest` is an existing directory (multi-source) or a
-    // destination file path (single-source rename). After moving, the changed
-    // files are re-sorted (organizeImports) using `format`: a single style, or
-    // a per-file resolver sampled at each file's pre-move path. Omit it to
-    // re-sort with the TS language service defaults (no project survey).
+    // destination file path (single-source rename). After moving, each changed
+    // file's import block is re-sorted in that file's own surveyed style,
+    // sampled from its pre-move state.
     interface MoveOpts extends CommonOpts {
         sources: string[]
         dest: string
         dryRun: boolean
-        format?: FormatStyle | ((file: string) => Promise<FormatStyle>)
     }
 
     // refineMove returns the planned moves (from → to) and the set of in-project
@@ -216,15 +204,13 @@ export declare namespace TSR {
     // Input to `refineRename`. Renames `from` to `to` in place; a dotted spec
     // (ns.member, Type.prop, ns.Type.prop) renames a member of a matching
     // container. `file` scopes the lookup; null requires a project-unique symbol.
-    // Touched files' imports are re-sorted (organizeImports) using `format`:
-    // a single style, or a per-file resolver keyed on each file's path. Omit it
-    // to re-sort with the TS language service defaults (no project survey).
+    // Each touched file's import block is re-sorted in that file's own surveyed
+    // style.
     interface RenameOpts extends CommonOpts {
         from: string
         to: string
         file: string | null
         dryRun: boolean
-        format?: FormatStyle | ((file: string) => Promise<FormatStyle>)
     }
 
     // refineRename returns the applied rename and the in-project files whose text

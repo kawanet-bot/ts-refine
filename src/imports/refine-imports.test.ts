@@ -1,7 +1,6 @@
 import {strict as assert} from "node:assert"
 import path from "node:path"
 import {describe, it} from "node:test"
-import type {TSR} from "ts-refine"
 import {initInMemoryTestProject, initTestProject} from "../test-utils/init-test-project.ts"
 import {refineImports} from "./refine-imports.ts"
 
@@ -15,23 +14,10 @@ describe("refineImports", () => {
         const project = initInMemoryTestProject()
         project.createSourceFile("dep.ts", "export const used = 1\nexport const unused = 2\n")
         const sf = project.createSourceFile("a.ts", "import {unused, used} from './dep.ts'\nconst x = used\n")
-        await refineImports({project, log, dryRun: true, paths: [], format: {}})
+        await refineImports({project, log, dryRun: true, paths: []})
 
         // Assertion only checks the dropped name and surviving import;
         // brace-spacing is not pinned here.
-        const text = sf.getFullText()
-        assert.match(text, /import \{ ?used ?\}/)
-        assert.equal(/unused/.test(text), false)
-    })
-
-    it("organizes with the LS defaults when format is omitted", async () => {
-        const project = initInMemoryTestProject()
-        project.createSourceFile("dep.ts", "export const used = 1\nexport const unused = 2\n")
-        const sf = project.createSourceFile("a.ts", "import {unused, used} from './dep.ts'\nconst x = used\n")
-
-        // No `format`: organizes with the TS language service defaults.
-        await refineImports({project, log, dryRun: true, paths: []})
-
         const text = sf.getFullText()
         assert.match(text, /import \{ ?used ?\}/)
         assert.equal(/unused/.test(text), false)
@@ -41,7 +27,7 @@ describe("refineImports", () => {
         const project = initInMemoryTestProject()
         project.createSourceFile("dep.ts", "export const a = 1\nexport const b = 2\n")
         const sf = project.createSourceFile("a.ts", "import {b, a} from './dep.ts'\nconst   x = a+b\n")
-        await refineImports({project, log, dryRun: true, paths: [], format: {semicolons: "on"}})
+        await refineImports({project, log, dryRun: true, paths: []})
         const text = sf.getFullText()
 
         // imports are sorted...
@@ -51,15 +37,15 @@ describe("refineImports", () => {
         assert.match(text, /const {3}x = a\+b\n/)
     })
 
-    it("organizes each file in its own style under a per-file resolver", async () => {
+    it("organizes each file in its own surveyed style", async () => {
         const project = initInMemoryTestProject()
         project.createSourceFile("dep.ts", "export const a = 1\nexport const b = 2\n")
-        const x = project.createSourceFile("x.ts", "import {b, a} from './dep.ts'\nconst   _ = a+b\n")
-        const y = project.createSourceFile("y.ts", "import {b, a} from './dep.ts'\nconst   _ = a+b\n")
 
-        // x.ts keeps spaced braces, y.ts keeps tight braces — each its own.
-        const format = (file: string): Promise<TSR.FormatStyle> => Promise.resolve(file.includes("x.ts") ? {bracketSpacing: "on"} : {bracketSpacing: "off"})
-        await refineImports({project, log, dryRun: true, paths: [], format})
+        // x.ts already uses spaced braces, y.ts tight — each is surveyed alone, so
+        // organizing keeps that file's own brace style.
+        const x = project.createSourceFile("x.ts", "import { b, a } from './dep.ts'\nconst   _ = a+b\n")
+        const y = project.createSourceFile("y.ts", "import {b, a} from './dep.ts'\nconst   _ = a+b\n")
+        await refineImports({project, log, dryRun: true, paths: []})
 
         // imports sorted in each file's own brace style...
         assert.match(x.getFullText(), /import \{ a, b \}/)
@@ -74,7 +60,7 @@ describe("refineImports", () => {
         const project = initInMemoryTestProject()
         project.createSourceFile("dep.ts", "export const used = 1\nexport const unused = 2\n")
         const sf = project.createSourceFile("a.ts", "import {unused, used} from './dep.ts'\nconst x = used\n")
-        await refineImports({project, log, dryRun: true, paths: [], format: {}})
+        await refineImports({project, log, dryRun: true, paths: []})
 
         // No throw → no real-fs write attempt; in-memory FS would have surfaced it.
         assert.equal(/unused/.test(sf.getFullText()), false)
@@ -84,11 +70,11 @@ describe("refineImports", () => {
         const project = initInMemoryTestProject()
         project.createSourceFile("dep.ts", "export const used = 1\nexport const unused = 2\n")
         const sf = project.createSourceFile("a.ts", "import {unused, used} from './dep.ts'\nconst x = used\n")
-        const changed = await refineImports({project, log, dryRun: true, paths: [], format: {}})
+        const changed = await refineImports({project, log, dryRun: true, paths: []})
         assert.deepEqual(changed.touched, [sf.getFilePath()])
 
         // The same pass over the now-organized in-memory state changes nothing.
-        const again = await refineImports({project, log, dryRun: true, paths: [], format: {}})
+        const again = await refineImports({project, log, dryRun: true, paths: []})
         assert.deepEqual(again.touched, [])
     })
 })
@@ -102,7 +88,7 @@ describe("refineImports (dry-run, sample/basic)", () => {
         const before = project.getSourceFile(INDEX)!.getFullText()
         assert.ok(before.indexOf("./used.js") < before.indexOf("./partial.js"), "fixture should start with ./used.js before ./partial.js")
 
-        await refineImports({project, log, dryRun: true, paths: [], format: {}})
+        await refineImports({project, log, dryRun: true, paths: []})
 
         const after = project.getSourceFile(INDEX)!.getFullText()
         const pPos = after.indexOf("./partial.js")
@@ -111,15 +97,13 @@ describe("refineImports (dry-run, sample/basic)", () => {
         assert.ok(pPos < uPos, "after organize, ./partial.js must precede ./used.js")
     })
 
-    it("uses braces without surrounding spaces (`{A}` style) when bracket-spacing off is in effect", async () => {
+    it("keeps the file's own brace style (tight `{A}` here, surveyed per file)", async () => {
         const project = initTestProject(SAMPLE_TSCONFIG)
-
-        // Brace style is driven by the supplied format settings; pin it off here.
-        await refineImports({project, log, dryRun: true, paths: [], format: {bracketSpacing: "off"}})
+        await refineImports({project, log, dryRun: true, paths: []})
 
         const text = project.getSourceFile(INDEX)!.getFullText()
 
-        // `{ usedConst,` with a leading space would indicate brace-spacing on.
+        // index.ts uses tight braces, so the per-file survey keeps them tight.
         assert.ok(/import\s*\{usedConst/.test(text), `expected {A} style; got: ${text}`)
     })
 })

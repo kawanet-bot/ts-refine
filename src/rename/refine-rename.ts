@@ -11,12 +11,12 @@ import {Node, type Project, type SourceFile} from "ts-morph"
 import type * as declared from "ts-refine"
 import {resolveProject} from "../common/init-project.ts"
 import {logging} from "../common/logging.ts"
-import {organizeChangedImports, resolveFormatByFile} from "../lib/organize-changed.ts"
+import {organizeChangedImports, resolveImportSettings} from "../lib/organize-changed.ts"
 import {parseTarget, resolveInProjectAnchors} from "../lib/resolve-target.ts"
 import {displayPath} from "../lib/source-files.ts"
 
 export const refineRename: typeof declared.refineRename = async (opts) => {
-    const {from, to, file, dryRun, format, log} = opts
+    const {from, to, file, dryRun, log} = opts
     const project = resolveProject(opts)
 
     // parseTarget validates both identifiers (a `refine: not a valid identifier`
@@ -52,7 +52,7 @@ export const refineRename: typeof declared.refineRename = async (opts) => {
     // Sample each file's organize style before the rename edits anything, so it
     // reflects the file's pristine state — mirrors move's pre-move sampling.
     // Keyed by SourceFile; applied after the rename.
-    const stylesByFile = await resolveFormatByFile(targetFiles, format)
+    const stylesByFile = await resolveImportSettings(targetFiles)
 
     node.rename(toT.name)
 
