@@ -28,7 +28,7 @@ describe("applyTypeOnlyFixes via refineImports (verbatimModuleSyntax on)", () =>
     it("fires all three fixes end-to-end without touching disk", async () => {
         const project = initTestProject(VERBATIM_TSCONFIG)
 
-        await refineImports({project, log, dryRun: true, paths: [], format: {}})
+        await refineImports({project, log, dryRun: true, paths: []})
 
         // convertToTypeOnlyImport: Shape gets an inline `type` marker.
         const consume = read(project, VERBATIM_TSCONFIG, "src/consume.ts")
@@ -53,7 +53,7 @@ describe("applyTypeOnlyFixes via refineImports (isolatedModules only)", () => {
     it("converts the export side but leaves imports (import fix needs verbatim)", async () => {
         const project = initTestProject(ISOLATED_TSCONFIG)
 
-        await refineImports({project, log, dryRun: true, paths: [], format: {}})
+        await refineImports({project, log, dryRun: true, paths: []})
 
         // The gate lets isolatedModules through; convertToTypeOnlyExport fires.
         const reexport = read(project, ISOLATED_TSCONFIG, "src/reexport.ts")

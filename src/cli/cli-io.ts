@@ -1,5 +1,4 @@
-// CLI I/O plumbing: the Context box every command runner receives, and the
-// NULL_SINK the write commands route the report Markdown they don't print into.
+// CLI I/O plumbing: the Context box every command runner receives.
 
 import type {TSR} from "ts-refine"
 import type {CommonArgs} from "./parse-common-args.ts"
@@ -20,6 +19,3 @@ export interface Context {
     output: TSR.Writer
     log: TSR.Writer
 }
-
-// Swallows the Markdown stream in the write modes; the runner consumes it.
-export const NULL_SINK: TSR.Writer = {write: () => {}}

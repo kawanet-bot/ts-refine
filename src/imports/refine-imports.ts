@@ -7,18 +7,13 @@ import fs from "node:fs/promises"
 import type * as declared from "ts-refine"
 import {resolveProject} from "../common/init-project.ts"
 import {logging} from "../common/logging.ts"
-import {perFileSettings} from "../lib/format-settings.ts"
+import {formatSettingsForFiles} from "../lib/format-settings.ts"
 import {applyOrganizeImports} from "../lib/organize-imports.ts"
 import {selectSourceFiles} from "../lib/source-files.ts"
 
 export const refineImports: typeof declared.refineImports = async (opts) => {
-    const {dryRun, paths, format, log} = opts
+    const {dryRun, paths, log} = opts
     const project = resolveProject(opts)
-
-    // One style for the whole run, or a per-file resolver (the CLI surveys each
-    // file alone so it keeps its own conventions). imports never repaths files,
-    // so the current path is enough to resolve a file's settings.
-    const resolveSettings = perFileSettings(format)
 
     const sourceFiles = selectSourceFiles(project, {paths})
 
@@ -32,7 +27,9 @@ export const refineImports: typeof declared.refineImports = async (opts) => {
         const filePath = sf.getFilePath()
         const before = sf.getFullText()
 
-        const settings = await resolveSettings(filePath)
+        // Survey this file alone (imports-only) so it organizes in its own
+        // existing style and the project's formatting barely shifts.
+        const settings = await formatSettingsForFiles([sf], true)
         applyOrganizeImports(sf, settings)
 
         const after = sf.getFullText()

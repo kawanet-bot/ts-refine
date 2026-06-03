@@ -20,7 +20,7 @@ import {type ExportDeclaration, type ImportDeclaration, Node, type Project, type
 import type * as declared from "ts-refine"
 import {resolveProject} from "../common/init-project.ts"
 import {logging} from "../common/logging.ts"
-import {organizeChangedImports, resolveFormatByFile} from "../lib/organize-changed.ts"
+import {organizeChangedImports, resolveImportSettings} from "../lib/organize-changed.ts"
 import {displayPath, inProjectSourceFiles} from "../lib/source-files.ts"
 
 // One captured module specifier whose target is moving. Held by AST node
@@ -49,7 +49,7 @@ function withExtension(specifier: string, ext: string): string {
 }
 
 export const refineMove: typeof declared.refineMove = async (opts) => {
-    const {sources, dest, dryRun, format, log} = opts
+    const {sources, dest, dryRun, log} = opts
     const project = resolveProject(opts)
 
     const plan = planMoves(project, sources, dest)
@@ -64,7 +64,7 @@ export const refineMove: typeof declared.refineMove = async (opts) => {
     // repaths it. Keyed by SourceFile so the map stays valid across move().
     const importChangedFiles = new Set<SourceFile>()
     for (const r of records) importChangedFiles.add(r.node.getSourceFile())
-    const stylesByFile = await resolveFormatByFile(importChangedFiles, format)
+    const stylesByFile = await resolveImportSettings(importChangedFiles)
 
     // Apply each move in turn. ts-morph keeps cross-file references in sync
     // — including the moved file's own outgoing relative paths.

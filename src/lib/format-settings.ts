@@ -1,27 +1,17 @@
 import type {FormatCodeSettings, SourceFile} from "ts-morph"
 import {ts} from "ts-morph"
 import type {TSR} from "ts-refine"
-import {NULL_SINK} from "../cli/cli-io.ts"
 import {reportToFormatStyle} from "../common/format-style.ts"
+import {NULL_SINK} from "../common/logging.ts"
 import {applyReportNames} from "../common/report-names.ts"
 import {runReports} from "../report/refine-report.ts"
 
-// A run's `format` is one style for everyone, or a per-file resolver. Returns a
-// per-file accessor so callers loop uniformly: a static style is converted once
-// here, a resolver is surveyed lazily inside the loop. Shared by refineFormat
-// (per-file under `format`) and refineImports. Omitted `format` means the empty
-// style, i.e. the TS language service defaults.
-export function perFileSettings(format?: TSR.FormatStyle | ((file: string) => Promise<TSR.FormatStyle>)): (file: string) => Promise<FormatCodeSettings> {
-    if (typeof format === "function") return (file) => format(file).then(formatStyleToSettings)
-    const settings = formatStyleToSettings(format ?? {})
-    return () => Promise.resolve(settings)
-}
-
-export const formatSettingsForFiles = async (sourceFiles: SourceFile[], importsOnly: boolean) => {
+// Survey the given files (whole-file, or import/export statements only when
+// importsOnly) and convert the recommended style to ts-morph settings. The
+// write commands call this per file so each keeps its own existing conventions.
+export const formatSettingsForFiles = async (sourceFiles: SourceFile[], importsOnly: boolean): Promise<FormatCodeSettings> => {
     const report = await runReports({sourceFiles, importsOnly, log: NULL_SINK}, applyReportNames)
-
     const style = reportToFormatStyle(report)
-
     return formatStyleToSettings(style)
 }
 
