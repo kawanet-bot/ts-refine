@@ -6,8 +6,8 @@
 
 import type {FormatCodeSettings, SourceFile} from "ts-morph"
 import type {TSR} from "ts-refine"
-import {applyOrganizeImports} from "../lib/organize-imports.ts"
 import {formatStyleToSettings} from "./format-settings.ts"
+import {applyOrganizeImports} from "./organize-imports.ts"
 
 // One style for every file, or a resolver the caller invokes at each file's
 // current path. move samples this before relocation (a moved file is reported
