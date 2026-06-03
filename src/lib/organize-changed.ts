@@ -22,13 +22,13 @@ type FormatStyleSource = TSR.FormatStyle | ((file: string) => Promise<TSR.Format
 export async function resolveFormatByFile(files: Iterable<SourceFile>, format?: FormatStyleSource): Promise<Map<SourceFile, FormatCodeSettings>> {
     const byFile = new Map<SourceFile, FormatCodeSettings>()
     if (typeof format !== "function") {
-        const {formatSettings} = formatStyleToSettings(format ?? {})
-        for (const sf of files) byFile.set(sf, formatSettings)
+        const {settings} = formatStyleToSettings(format ?? {})
+        for (const sf of files) byFile.set(sf, settings)
         return byFile
     }
     for (const sf of files) {
-        const {formatSettings} = formatStyleToSettings(await format(sf.getFilePath()))
-        byFile.set(sf, formatSettings)
+        const {settings} = formatStyleToSettings(await format(sf.getFilePath()))
+        byFile.set(sf, settings)
     }
     return byFile
 }
