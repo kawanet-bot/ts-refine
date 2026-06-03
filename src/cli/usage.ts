@@ -55,6 +55,7 @@ export function usage(): string {
         "                              declarations across every file (or the given",
         "                              files). Each file follows its own surveyed",
         "                              style, so the project's formatting barely shifts.",
+        "  --check                     Report only; exit non-zero if any file would change",
         "",
         "report (read; the primary mode):",
         "  report                      Run every report and print the survey Markdown",
