@@ -193,6 +193,9 @@ npx ts-refine imports
 # preview the changes without writing
 npx ts-refine imports --dry-run
 
+# report only, exiting non-zero if any file would change (for CI)
+npx ts-refine imports --check
+
 # organize only the given files
 npx ts-refine imports src/foo.ts src/bar.ts
 ```

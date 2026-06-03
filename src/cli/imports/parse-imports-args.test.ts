@@ -20,6 +20,18 @@ describe("parseImports", () => {
         assert.deepEqual(r.paths, ["a.ts", "b.ts"])
     })
 
+    it("parses --check as a raw flag, defaulting to false", () => {
+        assert.equal(parseImportsArgs([], common())?.check, false)
+        assert.equal(parseImportsArgs(["--check"], common())?.check, true)
+    })
+
+    it("does not force dry-run in the parser (the runner derives it from --check)", () => {
+        // The parser stays side-effect free: --check must not flip common.dryRun.
+        const c = common()
+        parseImportsArgs(["--check"], c)
+        assert.equal(c.dryRun, false)
+    })
+
     it("consumes a trailing --dry-run into the common args", () => {
         const c = common()
         assert.ok(parseImportsArgs(["--dry-run"], c))

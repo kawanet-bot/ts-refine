@@ -108,6 +108,15 @@ describe("refineCLI", () => {
         assert.match(r.stderr, /imports: would change/)
     })
 
+    it("exits non-zero with a fix hint when imports --check finds changes", async () => {
+        const r = await run(["imports", "--check", "-p", SAMPLE])
+        assert.notEqual(r.status, 0)
+
+        // --check writes nothing (would-change), then points at the fix.
+        assert.match(r.stderr, /imports: would change/)
+        assert.match(r.stderr, /Run `ts-refine imports` to fix\./)
+    })
+
     it("rejects style override flags on the imports subcommand", async () => {
         const r = await run(["imports", "--semicolons", "off", "-p", SAMPLE])
         assert.notEqual(r.status, 0)

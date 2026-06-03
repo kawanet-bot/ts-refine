@@ -5,13 +5,16 @@
 
 import {type CommonArgs, parseCommonArgs} from "../parse-common-args.ts"
 
-// Raw values only: the runner resolves `paths` into absolute paths.
+// Raw values only: the runner resolves `paths` into absolute paths and decides
+// what `check` implies (dry-run plus a non-zero exit when anything would change).
 export interface ImportsArgs {
     paths: string[]
+    check: boolean
 }
 
 export function parseImportsArgs(sub: string[], common: CommonArgs): ImportsArgs | undefined {
     const paths: string[] = []
+    let check = false
     let i = 0
 
     while (i < sub.length) {
@@ -22,7 +25,10 @@ export function parseImportsArgs(sub: string[], common: CommonArgs): ImportsArgs
         }
 
         const a = sub[i]
-        if (a.startsWith("-")) {
+        if (a === "--check") {
+            check = true
+            i++
+        } else if (a.startsWith("-")) {
             throw new Error(`unknown option: ${a}`)
         } else {
             paths.push(a)
@@ -30,5 +36,5 @@ export function parseImportsArgs(sub: string[], common: CommonArgs): ImportsArgs
         }
     }
 
-    return {paths}
+    return {paths, check}
 }

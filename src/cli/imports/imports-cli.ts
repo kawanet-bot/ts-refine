@@ -6,6 +6,7 @@
 import type {TSR} from "ts-refine"
 import {reportToFormatStyle} from "../../common/format-style.ts"
 import {initProject} from "../../common/init-project.ts"
+import {logging} from "../../common/logging.ts"
 import {applyReportNames} from "../../common/report-names.ts"
 import {refineImports, refineReport} from "../../index.ts"
 import {type CLI, NULL_SINK} from "../cli-io.ts"
@@ -25,6 +26,13 @@ export const importsCLI: CLI = async (ctx) => {
     // so each file keeps its own existing conventions (use `format` to unify).
     const format = (file: string) => refineReport({project, paths: [file], reportNames, importsOnly: true, log: NULL_SINK}).then(reportToFormatStyle)
 
-    await refineImports({project, paths, dryRun: common.dryRun, format, log})
+    // `--check` reports without writing, so it forces dry-run; the per-file
+    // list and summary are already on the log, so only the fix hint is added.
+    const dryRun = common.dryRun || args.check
+    const result = await refineImports({project, paths, dryRun, format, log})
+    if (args.check && result.touched.length > 0) {
+        logging(log, "Run `ts-refine imports` to fix.")
+        return 1
+    }
     return 0
 }
