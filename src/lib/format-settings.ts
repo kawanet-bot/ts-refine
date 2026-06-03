@@ -1,6 +1,10 @@
-import type {FormatCodeSettings} from "ts-morph"
+import type {FormatCodeSettings, SourceFile} from "ts-morph"
 import {ts} from "ts-morph"
 import type {TSR} from "ts-refine"
+import {NULL_SINK} from "../cli/cli-io.ts"
+import {reportToFormatStyle} from "../common/format-style.ts"
+import {applyReportNames} from "../common/report-names.ts"
+import {runReports} from "../report/refine-report.ts"
 
 // LS settings + the newline post-pass refineFormat runs after formatText.
 // Local-ish shape — refineFormat reads it; the CR diagnostic is computed at
@@ -20,6 +24,14 @@ export function perFileSettings(format?: TSR.FormatStyle | ((file: string) => Pr
     if (typeof format === "function") return (file) => format(file).then(formatStyleToSettings)
     const settings = formatStyleToSettings(format ?? {})
     return () => Promise.resolve(settings)
+}
+
+export const formatSettingsForFiles = async (sourceFiles: SourceFile[], importsOnly: boolean) => {
+    const report = await runReports({sourceFiles, importsOnly, log: NULL_SINK}, applyReportNames)
+
+    const style = reportToFormatStyle(report)
+
+    return formatStyleToSettings(style)
 }
 
 // FormatCodeSettings is readonly; build mutably and cast at the return.
