@@ -4,11 +4,11 @@
 // SourceFile (not path) so a later move() that repaths the node still resolves.
 // An unsurveyed file yields undefined, which the caller reads as "leave alone".
 
-import type {FormatCodeSettings, SourceFile} from "ts-morph"
-import {formatSettingsForFile} from "./format-settings.ts"
+import type {SourceFile} from "ts-morph"
+import {type ImportsStyle, formatSettingsForFile} from "./format-settings.ts"
 
-export async function surveyImportStyles(files: Iterable<SourceFile>): Promise<(sf: SourceFile) => FormatCodeSettings | undefined> {
-    const byFile = new Map<SourceFile, FormatCodeSettings>()
+export async function surveyImportStyles(files: Iterable<SourceFile>): Promise<(sf: SourceFile) => ImportsStyle | undefined> {
+    const byFile = new Map<SourceFile, ImportsStyle>()
     for (const sf of files) {
         if (byFile.has(sf)) continue // a repeated file is surveyed once
         byFile.set(sf, await formatSettingsForFile(sf))

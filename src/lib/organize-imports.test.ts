@@ -23,7 +23,7 @@ const INSERT: ts.FormatCodeSettings = {
 function run(text: string, settings: ts.FormatCodeSettings) {
     const project = initInMemoryProject()
     const sf = project.createSourceFile("a.ts", text)
-    applyOrganizeImports(sf, settings)
+    applyOrganizeImports(sf, {settings})
     return sf.getFullText()
 }
 
@@ -57,5 +57,27 @@ describe("applyOrganizeImports semicolon cleanup", () => {
         const messy = ["export {} // c", "export const foo = {", "  a: 1,", "};", ""].join("\n")
         const expected = ["export {} // c", "export const foo = {", "  a: 1,", "};", ""].join("\n")
         assert.equal(run(messy, REMOVE), expected)
+    })
+})
+
+describe("applyOrganizeImports trailing-comma reassertion", () => {
+    function organize(text: string, trailingComma: "on" | "off") {
+        const project = initInMemoryProject()
+        const sf = project.createSourceFile("a.ts", text)
+        applyOrganizeImports(sf, {settings: REMOVE, trailingComma})
+        return sf.getFullText()
+    }
+
+    // organizeImports rebuilds a local `export {}` specifier list and drops its
+    // trailing comma; the self-pass reasserts the surveyed style. (move/rename
+    // share applyOrganizeImports, so this covers them too.)
+    // organizeImports also squishes the elements onto one line (out-of-scope
+    // layout quirk); the assertion targets the trailing comma only.
+    it("on: restores the comma organizeImports drops from a multi-line local export", () => {
+        assert.match(organize("const a = 1\nconst b = 2\nexport {\n    b,\n    a,\n}\n", "on"), /export \{\n {4}a, b,\n\}/)
+    })
+
+    it("off: leaves the export without a trailing comma", () => {
+        assert.match(organize("const a = 1\nconst b = 2\nexport {\n    b,\n    a,\n}\n", "off"), /export \{\n {4}a, b\n\}/)
     })
 })

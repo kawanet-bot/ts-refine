@@ -6,13 +6,20 @@ import {NULL_SINK} from "../common/logging.ts"
 import {importReportNames} from "../common/report-names.ts"
 import {runReports} from "../report/refine-report.ts"
 
+// Per-file import style: the LS settings organizeImports consumes, plus the
+// trailing-comma axis it can't express (a self-pass reasserts it afterward).
+export interface ImportsStyle {
+    settings: FormatCodeSettings
+    trailingComma?: "on" | "off"
+}
+
 // Survey a single file's import/export statements and convert the recommended
 // style to ts-morph settings. The write commands call this per file so each
 // keeps its own existing conventions.
-export const formatSettingsForFile = async (sf: SourceFile): Promise<FormatCodeSettings> => {
+export const formatSettingsForFile = async (sf: SourceFile): Promise<ImportsStyle> => {
     const report = await runReports({sourceFiles: [sf], importsOnly: true, log: NULL_SINK}, importReportNames)
     const style = reportToFormatStyle(report)
-    return formatStyleToSettings(style)
+    return {settings: formatStyleToSettings(style), trailingComma: style.trailingComma}
 }
 
 // FormatCodeSettings is readonly; build mutably and cast at the return.
