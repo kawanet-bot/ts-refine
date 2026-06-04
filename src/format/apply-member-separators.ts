@@ -63,18 +63,23 @@ export function applyMemberSeparators(sf: SourceFile, style: TSR.MemberSeparator
 
     sf.forEachDescendant((node) => {
         if (!Node.isInterfaceDeclaration(node) && !Node.isClassDeclaration(node)) return
+        const isClass = Node.isClassDeclaration(node)
+        // Fast path: a class member can't legally end with a comma, so in comma
+        // mode every candidate would fail the re-parse — skip the class outright
+        // rather than building and verifying edits the parser would reject.
+        if (style === "comma" && isClass) return
         const text = node.getText()
         const base = node.getStart()
-        const open = Node.isClassDeclaration(node) ? "class _ {" : "interface _ {"
+        const open = isClass ? "class _ {" : "interface _ {"
         const members = node.getMembers() as Member[]
 
         members.forEach((member, i) => {
             if (!isSeparableMember(member)) return
             const memberText = member.getText()
-            // Read the current trailing separator without rebuilding the text:
-            // most members already conform, so they are skipped before any
-            // string is allocated. Only on a change is the replacement built —
-            // by the same regex, so extracting and rewriting stay in sync.
+            // Read the current trailing separator with a regex rather than
+            // rebuilding the member: a conforming member is skipped before the
+            // rewritten string is allocated. Only on a change is the replacement
+            // built — by the same regex, so extract and rewrite stay in sync.
             const current = memberText.match(TRAILING_SEPARATOR)?.[1] ?? ""
             if (current === want) return // already conforms — no rewrite
             const replacement = memberText.replace(TRAILING_SEPARATOR, want)
