@@ -34,11 +34,16 @@ describe("applyTrailingComma", () => {
         }
     })
 
-    it("never touches a trailing position after a spread / rest element", () => {
+    it("never touches a spread / rest last element, in either mode", () => {
         const arr = "const a = [\n    ...xs\n]\n"
         assert.equal(run(arr, "on"), arr)
         const rest = "function f(\n    ...args\n) {}\n"
         assert.equal(run(rest, "on"), rest)
+        // `off` must not strip an existing spread trailing comma: honoring
+        // remove but not add (a syntax error after rest) would be lopsided, so
+        // the position is excluded in both directions, not handled one-way.
+        const withComma = "const b = [\n    ...ys,\n]\n"
+        assert.equal(run(withComma, "off"), withComma)
     })
 
     it("leaves angle-bracket lists untouched (type params / args, TSX)", () => {

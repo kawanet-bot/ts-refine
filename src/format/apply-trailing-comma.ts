@@ -1,15 +1,16 @@
 // trailingComma apply pass. The LS formatter has no trailing-comma control, so
 // refineFormat runs this after formatText. `on` adds a trailing comma to a
 // comma-separated list that the author wrote across multiple lines and removes
-// it from a single-line one; `off` removes it everywhere. ts-refine has no
-// printWidth, so "multiline" means the author's own layout (the closing bracket
-// sits on a later line than the last element), not a reflow decision.
+// it from a single-line one; `off` removes it from those same lists. ts-refine
+// has no printWidth, so "multiline" means the author's own layout (the closing
+// bracket sits on a later line than the last element), not a reflow decision.
 //
 // Out of scope: interface / type-literal / class member lists (the separators
 // pass owns those) and angle-bracket lists `<...>` (type parameters and type
-// arguments, incl. TSX `<T,>`), which are left untouched. A trailing comma
-// after a spread / rest element (`...x`) is never touched — adding one is a
-// syntax error in params / binding patterns, and it is skipped uniformly.
+// arguments, incl. TSX `<T,>`), which are left untouched. A spread / rest last
+// element (`...x`) is also left as written in both modes: adding a comma there
+// is a syntax error in rest / binding positions, so honoring `off` (remove) but
+// not `on` (add) would be lopsided — the position is excluded outright.
 
 import type {Node, SourceFile} from "ts-morph"
 import {Node as N, SyntaxKind} from "ts-morph"
@@ -81,8 +82,9 @@ export function applyTrailingComma(sf: SourceFile, mode: "on" | "off"): void {
         if (list == null || list.elements.length === 0) return
         const last = list.elements[list.elements.length - 1]
 
-        // Never touch the comma after a spread / rest element: adding one is a
-        // syntax error in params / binding patterns, so leave it as written.
+        // Leave a spread / rest last element as written in both modes: adding a
+        // comma is a syntax error in rest / binding positions, so removing in
+        // `off` only would be lopsided. Excluded outright, not handled one-way.
         if (last.getText().startsWith("...")) return
 
         // The author's layout decides "multiline": the closing bracket is on a

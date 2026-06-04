@@ -94,7 +94,8 @@ export declare namespace TSR {
 
         // Trailing comma on multi-line comma lists (arrays, objects, args, params,
         // tuples, enums, import/export specifiers). `on` adds it on multi-line and
-        // strips it on single-line; `off` strips everywhere. Applied by a self-pass.
+        // strips it single-line; `off` strips it. A spread / rest last element is
+        // left as written (adding one is a syntax error). Applied by a self-pass.
         trailingComma?: "on" | "off"
     }
 
