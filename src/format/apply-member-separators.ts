@@ -3,13 +3,25 @@
 // after formatText to normalize each member's trailing punctuation to the
 // chosen style. Scope mirrors the member-separators report: interface and
 // class members (body-bearing members carry no separator).
+//
+// Every rewrite is checked by re-parsing: a proposed separator change is
+// applied to a copy of the container and accepted only when the member kinds
+// (in order) are unchanged and no new syntax error appears. The parser is the
+// oracle, so there is no per-shape heuristic — fusing a bare member into the
+// next signature (`foo` + `<T>(): T`), a class field into a computed member
+// (`x = foo` + `[y]`), a comma on a class field, or dropping a separator that
+// two same-line members still need are all rejected the same way.
 
-import type {ClassMemberTypes, SourceFile, TypeElementTypes} from "ts-morph"
+import type {ClassMemberTypes, Project, SourceFile, TypeElementTypes} from "ts-morph"
 import {Node} from "ts-morph"
 import type {TSR} from "ts-refine"
+import {initInMemoryProject} from "../common/init-project.ts"
 import {isSeparableMember} from "../report/member-separators.ts"
 
 type Member = ClassMemberTypes | TypeElementTypes
+
+// Target trailing separator for each style ("" = none).
+const SEPARATOR = {semi: ";", comma: ",", none: ""} as const
 
 // The member node text includes its trailing `;` / `,` (getText covers it),
 // so drop a single trailing separator to rebuild from a clean base.
@@ -18,59 +30,55 @@ function stripSeparator(text: string): string {
     return t.endsWith(";") || t.endsWith(",") ? t.slice(0, -1) : t
 }
 
-// A "bare" member is a property with neither a type annotation nor an
-// initializer (just a name). Dropping its separator can fuse it with the next
-// member — `foo` + `<T>(): T` reparses as one generic method, `get` + `foo()`
-// as a getter — so `none` keeps a `;` there. Anything with a type / initializer
-// / its own parens self-terminates and is safe.
-function isBareMember(member: Member): boolean {
-    if (Node.isPropertySignature(member)) return member.getTypeNode() == null
-    if (Node.isPropertyDeclaration(member)) return member.getTypeNode() == null && member.getInitializer() == null
-    return false
-}
-
-// For `none`, the separator can only be removed when a newline already splits
-// this member from the next one in source order (a same-line gap needs a
-// separator) and removing it can't fuse the two members. `next` is the next
-// member of any kind, including body-bearing ones the apply skips — otherwise a
-// field followed by an inline method would look like the last member and lose a
-// required separator.
-function droppableNone(member: Member, all: Member[], i: number, isClass: boolean): boolean {
-    const next = all[i + 1]
-    if (next == null) return true // last member: nothing to separate from `}`
-    if (member.getEndLineNumber() >= next.getStartLineNumber()) return false
-    if (isBareMember(member)) return false
-    // A class field's initializer is an expression, so a following computed
-    // member continues it once the separator is gone: `x = foo` + `[y] = 1`
-    // reparses as `x = foo[y] = 1`. Keep the `;` before a class `[` member.
-    // (Interface `[k]: V` index signatures are type context and don't fuse.)
-    if (isClass && next.getText().startsWith("[")) return false
-    return true
+// Re-parse a container body and report what a rewrite must preserve: the member
+// kinds in order, plus the syntactic parse-error count. The error count is
+// needed because the parser is error-tolerant — dropping a separator between
+// two same-line members keeps the member count but raises a parse error.
+function survey(scratch: Project, containerText: string): {kinds: string; errors: number} {
+    const sf = scratch.createSourceFile("/_probe.ts", containerText, {overwrite: true})
+    const container = sf.getInterfaces()[0] ?? sf.getClasses()[0]
+    const kinds = container ? container.getMembers().map((m) => m.getKindName()).join(",") : ""
+    const errors = (sf.compilerNode as {parseDiagnostics?: unknown[]}).parseDiagnostics?.length ?? 0
+    return {kinds, errors}
 }
 
 export function applyMemberSeparators(sf: SourceFile, style: TSR.MemberSeparatorsOpts["separator"]): void {
-    type Edit = {start: number; end: number; text: string}
-    const edits: Edit[] = []
+    const want = SEPARATOR[style]
+
+    // The scratch project for the verification re-parses. Built lazily on the
+    // first proposed rewrite, so an already-conforming file (the steady state)
+    // never creates one; released with this call.
+    let scratch: Project | undefined
 
     sf.forEachDescendant((node) => {
         if (!Node.isInterfaceDeclaration(node) && !Node.isClassDeclaration(node)) return
-        const isClass = Node.isClassDeclaration(node)
-        const all = node.getMembers() as Member[]
-        all.forEach((member, i) => {
-            if (!isSeparableMember(member)) return
-            // Class members can't be comma-terminated (`class C { x = 1, }` is a
-            // syntax error), so leave them untouched in comma mode.
-            if (style === "comma" && isClass) return
+        const text = node.getText()
+        const base = node.getStart()
 
-            const sep = style === "semi" ? ";" : style === "comma" ? "," : droppableNone(member, all, i, isClass) ? "" : ";"
-            const text = member.getText()
-            const next = stripSeparator(text) + sep
-            if (next !== text) edits.push({start: member.getStart(), end: member.getEnd(), text: next})
-        })
+        // Edits are captured as offsets + text, not node refs: the first
+        // replaceText forgets the remaining member nodes.
+        const edits: {start: number; end: number; text: string}[] = []
+        let before: {kinds: string; errors: number} | undefined
+
+        for (const member of node.getMembers() as Member[]) {
+            if (!isSeparableMember(member)) continue
+            const replacement = stripSeparator(member.getText()) + want
+            if (replacement === member.getText()) continue // already conforms — no rewrite
+
+            // A rewrite is proposed: re-parse the container with only this
+            // member's separator changed and accept it only when the structure
+            // survives intact.
+            scratch ??= initInMemoryProject()
+            before ??= survey(scratch, text)
+            const candidate = text.slice(0, member.getStart() - base) + replacement + text.slice(member.getEnd() - base)
+            const after = survey(scratch, candidate)
+            if (after.kinds === before.kinds && after.errors <= before.errors) {
+                edits.push({start: member.getStart(), end: member.getEnd(), text: replacement})
+            }
+        }
+
+        // Apply last-to-first so each edit's offsets stay valid after the prior ones.
+        edits.sort((a, b) => b.start - a.start)
+        for (const e of edits) sf.replaceText([e.start, e.end], e.text)
     })
-
-    if (edits.length === 0) return
-    // Apply last-to-first so each edit's offsets stay valid after the prior ones.
-    edits.sort((a, b) => b.start - a.start)
-    for (const e of edits) sf.replaceText([e.start, e.end], e.text)
 }

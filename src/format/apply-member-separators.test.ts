@@ -108,4 +108,22 @@ describe("applyMemberSeparators", () => {
         const lit = "type T = {p: number; q: number}\n"
         assert.equal(run(lit, "comma"), lit)
     })
+
+    it("none normalizes a leading-`;` member without breaking it", () => {
+        // The `;` terminates the previous member even on the next line. Removing
+        // it from two newline-separated typed members is safe (re-parse agrees).
+        const src = "interface bar {\n    foo: string\n    ;buz: number\n}\n"
+        const out = run(src, "none")
+        assert.match(out, /foo: string\n\s*buz: number/)
+        assert.ok(!out.includes(";"), "the stray leading `;` is gone")
+    })
+
+    it("none keeps a separator inline before a body-bearing member with a comment between", () => {
+        // The comment is the next member's leading trivia; the verifier still
+        // judges against the real next member, and the comment is preserved.
+        const src = "class C {\n    x = a;\n    // keep me\n    [y] = 1;\n}\n"
+        const out = run(src, "none")
+        assert.match(out, /x = a;/, "separator before the computed field stays")
+        assert.match(out, /\/\/ keep me/, "comment is preserved")
+    })
 })
