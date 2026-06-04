@@ -39,7 +39,11 @@ const SEP_FLAG_VALUE: Record<Separator, TSR.MemberSeparatorsOpts["separator"]> =
 
 type Bucket = {lines: number; files: number; topPath: string; topLines: number}
 
-export async function runReportMemberSeparators({sourceFiles, output, log}: ReportRunOpts): Promise<Partial<TSR.MemberSeparatorsOpts>> {
+export async function runReportMemberSeparators({sourceFiles, output, log, importsOnly}: ReportRunOpts): Promise<Partial<TSR.MemberSeparatorsOpts>> {
+    // import/export statements carry no interface/class members, so an
+    // imports-only survey has nothing to weigh — skip the whole-file scan.
+    if (importsOnly) return {}
+
     type PerFile = {path: string; counts: Map<Separator, number>; primary: Separator}
     const perFile: PerFile[] = []
 
