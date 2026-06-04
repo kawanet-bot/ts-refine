@@ -3,11 +3,19 @@
 // call should use from CommonOpts: a caller-supplied `project`, or one built
 // from `tsConfigFilePath`.
 
-import {Project} from "ts-morph"
+import {Project, type ProjectOptions} from "ts-morph"
 import type {TSR} from "ts-refine"
 
 export function initProject(opts: {tsConfigFilePath: string}): Project {
     return new Project(opts)
+}
+
+// A lib-less in-memory project: no lib.d.ts load, so it is cheap and meant for
+// syntactic work only (parsing / member counts / parse diagnostics), never
+// semantic analysis of real code. Used by the format separator pass to re-parse
+// candidate edits, and by tests that operate on their own in-memory sources.
+export function initInMemoryProject(compilerOptions?: ProjectOptions["compilerOptions"]): Project {
+    return new Project({useInMemoryFileSystem: true, compilerOptions, skipLoadingLibFiles: true})
 }
 
 // Exactly one of `project` / `tsConfigFilePath` is required — both is a caller

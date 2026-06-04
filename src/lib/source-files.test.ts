@@ -3,12 +3,12 @@ import fs from "node:fs"
 import os from "node:os"
 import path from "node:path"
 import {describe, it} from "node:test"
-import {initInMemoryTestProject} from "../test-utils/init-test-project.ts"
+import {initInMemoryProject} from "../common/init-project.ts"
 import {displayPath, selectSourceFiles} from "./source-files.ts"
 
 describe("selectSourceFiles", () => {
     it("returns the matched in-project files", () => {
-        const p = initInMemoryTestProject()
+        const p = initInMemoryProject()
         p.createSourceFile("/a.ts", "export const a = 1\n")
         p.createSourceFile("/b.ts", "export const b = 1\n")
         assert.equal(selectSourceFiles(p, {paths: ["/a.ts"]}).length, 1)
@@ -16,19 +16,19 @@ describe("selectSourceFiles", () => {
     })
 
     it("throws and names the paths when an explicit path matches nothing", () => {
-        const p = initInMemoryTestProject()
+        const p = initInMemoryProject()
         p.createSourceFile("/a.ts", "export const a = 1\n")
         assert.throws(() => selectSourceFiles(p, {paths: ["/nope.ts"]}), /no project files matched:.*nope\.ts/)
     })
 
     it("does not flag a partial miss (a duplicate or over-matching glob would make the count unreliable)", () => {
-        const p = initInMemoryTestProject()
+        const p = initInMemoryProject()
         p.createSourceFile("/a.ts", "export const a = 1\n")
         assert.equal(selectSourceFiles(p, {paths: ["/a.ts", "/a.ts"]}).length, 1)
     })
 
     it("throws when the project itself has no source files", () => {
-        const p = initInMemoryTestProject()
+        const p = initInMemoryProject()
         assert.throws(() => selectSourceFiles(p, {paths: []}), /no source files found in the project/)
     })
 })

@@ -6,7 +6,7 @@ import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
 import {Project} from "ts-morph"
 import type {TSR} from "ts-refine"
-import {initInMemoryTestProject} from "../test-utils/init-test-project.ts"
+import {initInMemoryProject} from "../common/init-project.ts"
 import {refineFormat} from "./refine-format.ts"
 
 // Builds FormatOpts with the indent override pinned so the test exercises
@@ -19,28 +19,28 @@ const log = {write: () => {}}
 
 describe("refineFormat --indent (dry-run, in-memory)", () => {
     it("expands 2-space indent to 4-space", async () => {
-        const project = initInMemoryTestProject()
+        const project = initInMemoryProject()
         const sf = project.createSourceFile("a.ts", ["function f() {", "  return 1", "}", ""].join("\n"))
         await refineFormat(opts(project, 4))
         assert.match(sf.getFullText(), /\n {4}return 1\n/)
     })
 
     it("expands a single leading tab to width spaces", async () => {
-        const project = initInMemoryTestProject()
+        const project = initInMemoryProject()
         const sf = project.createSourceFile("b.ts", ["function f() {", "\treturn 1", "}", ""].join("\n"))
         await refineFormat(opts(project, 4))
         assert.match(sf.getFullText(), /\n {4}return 1\n/)
     })
 
     it("converts space indent to a tab when indent=tab", async () => {
-        const project = initInMemoryTestProject()
+        const project = initInMemoryProject()
         const sf = project.createSourceFile("tab.ts", ["function f() {", "    return 1", "}", ""].join("\n"))
         await refineFormat({project, log, dryRun: true, paths: [], format: {indent: "tab"}})
         assert.match(sf.getFullText(), /\n\treturn 1\n/)
     })
 
     it("does not rewrite indent inside a template literal", async () => {
-        const project = initInMemoryTestProject()
+        const project = initInMemoryProject()
         const sf = project.createSourceFile("c.ts", ["function f() {", "  const s = `", "    indented inside template", "    other inside template", "  `", "  return s", "}", ""].join("\n"))
         await refineFormat(opts(project, 4))
         const lines = sf.getFullText().split("\n")
@@ -59,7 +59,7 @@ describe("refineFormat --indent (dry-run, in-memory)", () => {
     })
 
     it("leaves JSDoc continuation lines (` * ...`) alone", async () => {
-        const project = initInMemoryTestProject()
+        const project = initInMemoryProject()
         const sf = project.createSourceFile("d.ts", ["/**", " * docs", " */", "function f() {", "  return 1", "}", ""].join("\n"))
         await refineFormat(opts(project, 4))
         const text = sf.getFullText()
@@ -68,7 +68,7 @@ describe("refineFormat --indent (dry-run, in-memory)", () => {
     })
 
     it("is a no-op when the source already matches the target", async () => {
-        const project = initInMemoryTestProject()
+        const project = initInMemoryProject()
         const sf = project.createSourceFile("e.ts", ["function f() {", "    return 1", "}", ""].join("\n"))
         const before = sf.getFullText()
         await refineFormat(opts(project, 4))
@@ -76,7 +76,7 @@ describe("refineFormat --indent (dry-run, in-memory)", () => {
     })
 
     it("normalizes binary-operator continuation lines to the parent block's indent level", async () => {
-        const project = initInMemoryTestProject()
+        const project = initInMemoryProject()
 
         // LS re-indents continuation lines (parent block + continuation
         // step). Hand-rolled alignment such as the 5-space `     2` below

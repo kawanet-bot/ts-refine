@@ -6,7 +6,7 @@
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
 import {ts} from "ts-morph"
-import {initInMemoryTestProject} from "../test-utils/init-test-project.ts"
+import {initInMemoryProject} from "../common/init-project.ts"
 import {applyOrganizeImports} from "./organize-imports.ts"
 
 // bracketSpacing off so `{}`/`{a}` print without inner spaces, keeping the
@@ -21,7 +21,7 @@ const INSERT: ts.FormatCodeSettings = {
 }
 
 function run(text: string, settings: ts.FormatCodeSettings) {
-    const project = initInMemoryTestProject()
+    const project = initInMemoryProject()
     const sf = project.createSourceFile("a.ts", text)
     applyOrganizeImports(sf, settings)
     return sf.getFullText()

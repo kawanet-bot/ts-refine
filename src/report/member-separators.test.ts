@@ -1,8 +1,9 @@
 import {strict as assert} from "node:assert"
 import path from "node:path"
 import {describe, it} from "node:test"
+import {initInMemoryProject} from "../common/init-project.ts"
 import {selectSourceFiles} from "../lib/source-files.ts"
-import {initInMemoryTestProject, initTestProject} from "../test-utils/init-test-project.ts"
+import {initTestProject} from "../test-utils/init-test-project.ts"
 import {runReportMemberSeparators} from "./member-separators.ts"
 
 const SAMPLE_TSCONFIG = path.resolve(import.meta.dirname, "../../sample/members-mixed/tsconfig.json")
@@ -11,7 +12,7 @@ const log = {write: () => {}}
 
 describe("runReportMemberSeparators (sample/members-mixed)", () => {
     it("returns empty under importsOnly (import/export statements carry no members)", async () => {
-        const project = initInMemoryTestProject()
+        const project = initInMemoryProject()
         project.createSourceFile("/a.ts", "interface I {\n    a: number;\n    b: string;\n}\n")
         const r = await runReportMemberSeparators({sourceFiles: project.getSourceFiles(), log, importsOnly: true})
         assert.deepEqual(r, {})
@@ -44,7 +45,7 @@ describe("runReportMemberSeparators (sample/members-mixed)", () => {
 
     it("issues a recommendation when one separator strictly leads on file count", async () => {
         // Synthesize a project where `;` strictly leads.
-        const project = initInMemoryTestProject()
+        const project = initInMemoryProject()
         project.createSourceFile("a.ts", "export interface A {\n    a: number;\n    b: number;\n}\n")
         project.createSourceFile("b.ts", "export interface B {\n    a: number;\n    b: number;\n}\n")
         project.createSourceFile("c.ts", "export interface C {\n    a: number,\n}\n")
@@ -58,7 +59,7 @@ describe("runReportMemberSeparators (sample/members-mixed)", () => {
     })
 
     it("breaks a file-count tie by the higher member count and emits a recommendation", async () => {
-        const project = initInMemoryTestProject()
+        const project = initInMemoryProject()
 
         // 1 file with 5 `;` members vs 1 file with 1 `,` member.
         project.createSourceFile("a.ts", "export interface A {\n    a: number;\n    b: number;\n    c: number;\n    d: number;\n    e: number;\n}\n")
@@ -69,7 +70,7 @@ describe("runReportMemberSeparators (sample/members-mixed)", () => {
     })
 
     it("returns an empty partial when files AND member counts both tie", async () => {
-        const project = initInMemoryTestProject()
+        const project = initInMemoryProject()
         project.createSourceFile("a.ts", "export interface A {\n    a: number;\n    b: number;\n}\n")
         project.createSourceFile("b.ts", "export interface B {\n    a: number,\n    b: number,\n}\n")
         const lines: string[] = []
@@ -78,7 +79,7 @@ describe("runReportMemberSeparators (sample/members-mixed)", () => {
     })
 
     it("skips method bodies (members ending in `}`) so they do not inflate the `\\n` bucket", async () => {
-        const project = initInMemoryTestProject()
+        const project = initInMemoryProject()
         project.createSourceFile("m.ts", "export class M {\n    x() { return 1 }\n    y() { return 2 }\n}\n")
         const lines: string[] = []
         await runReportMemberSeparators({sourceFiles: selectSourceFiles(project, {paths: []}), log, output: {write: (l) => lines.push(l)}})
@@ -95,7 +96,7 @@ describe("runReportMemberSeparators (sample/members-mixed)", () => {
     })
 
     it("counts class properties whose initializer ends with an object literal", async () => {
-        const project = initInMemoryTestProject()
+        const project = initInMemoryProject()
         project.createSourceFile("props.ts", "export class Props {\n    config = {}\n    fn = function () {}\n    semi = {};\n}\n")
         const lines: string[] = []
         await runReportMemberSeparators({sourceFiles: selectSourceFiles(project, {paths: []}), log, output: {write: (l) => lines.push(l)}})
