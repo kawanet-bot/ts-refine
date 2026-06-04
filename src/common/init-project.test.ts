@@ -1,14 +1,13 @@
 import {strict as assert} from "node:assert"
 import path from "node:path"
 import {describe, it} from "node:test"
-import {initInMemoryTestProject} from "../test-utils/init-test-project.ts"
-import {resolveProject} from "./init-project.ts"
+import {initInMemoryProject, resolveProject} from "./init-project.ts"
 
 const SAMPLE_TSCONFIG = path.resolve(import.meta.dirname, "../../sample/basic/tsconfig.json")
 
 describe("resolveProject", () => {
     it("returns the caller-supplied project (bring-your-own)", () => {
-        const project = initInMemoryTestProject()
+        const project = initInMemoryProject()
         assert.equal(resolveProject({project}), project)
     })
 
@@ -18,7 +17,7 @@ describe("resolveProject", () => {
     })
 
     it("throws when both are given", () => {
-        const project = initInMemoryTestProject()
+        const project = initInMemoryProject()
         assert.throws(() => resolveProject({project, tsConfigFilePath: SAMPLE_TSCONFIG}), /not both/)
     })
 

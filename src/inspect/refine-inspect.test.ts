@@ -2,7 +2,8 @@ import {strict as assert} from "node:assert"
 import path from "node:path"
 import {describe, it} from "node:test"
 import type {TSR} from "ts-refine"
-import {initInMemoryTestProject, initTestProject} from "../test-utils/init-test-project.ts"
+import {initInMemoryProject} from "../common/init-project.ts"
+import {initTestProject} from "../test-utils/init-test-project.ts"
 import {refineInspect} from "./refine-inspect.ts"
 
 const SAMPLE_TSCONFIG = path.resolve(import.meta.dirname, "../../sample/basic/tsconfig.json")
@@ -52,7 +53,7 @@ describe("refineInspect", () => {
     })
 
     it("classifies each importer form (value / type / namespace / side-effect / re-export / dynamic / mixed)", async () => {
-        const project = initInMemoryTestProject({allowImportingTsExtensions: true})
+        const project = initInMemoryProject({allowImportingTsExtensions: true})
         project.createSourceFile("/target.ts", "export const x = 1\nexport type T = number\n")
         project.createSourceFile("/value.ts", 'import {x} from "./target.ts"\nconst _ = x\n')
         project.createSourceFile("/type.ts", 'import type {T} from "./target.ts"\nconst _: T = 1\n')
@@ -81,14 +82,14 @@ describe("refineInspect", () => {
     })
 
     it("returns an empty importers list when nothing imports the file", async () => {
-        const project = initInMemoryTestProject()
+        const project = initInMemoryProject()
         project.createSourceFile("/orphan.ts", "export const x = 1\n")
         const files = await refineInspect({project, log, paths: ["/orphan.ts"], inspectorNames: ["importers"]})
         assert.deepEqual(files[0].importers, [])
     })
 
     it("counts an in-project .d.ts as an importer", async () => {
-        const project = initInMemoryTestProject()
+        const project = initInMemoryProject()
         project.createSourceFile("/target.ts", "export const x = 1\n")
         project.createSourceFile("/ambient.d.ts", 'import {x} from "./target.ts"\ndeclare const _: typeof x\n')
         const files = await refineInspect({project, log, paths: ["/target.ts"], inspectorNames: ["importers"]})

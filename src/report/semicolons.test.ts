@@ -1,8 +1,9 @@
 import {strict as assert} from "node:assert"
 import path from "node:path"
 import {describe, it} from "node:test"
+import {initInMemoryProject} from "../common/init-project.ts"
 import {selectSourceFiles} from "../lib/source-files.ts"
-import {initInMemoryTestProject, initTestProject} from "../test-utils/init-test-project.ts"
+import {initTestProject} from "../test-utils/init-test-project.ts"
 import {runReportSemicolons} from "./semicolons.ts"
 
 const SAMPLE_TSCONFIG = path.resolve(import.meta.dirname, "../../sample/semicolons-mixed/tsconfig.json")
@@ -34,7 +35,7 @@ describe("runReportSemicolons (sample/semicolons-mixed)", () => {
     })
 
     it("uses integer bucket boundaries for exact 50% and near-boundary tails", async () => {
-        const project = initInMemoryTestProject()
+        const project = initInMemoryProject()
         project.createSourceFile("/sample/tsconfig.json", JSON.stringify({compilerOptions: {}, include: ["*.ts"]}))
         project.createSourceFile("/sample/ten-percent.ts", statements(1, 10))
         project.createSourceFile("/sample/exact-half.ts", statements(1, 2))
@@ -52,7 +53,7 @@ describe("runReportSemicolons (sample/semicolons-mixed)", () => {
     it("breaks a file-count tie by total statement count and emits a recommendation", async () => {
         // 1 below file with 10 statements vs 1 above file with 3.
         // Files tie at 1 each → statement counts (10 vs 3) decide → "off".
-        const project = initInMemoryTestProject()
+        const project = initInMemoryProject()
         project.createSourceFile("/sample/no-semi.ts", statements(0, 10))
         project.createSourceFile("/sample/all-semi.ts", statements(3, 3))
         const lines: string[] = []
@@ -61,7 +62,7 @@ describe("runReportSemicolons (sample/semicolons-mixed)", () => {
     })
 
     it("returns an empty partial when files AND statements tie on both sides", async () => {
-        const project = initInMemoryTestProject()
+        const project = initInMemoryProject()
         project.createSourceFile("/sample/no-semi.ts", statements(0, 5))
         project.createSourceFile("/sample/all-semi.ts", statements(5, 5))
         const lines: string[] = []
@@ -73,7 +74,7 @@ describe("runReportSemicolons (sample/semicolons-mixed)", () => {
         // Two `;` members + one none member are in the LS rewrite domain (3
         // counted); the comma member is excluded. No statements at all, so the
         // file is entirely member-driven: 2/3 carry `;` → bucket 51-89%.
-        const project = initInMemoryTestProject()
+        const project = initInMemoryProject()
         project.createSourceFile("/sample/iface.ts", ["interface A {", "  a: string;", "  b: number;", "  c: boolean", "  d(): void,", "}"].join("\n"))
         const lines: string[] = []
         const ret = await runReportSemicolons({sourceFiles: selectSourceFiles(project, {paths: ["/sample/*.ts"]}), log, output: {write: (l) => lines.push(l)}})
@@ -85,7 +86,7 @@ describe("runReportSemicolons (sample/semicolons-mixed)", () => {
     })
 
     it("does not count grammar-required do-while semicolons", async () => {
-        const project = initInMemoryTestProject()
+        const project = initInMemoryProject()
         project.createSourceFile("/sample/do-while.ts", ["let x = 0", "do {", "  x++", "} while (x < 2);"].join("\n"))
         const lines: string[] = []
 
@@ -97,7 +98,7 @@ describe("runReportSemicolons (sample/semicolons-mixed)", () => {
     })
 
     it("with importsOnly, weighs only import/export statement semicolons", async () => {
-        const project = initInMemoryTestProject()
+        const project = initInMemoryProject()
 
         // The import line carries a `;`; the body statements do not. Whole-file
         // would lean "off" (1 of 3 with `;`); importsOnly sees only the import,

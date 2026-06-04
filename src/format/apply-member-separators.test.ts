@@ -1,12 +1,12 @@
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
-import {initInMemoryTestProject} from "../test-utils/init-test-project.ts"
+import {initInMemoryProject} from "../common/init-project.ts"
 import {applyMemberSeparators} from "./apply-member-separators.ts"
 
 // Operates on the AST directly (no formatText) so the assertions pin exactly
 // what the separator pass does, free of LS whitespace normalization.
 function run(src: string, style: "semi" | "comma" | "none"): string {
-    const project = initInMemoryTestProject()
+    const project = initInMemoryProject()
     const sf = project.createSourceFile("/a.ts", src, {overwrite: true})
     applyMemberSeparators(sf, style)
     return sf.getFullText()
@@ -81,7 +81,7 @@ describe("applyMemberSeparators", () => {
         const out = run(src, "none")
         assert.match(out, /x = foo;\n/, "separator before the computed field is kept")
         // Re-parsing keeps two distinct members.
-        const project = initInMemoryTestProject()
+        const project = initInMemoryProject()
         assert.equal(project.createSourceFile("/c.ts", out, {overwrite: true}).getClasses()[0].getMembers().length, 2)
     })
 
@@ -107,5 +107,89 @@ describe("applyMemberSeparators", () => {
     it("leaves a type literal untouched (out of v1 scope: interface/class only)", () => {
         const lit = "type T = {p: number; q: number}\n"
         assert.equal(run(lit, "comma"), lit)
+    })
+
+    it("leaves an empty interface / class untouched (no members)", () => {
+        assert.equal(run("interface E {}\n", "semi"), "interface E {}\n")
+        assert.equal(run("class E {}\n", "none"), "class E {}\n")
+    })
+
+    it("handles a single-member interface (separator added and removed)", () => {
+        assert.equal(run("interface S {\n    a: number\n}\n", "semi"), "interface S {\n    a: number;\n}\n")
+        assert.equal(run("interface S {\n    a: number;\n}\n", "none"), "interface S {\n    a: number\n}\n")
+    })
+
+    it("comma leaves a lone class field alone (commas are invalid on class members)", () => {
+        const cls = "class C {\n    x = 1\n}\n"
+        assert.equal(run(cls, "comma"), cls)
+    })
+
+    it("none removes the separator from a lone bare member (nothing to fuse with before `}`)", () => {
+        assert.equal(run("interface S {\n    foo;\n}\n", "none"), "interface S {\n    foo\n}\n")
+    })
+
+    it("formats every interface/class in a multi-declaration file", () => {
+        // Regression: edits must be applied after the whole-file walk, not
+        // mid-traversal — otherwise the second declaration is skipped/corrupted.
+        const src = "interface A {\n    a: number\n    b: string\n}\nclass C {\n    x = 1\n    y = 2\n}\n"
+        const out = run(src, "semi")
+        for (const re of [/a: number;/, /b: string;/, /x = 1;/, /y = 2;/]) assert.match(out, re)
+    })
+
+    it("none normalizes a leading-`;` member without breaking it", () => {
+        // The `;` terminates the previous member even on the next line. Removing
+        // it from two newline-separated typed members is safe (re-parse agrees).
+        const src = "interface bar {\n    foo: string\n    ;buz: number\n}\n"
+        const out = run(src, "none")
+        assert.match(out, /foo: string\n\s*buz: number/)
+        assert.ok(!out.includes(";"), "the stray leading `;` is gone")
+    })
+
+    it("none keeps a separator inline before a body-bearing member with a comment between", () => {
+        // The comment is the next member's leading trivia; the verifier still
+        // judges against the real next member, and the comment is preserved.
+        const src = "class C {\n    x = a;\n    // keep me\n    [y] = 1;\n}\n"
+        const out = run(src, "none")
+        assert.match(out, /x = a;/, "separator before the computed field stays")
+        assert.match(out, /\/\/ keep me/, "comment is preserved")
+    })
+
+    it("none drops the separator across an inline comment between members, keeping the comment", () => {
+        const src = "interface I {\n    a: number;\n    // note\n    b: string;\n}\n"
+        const out = run(src, "none")
+        assert.match(out, /a: number\n/, "separator dropped (typed members, no fusion)")
+        assert.ok(out.includes("// note"), "inline comment preserved")
+        assert.ok(!out.includes(";"), "no separators remain")
+    })
+
+    it("none drops the separator across a multi-line block comment, keeping the comment", () => {
+        const src = "interface I {\n    a: number;\n    /* multi\n       line */\n    b: string;\n}\n"
+        const out = run(src, "none")
+        assert.match(out, /a: number\n/, "separator dropped")
+        assert.ok(out.includes("/* multi") && out.includes("line */"), "multi-line comment preserved verbatim")
+    })
+
+    it("none keeps `;` between same-line members separated only by a block comment", () => {
+        // Removing the `;` would fuse `a` and `b` — the block comment is trivia.
+        const src = "interface I { a: number; /* c */ b: string; }\n"
+        const out = run(src, "none")
+        assert.ok(out.includes("a: number; /* c */ b: string"), "same-line separator kept across the comment")
+    })
+
+    it("uses the source grammar (.tsx) when probing JSX member initializers", () => {
+        // Under .tsx, `<Foo />` is JSX and the members don't fuse, so the
+        // separators drop. A .ts probe would mis-parse the JSX and wrongly keep
+        // them. The probe path mirrors the source extension to avoid that.
+        const project = initInMemoryProject()
+        const sf = project.createSourceFile("/c.tsx", "class C {\n    x = <Foo />;\n    [y] = 1;\n}\n", {overwrite: true})
+        applyMemberSeparators(sf, "none")
+        assert.equal(sf.getFullText(), "class C {\n    x = <Foo />\n    [y] = 1\n}\n")
+    })
+
+    it("none keeps a comma it cannot safely remove (no `;` fallback)", () => {
+        // Same-line members can't lose the separator; keep what is there rather
+        // than normalizing it to `;`.
+        const out = run("interface I { a, b }\n", "none")
+        assert.ok(out.includes("a, b"), "the comma is kept, not turned into `;`")
     })
 })

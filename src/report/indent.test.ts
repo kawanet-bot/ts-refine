@@ -1,8 +1,9 @@
 import {strict as assert} from "node:assert"
 import path from "node:path"
 import {describe, it} from "node:test"
+import {initInMemoryProject} from "../common/init-project.ts"
 import {selectSourceFiles} from "../lib/source-files.ts"
-import {initInMemoryTestProject, initTestProject} from "../test-utils/init-test-project.ts"
+import {initTestProject} from "../test-utils/init-test-project.ts"
 import {runReportIndent} from "./indent.ts"
 
 const SAMPLE_TSCONFIG = path.resolve(import.meta.dirname, "../../sample/indents-mixed/tsconfig.json")
@@ -45,7 +46,7 @@ describe("runReportIndent (sample/indents-mixed)", () => {
     it("breaks a file-count tie by the higher indent-transition count and emits a recommendation", async () => {
         // detectIndent counts transitions (entry / exit), not absolute lines.
         // four-step file has more nested blocks → more transitions at width 4.
-        const project = initInMemoryTestProject()
+        const project = initInMemoryProject()
         project.createSourceFile("/sample/two.ts", "function f() {\n  return 1\n}\n")
         project.createSourceFile("/sample/four.ts", "function g() {\n    if (a) {\n        b()\n    }\n}\n")
         const lines: string[] = []
@@ -57,7 +58,7 @@ describe("runReportIndent (sample/indents-mixed)", () => {
     })
 
     it("returns an empty partial when files AND transition counts tie", async () => {
-        const project = initInMemoryTestProject()
+        const project = initInMemoryProject()
         project.createSourceFile("/sample/two.ts", "function f() {\n  return 1\n}\n")
         project.createSourceFile("/sample/four.ts", "function g() {\n    return 1\n}\n")
         const lines: string[] = []

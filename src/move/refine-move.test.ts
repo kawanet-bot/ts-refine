@@ -4,11 +4,12 @@ import os from "node:os"
 import path from "node:path"
 import {after, before, describe, it} from "node:test"
 import {Project, ts} from "ts-morph"
-import {initInMemoryTestProject, initTestProject} from "../test-utils/init-test-project.ts"
+import {initInMemoryProject} from "../common/init-project.ts"
+import {initTestProject} from "../test-utils/init-test-project.ts"
 import {refineMove} from "./refine-move.ts"
 
 function newProject(): Project {
-    return initInMemoryTestProject({
+    return initInMemoryProject({
         module: ts.ModuleKind.ESNext,
         moduleResolution: ts.ModuleResolutionKind.Bundler,
         allowImportingTsExtensions: true,
@@ -51,7 +52,7 @@ describe("refineMove (in-memory, dry-run)", () => {
     })
 
     it("preserves the mandatory `.json` extension when moving a file that imports JSON", async () => {
-        const project = initInMemoryTestProject({
+        const project = initInMemoryProject({
             module: ts.ModuleKind.ESNext,
             moduleResolution: ts.ModuleResolutionKind.Bundler,
             resolveJsonModule: true,
@@ -76,7 +77,7 @@ describe("refineMove (in-memory, dry-run)", () => {
     it("preserves the dynamic-import extension across the NodeNext js↔ts mapping (.mjs → .mts source)", async () => {
         // import("./a.mjs") resolves to /src/a.mts under NodeNext. The
         // restoration must put `.mjs` back, not strip to bare `./a`.
-        const project = initInMemoryTestProject({
+        const project = initInMemoryProject({
             module: ts.ModuleKind.NodeNext,
             moduleResolution: ts.ModuleResolutionKind.NodeNext,
             allowImportingTsExtensions: true,
@@ -89,7 +90,7 @@ describe("refineMove (in-memory, dry-run)", () => {
 
     it("preserves whatever extension each importer wrote (.ts / .js / none in one file)", async () => {
         // NodeNext-style resolver — `./a.js` is a valid way to refer to a.ts.
-        const project = initInMemoryTestProject({
+        const project = initInMemoryProject({
             module: ts.ModuleKind.NodeNext,
             moduleResolution: ts.ModuleResolutionKind.NodeNext,
             allowImportingTsExtensions: true,

@@ -1,7 +1,8 @@
 import {strict as assert} from "node:assert"
 import path from "node:path"
 import {describe, it} from "node:test"
-import {initInMemoryTestProject, initTestProject} from "../test-utils/init-test-project.ts"
+import {initInMemoryProject} from "../common/init-project.ts"
+import {initTestProject} from "../test-utils/init-test-project.ts"
 import {refineImports} from "./refine-imports.ts"
 
 const SAMPLE_TSCONFIG = path.resolve(import.meta.dirname, "../../sample/basic/tsconfig.json")
@@ -11,7 +12,7 @@ const log = {write: () => {}}
 
 describe("refineImports", () => {
     it("sorts imports and drops unused ones", async () => {
-        const project = initInMemoryTestProject()
+        const project = initInMemoryProject()
         project.createSourceFile("dep.ts", "export const used = 1\nexport const unused = 2\n")
         const sf = project.createSourceFile("a.ts", "import {unused, used} from './dep.ts'\nconst x = used\n")
         await refineImports({project, log, dryRun: true, paths: []})
@@ -24,7 +25,7 @@ describe("refineImports", () => {
     })
 
     it("organizes imports but does not reformat the surrounding text", async () => {
-        const project = initInMemoryTestProject()
+        const project = initInMemoryProject()
         project.createSourceFile("dep.ts", "export const a = 1\nexport const b = 2\n")
         const sf = project.createSourceFile("a.ts", "import {b, a} from './dep.ts'\nconst   x = a+b\n")
         await refineImports({project, log, dryRun: true, paths: []})
@@ -38,7 +39,7 @@ describe("refineImports", () => {
     })
 
     it("organizes each file in its own surveyed style", async () => {
-        const project = initInMemoryTestProject()
+        const project = initInMemoryProject()
         project.createSourceFile("dep.ts", "export const a = 1\nexport const b = 2\n")
 
         // x.ts already uses spaced braces, y.ts tight — each is surveyed alone, so
@@ -57,7 +58,7 @@ describe("refineImports", () => {
     })
 
     it("dryRun does not call fs.writeFile (in-memory project would error on real-fs writes)", async () => {
-        const project = initInMemoryTestProject()
+        const project = initInMemoryProject()
         project.createSourceFile("dep.ts", "export const used = 1\nexport const unused = 2\n")
         const sf = project.createSourceFile("a.ts", "import {unused, used} from './dep.ts'\nconst x = used\n")
         await refineImports({project, log, dryRun: true, paths: []})
@@ -67,7 +68,7 @@ describe("refineImports", () => {
     })
 
     it("returns the touched files, and an empty list when nothing changes", async () => {
-        const project = initInMemoryTestProject()
+        const project = initInMemoryProject()
         project.createSourceFile("dep.ts", "export const used = 1\nexport const unused = 2\n")
         const sf = project.createSourceFile("a.ts", "import {unused, used} from './dep.ts'\nconst x = used\n")
         const changed = await refineImports({project, log, dryRun: true, paths: []})

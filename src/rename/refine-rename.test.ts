@@ -1,11 +1,11 @@
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
 import {Project, ts} from "ts-morph"
-import {initInMemoryTestProject} from "../test-utils/init-test-project.ts"
+import {initInMemoryProject} from "../common/init-project.ts"
 import {refineRename} from "./refine-rename.ts"
 
 function newProject(): Project {
-    return initInMemoryTestProject({
+    return initInMemoryProject({
         module: ts.ModuleKind.ESNext,
         moduleResolution: ts.ModuleResolutionKind.Bundler,
         allowImportingTsExtensions: true,
