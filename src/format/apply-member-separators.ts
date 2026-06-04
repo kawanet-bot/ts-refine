@@ -1,4 +1,4 @@
-// memberSeparators apply pass. The LS formatter can't set interface / type
+// memberSeparators apply pass. The LS formatter can't set interface / class
 // member separators (and can't emit commas at all), so refineFormat runs this
 // after formatText to normalize each member's trailing punctuation to the
 // chosen style. Scope mirrors the member-separators report: interface and
@@ -18,17 +18,28 @@ function stripSeparator(text: string): string {
     return t.endsWith(";") || t.endsWith(",") ? t.slice(0, -1) : t
 }
 
-// Separator to place after `member`. `;` / `,` are valid even as the last
-// member's trailing token, so they apply unconditionally. `none` removes the
-// separator only where a newline already splits this member from the next —
-// removing an inline separator would fuse two members into a syntax error, so
-// a same-line gap keeps `;`.
-function desiredSeparator(style: TSR.MemberSeparatorsOpts["separator"], members: Member[], i: number): string {
-    if (style === "semi") return ";"
-    if (style === "comma") return ","
-    const next = members[i + 1]
-    if (next == null) return "" // last member: nothing to separate from `}`
-    return members[i].getEndLineNumber() < next.getStartLineNumber() ? "" : ";"
+// A "bare" member is a property with neither a type annotation nor an
+// initializer (just a name). Dropping its separator can fuse it with the next
+// member — `foo` + `<T>(): T` reparses as one generic method, `get` + `foo()`
+// as a getter — so `none` keeps a `;` there. Anything with a type / initializer
+// / its own parens self-terminates and is safe.
+function isBareMember(member: Member): boolean {
+    if (Node.isPropertySignature(member)) return member.getTypeNode() == null
+    if (Node.isPropertyDeclaration(member)) return member.getTypeNode() == null && member.getInitializer() == null
+    return false
+}
+
+// For `none`, the separator can only be removed when a newline already splits
+// this member from the next one in source order (a same-line gap needs a
+// separator) and removing it can't fuse a bare member into the next. `next` is
+// the next member of any kind, including body-bearing ones the apply skips —
+// otherwise a field followed by an inline method would look like the last
+// member and lose a required separator.
+function droppableNone(member: Member, all: Member[], i: number): boolean {
+    const next = all[i + 1]
+    if (next == null) return true // last member: nothing to separate from `}`
+    if (member.getEndLineNumber() >= next.getStartLineNumber()) return false
+    return !isBareMember(member)
 }
 
 export function applyMemberSeparators(sf: SourceFile, style: TSR.MemberSeparatorsOpts["separator"]): void {
@@ -37,10 +48,17 @@ export function applyMemberSeparators(sf: SourceFile, style: TSR.MemberSeparator
 
     sf.forEachDescendant((node) => {
         if (!Node.isInterfaceDeclaration(node) && !Node.isClassDeclaration(node)) return
-        const members = (node.getMembers() as Member[]).filter(isSeparableMember)
-        members.forEach((member, i) => {
+        const isClass = Node.isClassDeclaration(node)
+        const all = node.getMembers() as Member[]
+        all.forEach((member, i) => {
+            if (!isSeparableMember(member)) return
+            // Class members can't be comma-terminated (`class C { x = 1, }` is a
+            // syntax error), so leave them untouched in comma mode.
+            if (style === "comma" && isClass) return
+
+            const sep = style === "semi" ? ";" : style === "comma" ? "," : droppableNone(member, all, i) ? "" : ";"
             const text = member.getText()
-            const next = stripSeparator(text) + desiredSeparator(style, members, i)
+            const next = stripSeparator(text) + sep
             if (next !== text) edits.push({start: member.getStart(), end: member.getEnd(), text: next})
         })
     })

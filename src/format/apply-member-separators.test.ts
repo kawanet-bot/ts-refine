@@ -1,13 +1,13 @@
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
-import {Project} from "ts-morph"
+import {initInMemoryTestProject} from "../test-utils/init-test-project.ts"
 import {applyMemberSeparators} from "./apply-member-separators.ts"
 
 // Operates on the AST directly (no formatText) so the assertions pin exactly
 // what the separator pass does, free of LS whitespace normalization.
 function run(src: string, style: "semi" | "comma" | "none"): string {
-    const p = new Project({useInMemoryFileSystem: true})
-    const sf = p.createSourceFile("/a.ts", src, {overwrite: true})
+    const project = initInMemoryTestProject()
+    const sf = project.createSourceFile("/a.ts", src, {overwrite: true})
     applyMemberSeparators(sf, style)
     return sf.getFullText()
 }
@@ -23,28 +23,59 @@ describe("applyMemberSeparators", () => {
         assert.equal(run(IFACE, "comma"), "interface I {\n    a: number,\n    b(): void,\n    c: string,\n}\n")
     })
 
+    it("normalizes every member kind (property / method / index / call / construct signature)", () => {
+        const src = "interface I {\n    p: number\n    m(): void\n    [k: string]: unknown\n    (): void\n    new (): I\n}\n"
+        const out = run(src, "semi")
+        for (const line of ["p: number;", "m(): void;", "[k: string]: unknown;", "(): void;", "new (): I;"]) {
+            assert.match(out, new RegExp(line.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")))
+        }
+    })
+
     it("none: drops separators when members are newline-separated", () => {
         const semi = "interface I {\n    a: number;\n    b: string;\n}\n"
         assert.equal(run(semi, "none"), "interface I {\n    a: number\n    b: string\n}\n")
     })
 
-    it("converts between styles (comma → semi)", () => {
+    it("converts between styles (comma -> semi)", () => {
         const comma = "interface J {\n    a: number,\n    b: string,\n}\n"
         assert.equal(run(comma, "semi"), "interface J {\n    a: number;\n    b: string;\n}\n")
     })
 
-    it("normalizes class fields but leaves body-bearing members untouched", () => {
+    it("comma: leaves class fields untouched (`class C { x = 1, }` is a syntax error)", () => {
+        const cls = "class C {\n    x = 1;\n    y = 2;\n}\n"
+        // No commas introduced; the existing separators are kept as-is.
+        assert.equal(run(cls, "comma"), cls)
+    })
+
+    it("semi/none: normalizes class fields but leaves body-bearing members untouched", () => {
         const cls = "class C {\n    x = 1\n    m() { return 1 }\n    y = 2\n}\n"
         const out = run(cls, "semi")
         assert.match(out, /x = 1;/)
         assert.match(out, /y = 2;/)
-        // The method keeps its own `}` body — no separator appended after it.
-        assert.match(out, /m\(\) \{ return 1 \}\n/)
+        assert.match(out, /m\(\) \{ return 1 \}\n/) // method keeps its own body, no separator
+    })
+
+    it("none: keeps `;` on a bare member before a signature (removing it would fuse them)", () => {
+        // `foo` + `<T>(): T` reparses as one generic method without the `;`.
+        const src = "interface I {\n    foo;\n    <T>(): T;\n}\n"
+        const out = run(src, "none")
+        assert.match(out, /foo;\n/, "bare member keeps its separator")
+    })
+
+    it("none: drops the separator after a type-annotated member (no fusion hazard)", () => {
+        const src = "interface I {\n    foo: X;\n    (): T;\n}\n"
+        const out = run(src, "none")
+        assert.match(out, /foo: X\n/, "typed member is safe to unseparate")
+    })
+
+    it("none: keeps `;` when a separable member is followed by an inline body member", () => {
+        // The field and the method share a line; dropping the `;` fuses them.
+        const src = "class C { x = 1; m() {} }\n"
+        const out = run(src, "none")
+        assert.match(out, /x = 1; m\(\) \{\}/)
     })
 
     it("none keeps `;` between same-line members (removing it would be a syntax error)", () => {
-        // Single-line members share a line, so a separator is structurally
-        // required between them; only the trailing one can go.
         const inline = "interface S { a: number; b: string; }\n"
         const out = run(inline, "none")
         assert.match(out, /a: number; b: string\b/)
