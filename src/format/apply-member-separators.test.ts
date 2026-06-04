@@ -175,4 +175,21 @@ describe("applyMemberSeparators", () => {
         const out = run(src, "none")
         assert.ok(out.includes("a: number; /* c */ b: string"), "same-line separator kept across the comment")
     })
+
+    it("uses the source grammar (.tsx) when probing JSX member initializers", () => {
+        // Under .tsx, `<Foo />` is JSX and the members don't fuse, so the
+        // separators drop. A .ts probe would mis-parse the JSX and wrongly keep
+        // them. The probe path mirrors the source extension to avoid that.
+        const project = initInMemoryProject()
+        const sf = project.createSourceFile("/c.tsx", "class C {\n    x = <Foo />;\n    [y] = 1;\n}\n", {overwrite: true})
+        applyMemberSeparators(sf, "none")
+        assert.equal(sf.getFullText(), "class C {\n    x = <Foo />\n    [y] = 1\n}\n")
+    })
+
+    it("none keeps a comma it cannot safely remove (no `;` fallback)", () => {
+        // Same-line members can't lose the separator; keep what is there rather
+        // than normalizing it to `;`.
+        const out = run("interface I { a, b }\n", "none")
+        assert.ok(out.includes("a, b"), "the comma is kept, not turned into `;`")
+    })
 })

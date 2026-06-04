@@ -34,9 +34,11 @@ const TRAILING_SEPARATOR = /([;,]?)$/
 // Re-parse a container body and report what a rewrite must preserve: the member
 // kinds in order, plus the syntactic parse-error count. The error count is
 // needed because the parser is error-tolerant — dropping a separator between
-// two same-line members keeps the member count but raises a parse error.
-function survey(scratch: Project, containerText: string): {kinds: string; errors: number} {
-    const sf = scratch.createSourceFile("/_probe.ts", containerText, {overwrite: true})
+// two same-line members keeps the member count but raises a parse error. The
+// probe reuses the source file path so its extension (e.g. .tsx) selects the
+// same grammar — JSX member initializers must parse as they do in the source.
+function survey(scratch: Project, probePath: string, containerText: string): {kinds: string; errors: number} {
+    const sf = scratch.createSourceFile(probePath, containerText, {overwrite: true})
     const container = sf.getInterfaces()[0] ?? sf.getClasses()[0]
     const kinds = container ? container.getMembers().map((m) => m.getKindName()).join(",") : ""
     const errors = (sf.compilerNode as {parseDiagnostics?: unknown[]}).parseDiagnostics?.length ?? 0
@@ -48,8 +50,10 @@ export function applyMemberSeparators(sf: SourceFile, style: TSR.MemberSeparator
 
     // The scratch project for the verification re-parses. Built lazily on the
     // first proposed rewrite, so an already-conforming file (the steady state)
-    // never creates one; released with this call.
+    // never creates one; released with this call. The probe reuses the source
+    // path so its extension selects the matching grammar (e.g. .tsx for JSX).
     let scratch: Project | undefined
+    const probePath = sf.getFilePath()
 
     // Accepted edits across the whole file, captured as offsets + text. Collected
     // during traversal but applied only afterwards: mutating `sf` mid-walk
@@ -84,8 +88,8 @@ export function applyMemberSeparators(sf: SourceFile, style: TSR.MemberSeparator
             const next = members[i + 1]
             const tail = next ? text.slice(member.getEnd() - base, next.getStart() - base) + next.getText() : ""
             scratch ??= initInMemoryProject()
-            const before = survey(scratch, open + memberText + tail + "}")
-            const after = survey(scratch, open + replacement + tail + "}")
+            const before = survey(scratch, probePath, open + memberText + tail + "}")
+            const after = survey(scratch, probePath, open + replacement + tail + "}")
             if (after.kinds === before.kinds && after.errors <= before.errors) {
                 edits.push({start: member.getStart(), end: member.getEnd(), text: replacement})
             }
