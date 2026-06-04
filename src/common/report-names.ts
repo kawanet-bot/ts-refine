@@ -5,8 +5,13 @@ import type {TSR} from "ts-refine"
 
 export const reportNames: readonly TSR.ReportName[] = ["semicolons", "indent", "member-separators", "new-line", "bracket-spacing"] as const
 
-// The apply-bearing subset: the reports format / move / rename actually consume
-// (through reportToFormatStyle). It currently lists the same names as
-// `reportNames`, but stays a distinct constant — the two have different roles
-// (the offered registry vs. the apply set) and have diverged before / may again.
-export const applyReportNames: readonly TSR.ReportName[] = ["semicolons", "indent", "member-separators", "new-line", "bracket-spacing"]
+// Reports the `format` command applies. Kept distinct from `reportNames` even
+// when the values coincide: the offered registry and the format apply set
+// differ in role and may diverge again.
+export const formatReportNames: readonly TSR.ReportName[] = ["semicolons", "indent", "member-separators", "new-line", "bracket-spacing"]
+
+// Reports surveyed to style organized imports (the per-file survey behind
+// imports/move/rename, via formatSettingsForFile). Only the LS-mappable axes:
+// member-separators is absent because it has no LS mapping — it's applied by a
+// self-pass, so surveying it for import styling would be wasted work.
+export const importReportNames: readonly TSR.ReportName[] = ["semicolons", "indent", "new-line", "bracket-spacing"]

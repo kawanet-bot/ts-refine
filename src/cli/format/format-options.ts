@@ -8,7 +8,7 @@
 // and buildFormatTokens renders the same FormatStyle back to argv.
 
 import type {TSR} from "ts-refine"
-import {applyReportNames} from "../../common/report-names.ts"
+import {formatReportNames} from "../../common/report-names.ts"
 
 // A CLI override pins a field, so surveying the matching report is redundant.
 // reportNamesForFormat trims the apply set to the reports still worth running —
@@ -23,7 +23,7 @@ const reportByOverride: {field: keyof TSR.FormatStyle; report: TSR.ReportName}[]
 
 export function reportNamesForFormat(overrides: TSR.FormatStyle): TSR.ReportName[] {
     const skip = new Set(reportByOverride.filter((m) => overrides[m.field] !== undefined).map((m) => m.report))
-    return applyReportNames.filter((name) => !skip.has(name))
+    return formatReportNames.filter((name) => !skip.has(name))
 }
 
 // CLI overrides → FormatStyle. A typed seam keeping parseArgs decoupled from
