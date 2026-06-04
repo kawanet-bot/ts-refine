@@ -1,0 +1,76 @@
+import {strict as assert} from "node:assert"
+import {describe, it} from "node:test"
+import {initInMemoryProject} from "../common/init-project.ts"
+import {applyTrailingComma} from "./apply-trailing-comma.ts"
+
+function run(src: string, mode: "on" | "off"): string {
+    const project = initInMemoryProject()
+    const sf = project.createSourceFile("/a.ts", src, {overwrite: true})
+    applyTrailingComma(sf, mode)
+    return sf.getFullText()
+}
+
+describe("applyTrailingComma", () => {
+    it("on adds a trailing comma to a multi-line array; off removes it", () => {
+        const multi = "const a = [\n    1,\n    2\n]\n"
+        assert.equal(run(multi, "on"), "const a = [\n    1,\n    2,\n]\n")
+        assert.equal(run("const a = [\n    1,\n    2,\n]\n", "off"), multi)
+    })
+
+    it("on strips a trailing comma from a single-line list", () => {
+        assert.equal(run("const a = [1, 2,]\n", "on"), "const a = [1, 2]\n")
+    })
+
+    it("covers objects, call args, params, enums, tuples, named imports (multi-line, on)", () => {
+        for (const [src, expected] of [
+            ["const o = {\n    a: 1,\n    b: 2\n}\n", "const o = {\n    a: 1,\n    b: 2,\n}\n"],
+            ["fn(\n    a,\n    b\n)\n", "fn(\n    a,\n    b,\n)\n"],
+            ["function f(\n    a,\n    b\n) {}\n", "function f(\n    a,\n    b,\n) {}\n"],
+            ["enum E {\n    A,\n    B\n}\n", "enum E {\n    A,\n    B,\n}\n"],
+            ["type T = [\n    number,\n    string\n]\n", "type T = [\n    number,\n    string,\n]\n"],
+            ["import {\n    a,\n    b\n} from './m.ts'\n", "import {\n    a,\n    b,\n} from './m.ts'\n"],
+        ] as const) {
+            assert.equal(run(src, "on"), expected)
+        }
+    })
+
+    it("never touches a trailing position after a spread / rest element", () => {
+        const arr = "const a = [\n    ...xs\n]\n"
+        assert.equal(run(arr, "on"), arr)
+        const rest = "function f(\n    ...args\n) {}\n"
+        assert.equal(run(rest, "on"), rest)
+    })
+
+    it("leaves angle-bracket lists untouched (type params / args, TSX)", () => {
+        for (const src of [
+            "class Foo<\n    A,\n    B\n> {}\n",
+            "const x: Bar<\n    A,\n    B\n> = y\n",
+        ]) {
+            assert.equal(run(src, "on"), src)
+        }
+    })
+
+    it("leaves interface / type-literal members to the separators pass", () => {
+        const iface = "interface I {\n    a: number,\n    b: string\n}\n"
+        assert.equal(run(iface, "on"), iface)
+    })
+
+    it("formats every list in a multi-declaration file (edits applied after the walk)", () => {
+        const src = "const a = [\n    1\n]\nconst b = {\n    x: 1\n}\n"
+        assert.equal(run(src, "on"), "const a = [\n    1,\n]\nconst b = {\n    x: 1,\n}\n")
+    })
+
+    it("inserts the comma before a trailing comment", () => {
+        const src = "const a = [\n    1,\n    2 // last\n]\n"
+        assert.equal(run(src, "on"), "const a = [\n    1,\n    2, // last\n]\n")
+    })
+
+    it("leaves an empty list untouched", () => {
+        assert.equal(run("const a = []\nconst o = {}\n", "on"), "const a = []\nconst o = {}\n")
+    })
+
+    it("is idempotent", () => {
+        const once = run("const a = [\n    1,\n    2\n]\n", "on")
+        assert.equal(run(once, "on"), once)
+    })
+})
