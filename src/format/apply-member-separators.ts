@@ -24,12 +24,12 @@ type Member = ClassMemberTypes | TypeElementTypes
 // Target trailing separator for each style ("" = none).
 const SEPARATOR = {semi: ";", comma: ",", none: ""} as const
 
-// The member node text includes its trailing `;` / `,` (getText covers it),
-// so drop a single trailing separator to rebuild from a clean base.
-function stripSeparator(text: string): string {
-    const t = text.trimEnd()
-    return t.endsWith(";") || t.endsWith(",") ? t.slice(0, -1) : t
-}
+// Trailing separator on a member's text: an optional `;` / `,` at the very end.
+// getText() ends at the separator token (trailing whitespace is the next node's
+// trivia), so no `\s*` is needed. The capture is "" when there is no separator.
+// Matched for the current separator and replaced to set the target one, so both
+// halves stay in sync.
+const TRAILING_SEPARATOR = /([;,]?)$/
 
 // Re-parse a container body and report what a rewrite must preserve: the member
 // kinds in order, plus the syntactic parse-error count. The error count is
@@ -66,8 +66,14 @@ export function applyMemberSeparators(sf: SourceFile, style: TSR.MemberSeparator
 
         members.forEach((member, i) => {
             if (!isSeparableMember(member)) return
-            const replacement = stripSeparator(member.getText()) + want
-            if (replacement === member.getText()) return // already conforms — no rewrite
+            const memberText = member.getText()
+            // Read the current trailing separator without rebuilding the text:
+            // most members already conform, so they are skipped before any
+            // string is allocated. Only on a change is the replacement built —
+            // by the same regex, so extracting and rewriting stay in sync.
+            const current = memberText.match(TRAILING_SEPARATOR)?.[1] ?? ""
+            if (current === want) return // already conforms — no rewrite
+            const replacement = memberText.replace(TRAILING_SEPARATOR, want)
 
             // Verify against just this member and the one it could fuse with —
             // its immediate successor in source order (any kind, including
@@ -78,7 +84,7 @@ export function applyMemberSeparators(sf: SourceFile, style: TSR.MemberSeparator
             const next = members[i + 1]
             const tail = next ? text.slice(member.getEnd() - base, next.getStart() - base) + next.getText() : ""
             scratch ??= initInMemoryProject()
-            const before = survey(scratch, open + member.getText() + tail + "}")
+            const before = survey(scratch, open + memberText + tail + "}")
             const after = survey(scratch, open + replacement + tail + "}")
             if (after.kinds === before.kinds && after.errors <= before.errors) {
                 edits.push({start: member.getStart(), end: member.getEnd(), text: replacement})
