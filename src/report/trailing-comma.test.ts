@@ -31,6 +31,13 @@ describe("runReportTrailingComma", () => {
         assert.deepEqual(ret, {})
     })
 
+    it("does not count a comma inside a trailing comment as a trailing comma", async () => {
+        // The list has no real trailing comma; the comment comma must not
+        // flip the vote to `on`.
+        const {ret} = await run({"x.ts": "const a = [\n    1 // a, b\n]\n"})
+        assert.deepEqual(ret, {trailingComma: "off"})
+    })
+
     it("never counts a spread / rest last element", async () => {
         const {ret} = await run({"x.ts": "const a = [\n    ...xs\n]\nfunction f(\n    ...args\n) {}\n"})
         assert.deepEqual(ret, {})

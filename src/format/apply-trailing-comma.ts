@@ -64,6 +64,14 @@ export function listOf(node: Node): List | undefined {
     return undefined
 }
 
+// The trailing comma token after a list's last element (its next-sibling
+// token), or undefined when absent. Resolved through the AST, not a text scan,
+// so a comma inside a trailing comment (`1 // a, b`) stays trivia and is never
+// mistaken for the list delimiter.
+export function trailingCommaToken(lastElement: Node): Node | undefined {
+    return lastElement.getNextSiblingIfKind(SyntaxKind.CommaToken)
+}
+
 export function applyTrailingComma(sf: SourceFile, mode: "on" | "off"): void {
     const full = sf.getFullText()
     const edits: {start: number; end: number; text: string}[] = []
@@ -82,18 +90,14 @@ export function applyTrailingComma(sf: SourceFile, mode: "on" | "off"): void {
         const multiline = last.getEndLineNumber() !== list.close.getStartLineNumber()
         const wantComma = mode === "on" && multiline
 
-        // The trailing comma, if any, sits between the last element and the
-        // close bracket (there are no further elements to introduce a comma).
-        const gap = full.slice(last.getEnd(), list.close.getStart())
-        const commaOffset = gap.indexOf(",")
-        const hasComma = commaOffset >= 0
+        const commaTok = trailingCommaToken(last)
+        const hasComma = commaTok != null
         if (wantComma === hasComma) return // already conforms
 
         if (wantComma) {
             edits.push({start: last.getEnd(), end: last.getEnd(), text: ","}) // insert after the element
-        } else {
-            const at = last.getEnd() + commaOffset
-            edits.push({start: at, end: at + 1, text: ""}) // drop the trailing comma
+        } else if (commaTok) {
+            edits.push({start: commaTok.getStart(), end: commaTok.getEnd(), text: ""}) // drop the trailing comma
         }
     })
 

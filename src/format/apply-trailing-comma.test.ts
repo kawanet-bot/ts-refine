@@ -65,6 +65,13 @@ describe("applyTrailingComma", () => {
         assert.equal(run(src, "on"), "const a = [\n    1,\n    2, // last\n]\n")
     })
 
+    it("treats a comma inside a trailing comment as trivia, not the delimiter", () => {
+        // `on` must still add the real comma (the comment comma is not one)...
+        assert.equal(run("const a = [\n    1 // a, b\n]\n", "on"), "const a = [\n    1, // a, b\n]\n")
+        // ...and `off` must drop only the real comma, leaving the comment intact.
+        assert.equal(run("const a = [\n    1, // a, b\n]\n", "off"), "const a = [\n    1 // a, b\n]\n")
+    })
+
     it("leaves an empty list untouched", () => {
         assert.equal(run("const a = []\nconst o = {}\n", "on"), "const a = []\nconst o = {}\n")
     })
