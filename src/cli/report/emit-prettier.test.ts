@@ -1,14 +1,12 @@
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
-import {writePrettierConfig, writePrettierMarkdown} from "./emit-prettier.ts"
+import {getPrettierConfig, writePrettierMarkdown} from "./emit-prettier.ts"
 
-function capture(report: Parameters<typeof writePrettierConfig>[0]): string {
-    let out = ""
-    writePrettierConfig(report, {write: (s) => (out += s)})
-    return out
+function capture(report: Parameters<typeof getPrettierConfig>[0]): string {
+    return getPrettierConfig(report)
 }
 
-describe("writePrettierConfig", () => {
+describe("getPrettierConfig", () => {
     it("maps semicolons.semicolons=off → semi: false", () => {
         const out = capture({semicolons: {semicolons: "off"}})
         assert.equal(JSON.parse(out).semi, false)

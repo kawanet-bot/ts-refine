@@ -1,6 +1,6 @@
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
-import {writeFormatCommand, writeFormatMarkdown} from "./emit-ts-refine.ts"
+import {getTsRefineFormat, writeFormatCommand, writeFormatMarkdown} from "./emit-ts-refine.ts"
 
 function capture(fn: (s: {write: (chunk: string) => void}) => void): string {
     let out = ""
@@ -8,63 +8,63 @@ function capture(fn: (s: {write: (chunk: string) => void}) => void): string {
     return out
 }
 
-describe("writeFormatCommand", () => {
+// The framing (`ts-refine format \`) that getTsRefineFormat feeds is
+// covered by select-emitter.test.ts.
+describe("getTsRefineFormat", () => {
     it("maps semicolons.semicolons=off → --semicolons off", () => {
-        const out = capture((s) => writeFormatCommand({semicolons: {semicolons: "off"}}, s))
-        assert.equal(out, "ts-refine format \\\n  --semicolons off\n")
+        assert.equal(getTsRefineFormat({semicolons: {semicolons: "off"}}), "--semicolons off")
     })
 
     it("maps semicolons.semicolons=on → --semicolons on", () => {
-        const out = capture((s) => writeFormatCommand({semicolons: {semicolons: "on"}}, s))
-        assert.equal(out, "ts-refine format \\\n  --semicolons on\n")
+        assert.equal(getTsRefineFormat({semicolons: {semicolons: "on"}}), "--semicolons on")
     })
 
     it("maps indent.width → --indent N", () => {
-        const out = capture((s) => writeFormatCommand({indent: {width: 4}}, s))
-        assert.equal(out, "ts-refine format \\\n  --indent 4\n")
+        assert.equal(getTsRefineFormat({indent: {width: 4}}), "--indent 4")
     })
 
     it("maps indent.width=tab → --indent tab", () => {
-        const out = capture((s) => writeFormatCommand({indent: {width: "tab"}}, s))
-        assert.equal(out, "ts-refine format \\\n  --indent tab\n")
+        assert.equal(getTsRefineFormat({indent: {width: "tab"}}), "--indent tab")
     })
 
     it("omits memberSeparators (report-only; the format command does not consume it)", () => {
-        const out = capture((s) => writeFormatCommand({memberSeparators: {separator: "none"}}, s))
-        assert.equal(out, "ts-refine format\n")
+        assert.equal(getTsRefineFormat({memberSeparators: {separator: "none"}}), "")
     })
 
     it("maps newLine.newLine → --new-line V", () => {
-        const out = capture((s) => writeFormatCommand({newLine: {newLine: "lf"}}, s))
-        assert.equal(out, "ts-refine format \\\n  --new-line lf\n")
+        assert.equal(getTsRefineFormat({newLine: {newLine: "lf"}}), "--new-line lf")
     })
 
     it("maps bracketSpacing.bracketSpacing → --bracket-spacing V", () => {
-        const out = capture((s) => writeFormatCommand({bracketSpacing: {bracketSpacing: "on"}}, s))
-        assert.equal(out, "ts-refine format \\\n  --bracket-spacing on\n")
+        assert.equal(getTsRefineFormat({bracketSpacing: {bracketSpacing: "on"}}), "--bracket-spacing on")
     })
 
     it("combines all recommendations in a fixed order, omitting member-separators", () => {
-        const out = capture((s) =>
-            writeFormatCommand(
-                // Input keys are intentionally reversed; the output order is fixed.
-                {bracketSpacing: {bracketSpacing: "on"}, newLine: {newLine: "lf"}, memberSeparators: {separator: "none"}, indent: {width: 4}, semicolons: {semicolons: "off"}},
-                s,
-            ),
+        const out = getTsRefineFormat(
+            // Input keys are intentionally reversed; the output order is fixed.
+            {bracketSpacing: {bracketSpacing: "on"}, newLine: {newLine: "lf"}, memberSeparators: {separator: "none"}, indent: {width: 4}, semicolons: {semicolons: "off"}},
         )
-        assert.equal(out, "ts-refine format \\\n  --semicolons off --indent 4 --new-line lf --bracket-spacing on\n")
+        assert.equal(out, "--semicolons off --indent 4 --new-line lf --bracket-spacing on")
     })
 
-    it("emits a bare `ts-refine format` when nothing was recommended", () => {
+    it("returns an empty string when nothing was recommended", () => {
         // Symmetric with `--emit prettier` emitting an empty `{}` for the same case.
+        assert.equal(getTsRefineFormat({}), "")
+    })
+})
+
+// The flag mapping is covered above; these pin the framing getTsRefineFormat
+// feeds — most importantly the empty branch, which select-emitter.test.ts
+// (non-empty only) does not exercise.
+describe("writeFormatCommand", () => {
+    it("emits a bare `ts-refine format` when nothing was recommended", () => {
         const out = capture((s) => writeFormatCommand({}, s))
         assert.equal(out, "ts-refine format\n")
     })
 
-    it("keeps the args on a separate line so `grep '^ +--'` extracts flags only", () => {
+    it("frames the flags on a continued second line", () => {
         const out = capture((s) => writeFormatCommand({semicolons: {semicolons: "off"}}, s))
-        const second = out.split("\n")[1]
-        assert.match(second, /^ +--/)
+        assert.equal(out, "ts-refine format \\\n  --semicolons off\n")
     })
 })
 
