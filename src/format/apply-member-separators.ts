@@ -50,14 +50,16 @@ export function applyMemberSeparators(sf: SourceFile, style: TSR.MemberSeparator
     // never creates one; released with this call.
     let scratch: Project | undefined
 
+    // Accepted edits across the whole file, captured as offsets + text. Collected
+    // during traversal but applied only afterwards: mutating `sf` mid-walk
+    // reparses it and forgets the nodes the traversal is still visiting, which
+    // would skip or corrupt later interfaces/classes in the same file.
+    const edits: {start: number; end: number; text: string}[] = []
+
     sf.forEachDescendant((node) => {
         if (!Node.isInterfaceDeclaration(node) && !Node.isClassDeclaration(node)) return
         const text = node.getText()
         const base = node.getStart()
-
-        // Edits are captured as offsets + text, not node refs: the first
-        // replaceText forgets the remaining member nodes.
-        const edits: {start: number; end: number; text: string}[] = []
         let before: {kinds: string; errors: number} | undefined
 
         for (const member of node.getMembers() as Member[]) {
@@ -76,9 +78,15 @@ export function applyMemberSeparators(sf: SourceFile, style: TSR.MemberSeparator
                 edits.push({start: member.getStart(), end: member.getEnd(), text: replacement})
             }
         }
-
-        // Apply last-to-first so each edit's offsets stay valid after the prior ones.
-        edits.sort((a, b) => b.start - a.start)
-        for (const e of edits) sf.replaceText([e.start, e.end], e.text)
     })
+
+    if (edits.length === 0) return
+
+    // Build the final text in one pass (apply edits last-to-first so earlier
+    // offsets stay valid) and write it back once, so the file is reparsed a
+    // single time instead of per edit.
+    edits.sort((a, b) => b.start - a.start)
+    let result = sf.getFullText()
+    for (const e of edits) result = result.slice(0, e.start) + e.text + result.slice(e.end)
+    sf.replaceWithText(result)
 }

@@ -109,6 +109,14 @@ describe("applyMemberSeparators", () => {
         assert.equal(run(lit, "comma"), lit)
     })
 
+    it("formats every interface/class in a multi-declaration file", () => {
+        // Regression: edits must be applied after the whole-file walk, not
+        // mid-traversal — otherwise the second declaration is skipped/corrupted.
+        const src = "interface A {\n    a: number\n    b: string\n}\nclass C {\n    x = 1\n    y = 2\n}\n"
+        const out = run(src, "semi")
+        for (const re of [/a: number;/, /b: string;/, /x = 1;/, /y = 2;/]) assert.match(out, re)
+    })
+
     it("none normalizes a leading-`;` member without breaking it", () => {
         // The `;` terminates the previous member even on the next line. Removing
         // it from two newline-separated typed members is safe (re-parse agrees).
