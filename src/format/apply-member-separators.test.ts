@@ -19,6 +19,12 @@ describe("applyMemberSeparators", () => {
         assert.equal(run(IFACE, "semi"), "interface I {\n    a: number;\n    b(): void;\n    c: string;\n}\n")
     })
 
+    it("semi: inserts the `;` before a trailing line comment, not after it", () => {
+        // The separator attaches to the member text; the comment is trailing
+        // trivia and must stay to the right of the inserted `;`.
+        assert.equal(run("interface I {\n    a: number // c\n}\n", "semi"), "interface I {\n    a: number; // c\n}\n")
+    })
+
     it("comma: every interface member ends with `,` (incl. the last)", () => {
         assert.equal(run(IFACE, "comma"), "interface I {\n    a: number,\n    b(): void,\n    c: string,\n}\n")
     })
@@ -60,6 +66,13 @@ describe("applyMemberSeparators", () => {
         const src = "interface I {\n    foo;\n    <T>(): T;\n}\n"
         const out = run(src, "none")
         assert.match(out, /foo;\n/, "bare member keeps its separator")
+    })
+
+    it("none: keeps `;` on a bare `get`/`set` member before a method (would form an accessor)", () => {
+        // `get` / `set` are ordinary property names here; dropping the `;` makes
+        // `get foo(): X` parse as a getter, fusing two members into one.
+        assert.match(run("interface I {\n    get;\n    foo(): X\n}\n", "none"), /get;\n/, "`get` keeps its separator")
+        assert.match(run("interface I {\n    set;\n    foo(): X\n}\n", "none"), /set;\n/, "`set` keeps its separator")
     })
 
     it("none: drops the separator after a type-annotated member (no fusion hazard)", () => {
@@ -104,7 +117,10 @@ describe("applyMemberSeparators", () => {
         assert.equal(twice, once)
     })
 
-    it("leaves a type literal untouched (out of v1 scope: interface/class only)", () => {
+    it("leaves a type literal untouched (intentional: keep-first, leave styling to Prettier)", () => {
+        // Not a limitation: a type literal is anonymous and nests in any type
+        // position, so touching its separators risks breakage. Scope is
+        // interface/class only; type-literal styling is left to Prettier.
         const lit = "type T = {p: number; q: number}\n"
         assert.equal(run(lit, "comma"), lit)
     })
