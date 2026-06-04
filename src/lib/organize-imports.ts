@@ -4,15 +4,24 @@
 
 import type {FormatCodeSettings, SourceFile} from "ts-morph"
 import {Node, ts} from "ts-morph"
+import {applyTrailingComma} from "../format/apply-trailing-comma.ts"
+import type {ImportsStyle} from "./format-settings.ts"
 import {applyTypeOnlyFixes} from "./type-only-fixes.ts"
 
-export function applyOrganizeImports(sf: SourceFile, settings: FormatCodeSettings): void {
+export function applyOrganizeImports(sf: SourceFile, style: ImportsStyle): void {
+    const {settings, trailingComma} = style
+
     // Settle type-only markers first so the sort can tell type specifiers
     // apart; on a project without verbatimModuleSyntax/isolatedModules it is a
     // no-op.
     applyTypeOnlyFixes(sf, settings)
     sf.organizeImports(settings)
     stripCommentDeferredSemicolons(sf, settings)
+
+    // organizeImports drops a trailing comma when it rebuilds a local `export
+    // {}` specifier list, and the LS can't set one anyway. Reassert the surveyed
+    // style on the import/export specifiers only, as a self-pass.
+    if (trailingComma != null) applyTrailingComma(sf, trailingComma, {importsOnly: true})
 }
 
 // organizeImports' printer commits a deferred `;` when a token trails a

@@ -29,8 +29,8 @@ export const refineImports: typeof declared.refineImports = async (opts) => {
 
         // Survey this file alone (imports-only) so it organizes in its own
         // existing style and the project's formatting barely shifts.
-        const settings = await formatSettingsForFile(sf)
-        applyOrganizeImports(sf, settings)
+        const style = await formatSettingsForFile(sf)
+        applyOrganizeImports(sf, style)
 
         const after = sf.getFullText()
         if (before === after) continue

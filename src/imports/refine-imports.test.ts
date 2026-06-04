@@ -57,6 +57,22 @@ describe("refineImports", () => {
         assert.match(y.getFullText(), /const {3}_ = a\+b\n/)
     })
 
+    it("reasserts a dropped trailing comma on a multi-line local export, leaving the body alone", async () => {
+        const project = initInMemoryProject()
+        // A sole, multi-line, local `export {}` (no `from`) with a trailing
+        // comma: organizeImports rebuilds the specifier list and drops it, but
+        // the per-file survey sees the comma so the self-pass reasserts it. The
+        // body array (also multi-line, no comma) must stay untouched.
+        const sf = project.createSourceFile("a.ts", "const a = 1\nconst b = 2\nexport {\n    b,\n    a,\n}\nconst arr = [\n    a,\n    b\n]\n")
+        await refineImports({project, log, dryRun: true, paths: []})
+        const text = sf.getFullText()
+
+        // organizeImports squishes the export elements onto one line (a known,
+        // out-of-scope layout quirk); what matters is the trailing comma is back.
+        assert.match(text, /export \{\n {4}a, b,\n\}/, "export trailing comma restored after sort")
+        assert.match(text, /const arr = \[\n {4}a,\n {4}b\n\]/, "body array left untouched (imports-only scope)")
+    })
+
     it("dryRun does not call fs.writeFile (in-memory project would error on real-fs writes)", async () => {
         const project = initInMemoryProject()
         project.createSourceFile("dep.ts", "export const used = 1\nexport const unused = 2\n")
