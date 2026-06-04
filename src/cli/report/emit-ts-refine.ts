@@ -43,13 +43,13 @@ export function writeFormatCommand(report: TSR.ReportResult, output: TSR.Writer)
 // `## recommendation` block in the default-survey Markdown. Skipped
 // when no recommendations fired (the empty form carries no information).
 export function writeFormatMarkdown(report: TSR.ReportResult, output: TSR.Writer): void {
-    const flags = buildFormatTokens(reportToFormatStyle(report))
-    if (flags.length === 0) return
+    const format = getTsRefineFormat(report)
+    if (!format) return
     output.write("## recommendation\n")
     output.write("\n")
     output.write("```sh\n")
     output.write("ts-refine format \\\n")
-    output.write(`  ${flags.join(" ")}\n`)
+    output.write(`  ${format}\n`)
     output.write("```\n")
     output.write("\n")
 }
