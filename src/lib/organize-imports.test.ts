@@ -81,3 +81,29 @@ describe("applyOrganizeImports trailing-comma reassertion", () => {
         assert.match(organize("const a = 1\nconst b = 2\nexport {\n    b,\n    a,\n}\n", "off"), /export \{\n {4}a, b\n\}/)
     })
 })
+
+describe("applyOrganizeImports trailing-comma + semicolons together", () => {
+    function organize(text: string, settings: ts.FormatCodeSettings, trailingComma: "on" | "off") {
+        const project = initInMemoryProject()
+        const sf = project.createSourceFile("a.ts", text)
+        applyOrganizeImports(sf, {settings, trailingComma})
+        return sf.getFullText()
+    }
+
+    // A comment-trailed local export, with and without the comma/`;`.
+    const BARE = "const foo = 1\nexport {\n    foo\n} // comment\n"
+    const FULL = "const foo = 1\nexport {\n    foo,\n}; // comment\n"
+
+    // The two axes are independent and each idempotent: on/on and off/off are
+    // exact inverses. The comma sits inside `{}`; the `;` lands after `}` and
+    // before the line comment, which is preserved either way.
+    it("on + on: adds the trailing comma and the `;`", () => {
+        assert.equal(organize(BARE, INSERT, "on"), FULL)
+        assert.equal(organize(FULL, INSERT, "on"), FULL) // idempotent
+    })
+
+    it("off + off: removes the trailing comma and the `;`", () => {
+        assert.equal(organize(FULL, REMOVE, "off"), BARE)
+        assert.equal(organize(BARE, REMOVE, "off"), BARE) // idempotent
+    })
+})
