@@ -4,13 +4,14 @@
 // chosen style. Scope mirrors the member-separators report: interface and
 // class members (body-bearing members carry no separator).
 //
-// Every rewrite is checked by re-parsing: a proposed separator change is
-// applied to a copy of the container and accepted only when the member kinds
-// (in order) are unchanged and no new syntax error appears. The parser is the
-// oracle, so there is no per-shape heuristic — fusing a bare member into the
-// next signature (`foo` + `<T>(): T`), a class field into a computed member
-// (`x = foo` + `[y]`), a comma on a class field, or dropping a separator that
-// two same-line members still need are all rejected the same way.
+// Every rewrite is checked by re-parsing the member with its immediate
+// successor (the only member it could fuse with) in a throwaway wrapper, and
+// accepted only when the two member kinds are unchanged and no new syntax error
+// appears. The parser is the oracle, so there is no per-shape heuristic —
+// fusing a bare member into the next signature (`foo` + `<T>(): T`), a class
+// field into a computed member (`x = foo` + `[y]`), a comma on a class field,
+// or dropping a separator that two same-line members still need are all
+// rejected the same way.
 
 import type {ClassMemberTypes, Project, SourceFile, TypeElementTypes} from "ts-morph"
 import {Node} from "ts-morph"
@@ -60,24 +61,29 @@ export function applyMemberSeparators(sf: SourceFile, style: TSR.MemberSeparator
         if (!Node.isInterfaceDeclaration(node) && !Node.isClassDeclaration(node)) return
         const text = node.getText()
         const base = node.getStart()
-        let before: {kinds: string; errors: number} | undefined
+        const open = Node.isClassDeclaration(node) ? "class _ {" : "interface _ {"
+        const members = node.getMembers() as Member[]
 
-        for (const member of node.getMembers() as Member[]) {
-            if (!isSeparableMember(member)) continue
+        members.forEach((member, i) => {
+            if (!isSeparableMember(member)) return
             const replacement = stripSeparator(member.getText()) + want
-            if (replacement === member.getText()) continue // already conforms — no rewrite
+            if (replacement === member.getText()) return // already conforms — no rewrite
 
-            // A rewrite is proposed: re-parse the container with only this
-            // member's separator changed and accept it only when the structure
-            // survives intact.
+            // Verify against just this member and the one it could fuse with —
+            // its immediate successor in source order (any kind, including
+            // body-bearing). The text between them (whitespace / comments) is
+            // kept verbatim, so a same-line gap still reads as same-line. The
+            // wrapper matches the container kind (a class field is invalid in an
+            // interface, and vice versa).
+            const next = members[i + 1]
+            const tail = next ? text.slice(member.getEnd() - base, next.getStart() - base) + next.getText() : ""
             scratch ??= initInMemoryProject()
-            before ??= survey(scratch, text)
-            const candidate = text.slice(0, member.getStart() - base) + replacement + text.slice(member.getEnd() - base)
-            const after = survey(scratch, candidate)
+            const before = survey(scratch, open + member.getText() + tail + "}")
+            const after = survey(scratch, open + replacement + tail + "}")
             if (after.kinds === before.kinds && after.errors <= before.errors) {
                 edits.push({start: member.getStart(), end: member.getEnd(), text: replacement})
             }
-        }
+        })
     })
 
     if (edits.length === 0) return
