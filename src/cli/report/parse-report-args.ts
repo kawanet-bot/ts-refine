@@ -11,16 +11,16 @@ export interface ReportArgs {
     paths: string[]
 
     // The requested selectors, or the full registry when none are given.
-    reports: string[]
+    reports?: string[]
 
     // Suppress Markdown and emit the named output instead.
-    emit: string | null
+    emit?: string
 }
 
 export function parseReportArgs(sub: string[], common: CommonArgs): ReportArgs | undefined {
     const reportNames: string[] = []
     const paths: string[] = []
-    let emit: string | null = null
+    let emit: string | undefined
     let i = 0
 
     while (i < sub.length) {
@@ -55,5 +55,6 @@ export function parseReportArgs(sub: string[], common: CommonArgs): ReportArgs |
         throw new Error("--dry-run is not valid for the report command")
     }
 
-    return {paths, reports: reportNames, emit}
+    const reports = reportNames?.length ? reportNames : undefined
+    return {paths, reports, emit}
 }

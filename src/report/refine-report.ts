@@ -22,7 +22,7 @@ import {runReportTrailingComma} from "./trailing-comma.ts"
 export const refineReport: typeof declared.refineReport = async (opts) => {
     const {output, reports, paths, log} = opts
     const project = resolveProject(opts)
-    const requested = reports?.length ? reports : reportNames
+    const requested = reports ?? reportNames
 
     // Validate every requested report name up-front so a typo fails before any
     // report runs. `reportNames` is the source of truth for what exists.

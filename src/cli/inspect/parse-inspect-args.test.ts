@@ -11,7 +11,7 @@ describe("parseInspect", () => {
     it("defaults to none of inspectors", () => {
         const r = parseInspectArgs([], common())
         assert.ok(r)
-        assert.deepEqual(r.inspectors, [])
+        assert.deepEqual(r.inspectors, undefined)
     })
 
     it("collects inspector selectors and dedupes", () => {

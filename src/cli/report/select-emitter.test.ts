@@ -4,7 +4,7 @@ import {selectEmitter} from "./select-emitter.ts"
 
 describe("selectOutput", () => {
     it("returns undefined when no output is selected", () => {
-        const f = selectEmitter(null)
+        const f = selectEmitter(undefined)
         assert.equal(f, undefined)
     })
 

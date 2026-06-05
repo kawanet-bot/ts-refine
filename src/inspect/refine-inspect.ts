@@ -21,7 +21,7 @@ import {displayPath, inProjectSourceFiles, selectSourceFiles} from "../lib/sourc
 export const refineInspect: typeof declared.refineInspect = async (opts) => {
     const {paths, inspectors, log} = opts
     const project = resolveProject(opts)
-    const requested = inspectors?.length ? inspectors : inspectorNames
+    const requested = inspectors ?? inspectorNames
 
     for (const name of requested) {
         if (!(inspectorNames as readonly string[]).includes(name)) {

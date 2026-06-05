@@ -5,7 +5,7 @@ import {getStylisticConfig} from "./emit-stylistic.ts"
 import {getTsRefineFormat} from "./emit-ts-refine.ts"
 
 // `--emit` router
-export function selectEmitter(name: string | null): ((report: TSR.ReportResult) => string | undefined) | undefined {
+export function selectEmitter(name: string | undefined): ((report: TSR.ReportResult) => string | undefined) | undefined {
     if (name == null) return
 
     if (name === "prettier") return getPrettierConfig

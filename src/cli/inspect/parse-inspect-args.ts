@@ -11,7 +11,7 @@ export interface InspectArgs {
     paths: string[]
 
     // The requested inspector selectors, or the full registry.
-    inspectors: string[]
+    inspectors?: string[]
 }
 
 export function parseInspectArgs(sub: string[], common: CommonArgs): InspectArgs | undefined {
@@ -44,5 +44,6 @@ export function parseInspectArgs(sub: string[], common: CommonArgs): InspectArgs
         throw new Error("--dry-run is not valid for the inspect command")
     }
 
-    return {paths, inspectors: inspectorNames}
+    const inspectors = inspectorNames?.length ? inspectorNames : undefined
+    return {paths, inspectors}
 }
