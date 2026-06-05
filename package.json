@@ -63,12 +63,13 @@
     "eslint": "eslint .",
     "eslint:fix": "eslint --fix .",
     "fixpack": "fixpack",
-    "format": "node src/cli.ts format",
     "prepack": "make -C builder is-buildable",
     "prepare": "make -C builder is-not-buildable 2> /dev/null || make -C builder clean all test",
-    "prettier": "prettier --check 'builder/**/*.ts' 'src/**/*.ts' 'types/**/*.ts'",
-    "prettier:write": "prettier --write 'builder/**/*.ts' 'src/**/*.ts' 'types/**/*.ts'",
-    "test": "make -C builder test"
+    "prettier:check": "prettier --check .",
+    "prettier:write": "prettier --write .",
+    "test": "make -C builder test",
+    "ts-refine": "node src/cli.ts imports && node src/cli.ts format",
+    "ts-refine:check": "node src/cli.ts imports --check && node src/cli.ts format --check"
   },
   "type": "module",
   "types": "./types/ts-refine.d.ts"
