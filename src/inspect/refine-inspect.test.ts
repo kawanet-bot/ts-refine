@@ -8,7 +8,7 @@ import {refineInspect} from "./refine-inspect.ts"
 
 const SAMPLE_TSCONFIG = path.resolve(import.meta.dirname, "../../sample/basic/tsconfig.json")
 
-const log = {write: () => {}}
+const log = {write: (): void => null}
 
 describe("refineInspect", () => {
     it("returns one InspectExport per export with importers count and alphabetical example", async () => {

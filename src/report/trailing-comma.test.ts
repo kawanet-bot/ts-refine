@@ -4,7 +4,7 @@ import {initInMemoryProject} from "../common/init-project.ts"
 import {selectSourceFiles} from "../lib/source-files.ts"
 import {runReportTrailingComma} from "./trailing-comma.ts"
 
-const log = {write: () => {}}
+const log = {write: (): void => null}
 
 function run(files: Record<string, string>, importsOnly = false) {
     const project = initInMemoryProject()

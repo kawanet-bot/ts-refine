@@ -12,7 +12,7 @@ function newProject(): Project {
     })
 }
 
-const log = {write: () => {}}
+const log = {write: (): void => null}
 
 describe("refineRename", () => {
     it("renames an exported identifier across declaration, importer, and usage", async () => {

@@ -8,7 +8,7 @@ import {runReportSemi} from "./semicolons.ts"
 
 const SAMPLE_TSCONFIG = path.resolve(import.meta.dirname, "../../sample/semicolons-mixed/tsconfig.json")
 
-const log = {write: () => {}}
+const log = {write: (): void => null}
 
 describe("runReportSemi (sample/semicolons-mixed)", () => {
     it("buckets files by trailing `;` ratio and returns the action params", async () => {

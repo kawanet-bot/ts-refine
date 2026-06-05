@@ -7,7 +7,7 @@ import {refineReport} from "./refine-report.ts"
 
 const SAMPLE_TSCONFIG = path.resolve(import.meta.dirname, "../../sample/basic/tsconfig.json")
 
-const log = {write: () => {}}
+const log = {write: (): void => null}
 
 describe("refineReport", () => {
     it("throws on an unknown report name (validation moved out of parseArgs)", async () => {

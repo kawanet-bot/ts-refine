@@ -7,8 +7,7 @@ import type {Project} from "ts-morph"
 export {} // external module indicator
 
 export declare namespace TSR {
-    // A minimal output sink: anything with a line-oriented write. The report
-    // stream, the CLI's stdout, the diagnostics log, and NULL_SINK all satisfy it.
+    // output stream
     type Writer = {write: (line: string) => void}
 
     // Common base for every entry. Supply the ts-morph project one of two ways:
