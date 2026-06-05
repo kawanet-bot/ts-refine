@@ -59,7 +59,7 @@ describe("getTsRefineFormat", () => {
     })
 })
 
-// The flag mapping is covered above; these pin the framing getTsRefineFormat
+// The flag mapping is covered above; these pin the framing emitTsRefineFormat
 // feeds — most importantly the empty branch, which select-emitter.test.ts
 // (non-empty only) does not exercise.
 describe("emitTsRefineFormat", () => {

@@ -208,7 +208,7 @@ re-exports only. Projects with neither flag see no type-only change.
 ## Report
 
 `report` surveys the code style and prints a recommendation per dimension —
-semicolons, indent, member-delimiter, new-line, bracket-spacing,
+semi, indent, member-delimiter, new-line, bracket-spacing,
 trailing-comma.
 
 ```sh
