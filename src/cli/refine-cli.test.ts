@@ -126,7 +126,7 @@ describe("refineCLI", () => {
     it("lists files via the list subcommand", async () => {
         const r = await run(["list", "-p", SAMPLE])
         assert.equal(r.status, 0)
-        assert.match(r.stdout, /^\| file \| exports \| unused \| importers \|/m)
+        assert.match(r.stdout, /^\| file \| exports \| unused exports \| importers \|/m)
     })
 
     it("opens the default survey with the first report table, not a list section", async () => {
