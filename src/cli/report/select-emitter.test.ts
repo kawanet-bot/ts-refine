@@ -36,8 +36,8 @@ describe("selectOutput", () => {
         assert.equal(f.reportStream, undefined)
         f.finalize({semi: {semi: "off"}, indent: {width: 4}, memberDelimiter: {delimiter: "comma"}})
 
-        // Two-line form: `ts-refine \` continuation, then the flags
-        // indented by two spaces so `grep '^ +--'` picks them up.
+        // Single-line form: just the `format` flags (no leading `ts-refine format`),
+        // suitable for embedding (e.g. in headings) or passing to `ts-refine format`.
         assert.equal(out(), "--semi off --indent 4 --member-delimiter comma\n")
     })
 
