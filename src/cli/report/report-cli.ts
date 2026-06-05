@@ -8,6 +8,7 @@ import {refineReport} from "../../index.ts"
 import type {CLI} from "../cli-io.ts"
 import {resolvePaths} from "../resolve-paths.ts"
 import {writePrettierMarkdown} from "./emit-prettier.ts"
+import {writeStylisticMarkdown} from "./emit-stylistic.ts"
 import {writeFormatMarkdown} from "./emit-ts-refine.ts"
 import {parseReportArgs} from "./parse-report-args.ts"
 import {selectEmitter} from "./select-emitter.ts"
@@ -28,6 +29,7 @@ export const reportCLI: CLI = async (ctx) => {
     if (args.surveyDefault) {
         writeFormatMarkdown(report, output)
         writePrettierMarkdown(report, output)
+        writeStylisticMarkdown(report, output)
     }
     emitter.finalize(report)
     return 0

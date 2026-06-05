@@ -1,6 +1,6 @@
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
-import {emitStylisticConfig, getStylisticConfig} from "./emit-stylistic.ts"
+import {emitStylisticConfig, getStylisticConfig, writeStylisticMarkdown} from "./emit-stylistic.ts"
 
 function capture(report: Parameters<typeof getStylisticConfig>[0]): string {
     return getStylisticConfig(report)
@@ -75,5 +75,29 @@ describe("emitStylisticConfig", () => {
         emitStylisticConfig({semi: {semi: "off"}}, {write: (s) => (out += s)})
         assert.match(out, /\n$/)
         assert.equal(JSON.parse(out).rules["@stylistic/semi"][1], "never")
+    })
+})
+
+describe("writeStylisticMarkdown", () => {
+    function captureMd(report: Parameters<typeof writeStylisticMarkdown>[0]): string {
+        let out = ""
+        writeStylisticMarkdown(report, {write: (s) => (out += s)})
+        return out
+    }
+
+    it("wraps the JSON in a stylistic fenced block ending in a trailing blank line", () => {
+        const out = captureMd({semi: {semi: "off"}, indent: {width: 4}})
+
+        assert.match(out, /^### @stylistic\/eslint-plugin\n\n```json\n/)
+        assert.match(out, /\n```\n\n$/)
+        const jsonBody = out.match(/```json\n([\s\S]*?)\n```/)?.[1]
+        assert.ok(jsonBody)
+        const parsed = JSON.parse(jsonBody!)
+        assert.deepEqual(parsed.rules["@stylistic/semi"], ["error", "never"])
+        assert.deepEqual(parsed.rules["@stylistic/indent"], ["error", 4])
+    })
+
+    it("emits nothing when no recommendations fired", () => {
+        assert.equal(captureMd({}), "")
     })
 })

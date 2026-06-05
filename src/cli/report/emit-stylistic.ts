@@ -50,3 +50,14 @@ export function getStylisticConfig(report: TSR.ReportResult): string {
 export function emitStylisticConfig(report: TSR.ReportResult, output: TSR.Writer): void {
     output.write(getStylisticConfig(report) + "\n")
 }
+
+export function writeStylisticMarkdown(report: TSR.ReportResult, output: TSR.Writer): void {
+    const config = getStylisticConfig(report)
+    if (config === "{\n  \"rules\": {}\n}") return
+    output.write("### @stylistic/eslint-plugin\n")
+    output.write("\n")
+    output.write("```json\n")
+    output.write(config + "\n")
+    output.write("```\n")
+    output.write("\n")
+}

@@ -37,7 +37,7 @@ describe("refineCLI", () => {
             assert.match(r.stdout, /^  rename /m)
             assert.match(r.stdout, /^  imports /m)
             assert.match(r.stdout, /--emit <name>/)
-            assert.match(r.stdout, /--emit prettier \/ --emit ts-refine \/ --emit stylistic/)
+            assert.match(r.stdout, /--emit ts-refine \/ --emit prettier \/ --emit stylistic/)
             assert.match(r.stdout, /--semi --indent --member-delimiter --new-line --bracket-spacing/)
             assert.match(r.stdout, /--exports --importers/)
         }

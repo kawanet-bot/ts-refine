@@ -54,6 +54,6 @@ describe("selectOutput", () => {
 
     it("throws on an unknown output name", () => {
         const {writer} = makeStdout()
-        assert.throws(() => selectEmitter("typo-format", writer), /unknown --emit: typo-format \(known: prettier, ts-refine, stylistic\)/)
+        assert.throws(() => selectEmitter("typo-format", writer), /unknown --emit: typo-format \(known: ts-refine, prettier, stylistic\)/)
     })
 })
