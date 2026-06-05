@@ -12,11 +12,11 @@ function capture(fn: (s: {write: (chunk: string) => void}) => void): string {
 // covered by select-emitter.test.ts.
 describe("getTsRefineFormat", () => {
     it("maps semicolons.semicolons=off → --semicolons off", () => {
-        assert.equal(getTsRefineFormat({semicolons: {semicolons: "off"}}), "--semicolons off")
+        assert.equal(getTsRefineFormat({semi: {semi: "off"}}), "--semicolons off")
     })
 
     it("maps semicolons.semicolons=on → --semicolons on", () => {
-        assert.equal(getTsRefineFormat({semicolons: {semicolons: "on"}}), "--semicolons on")
+        assert.equal(getTsRefineFormat({semi: {semi: "on"}}), "--semicolons on")
     })
 
     it("maps indent.width → --indent N", () => {
@@ -48,7 +48,7 @@ describe("getTsRefineFormat", () => {
     it("combines all recommendations in a fixed order", () => {
         const out = getTsRefineFormat(
             // Input keys are intentionally reversed; the output order is fixed.
-            {trailingComma: {trailingComma: "on"}, bracketSpacing: {bracketSpacing: "on"}, newLine: {newLine: "lf"}, memberDelimiter: {delimiter: "none"}, indent: {width: 4}, semicolons: {semicolons: "off"}},
+            {trailingComma: {trailingComma: "on"}, bracketSpacing: {bracketSpacing: "on"}, newLine: {newLine: "lf"}, memberDelimiter: {delimiter: "none"}, indent: {width: 4}, semi: {semi: "off"}},
         )
         assert.equal(out, "--semicolons off --indent 4 --member-delimiter none --new-line lf --bracket-spacing on --trailing-comma on")
     })
@@ -69,14 +69,14 @@ describe("writeFormatCommand", () => {
     })
 
     it("frames the flags on a continued second line", () => {
-        const out = capture((s) => writeFormatCommand({semicolons: {semicolons: "off"}}, s))
+        const out = capture((s) => writeFormatCommand({semi: {semi: "off"}}, s))
         assert.equal(out, "ts-refine format \\\n  --semicolons off\n")
     })
 })
 
 describe("writeFormatMarkdown", () => {
     it("wraps the command in a `## recommendation` fenced block", () => {
-        const out = capture((s) => writeFormatMarkdown({semicolons: {semicolons: "off"}, indent: {width: 4}}, s))
+        const out = capture((s) => writeFormatMarkdown({semi: {semi: "off"}, indent: {width: 4}}, s))
         assert.match(out, /^## recommendation\n\n```sh\nts-refine format \\\n/)
         assert.match(out, /\n {2}--semicolons off --indent 4\n```\n\n$/)
     })

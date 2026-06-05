@@ -28,8 +28,8 @@ export declare namespace TSR {
     // Recommendation shapes. Not runtime inputs — they describe the value
     // type of each `ReportResult` slot.
 
-    interface SemicolonsOpts {
-        semicolons: "on" | "off"
+    interface SemiOpts {
+        semi: "on" | "off"
     }
 
     // "tab" recommends tab indentation (LS convertTabsToSpaces:false /
@@ -70,7 +70,7 @@ export declare namespace TSR {
     // Per-report recommendations. A missing key means the report didn't run
     // or had nothing to recommend.
     interface ReportResult {
-        semicolons?: Partial<SemicolonsOpts>
+        semi?: Partial<SemiOpts>
         indent?: Partial<IndentOpts>
         memberDelimiter?: Partial<MemberDelimiterOpts>
         newLine?: Partial<NewLineOpts>

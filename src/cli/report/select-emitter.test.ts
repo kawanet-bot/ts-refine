@@ -13,7 +13,7 @@ describe("selectOutput", () => {
         const {writer, out} = makeStdout()
         const f = selectEmitter(null, writer)
         assert.equal(f.reportStream, writer)
-        f.finalize({semicolons: {semicolons: "off"}})
+        f.finalize({semi: {semi: "off"}})
         assert.equal(out(), "")
     })
 
@@ -23,7 +23,7 @@ describe("selectOutput", () => {
 
         // No report stream: refineReport skips the Markdown body entirely.
         assert.equal(f.reportStream, undefined)
-        f.finalize({semicolons: {semicolons: "off"}, indent: {width: 4}})
+        f.finalize({semi: {semi: "off"}, indent: {width: 4}})
         const json = JSON.parse(out())
         assert.equal(json.semi, false)
         assert.equal(json.tabWidth, 4)
@@ -34,7 +34,7 @@ describe("selectOutput", () => {
         const {writer, out} = makeStdout()
         const f = selectEmitter("ts-refine", writer)
         assert.equal(f.reportStream, undefined)
-        f.finalize({semicolons: {semicolons: "off"}, indent: {width: 4}, memberDelimiter: {delimiter: "comma"}})
+        f.finalize({semi: {semi: "off"}, indent: {width: 4}, memberDelimiter: {delimiter: "comma"}})
 
         // Two-line form: `ts-refine \` continuation, then the flags
         // indented by two spaces so `grep '^ +--'` picks them up.

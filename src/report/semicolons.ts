@@ -16,7 +16,7 @@ import type {ReportRunOpts} from "./types.ts"
 // too sparse to be useful — every middle bucket was empty for typical files.
 const BUCKET_LABELS = ["0%", "1-10%", "11-49%", "50%", "51-89%", "90-99%", "100%"] as const
 
-export async function runReportSemicolons({sourceFiles, output, log, importsOnly}: ReportRunOpts): Promise<Partial<TSR.SemicolonsOpts>> {
+export async function runReportSemicolons({sourceFiles, output, log, importsOnly}: ReportRunOpts): Promise<Partial<TSR.SemiOpts>> {
     type PerFile = {path: string; total: number; withSemi: number}
     const perFile: PerFile[] = []
 
@@ -97,7 +97,7 @@ export async function runReportSemicolons({sourceFiles, output, log, importsOnly
 
     // The recommendation is rendered in the trailing `## recommendation`
     // section, so all we return here is the action params shape.
-    return recommend ? {semicolons: recommend} : {}
+    return recommend ? {semi: recommend} : {}
 }
 
 function bucketIndex({total, withSemi}: {total: number; withSemi: number}): number {

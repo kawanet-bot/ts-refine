@@ -5,7 +5,7 @@ import {reportToFormatStyle} from "./format-style.ts"
 describe("reportToFormatStyle", () => {
     it("maps the actionable report fields", () => {
         const o = reportToFormatStyle({
-            semicolons: {semicolons: "on"},
+            semi: {semi: "on"},
             indent: {width: 4},
             newLine: {newLine: "crlf"},
             bracketSpacing: {bracketSpacing: "off"},

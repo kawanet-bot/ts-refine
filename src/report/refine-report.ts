@@ -45,7 +45,7 @@ export const runReports = async (reportOpts: ReportRunOpts, requested: readonly 
     const report: TSR.ReportResult = {}
 
     if (requested.includes("semicolons")) {
-        report.semicolons = await runReportSemicolons(reportOpts)
+        report.semi = await runReportSemicolons(reportOpts)
     }
     if (requested.includes("indent")) {
         report.indent = await runReportIndent(reportOpts)

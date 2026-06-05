@@ -31,7 +31,7 @@ describe("runReportSemicolons (sample/semicolons-mixed)", () => {
 
         // Recommendation is no longer inlined in the Markdown.
         assert.equal(/^recommendation:/m.test(out), false)
-        if (Object.keys(ret).length > 0) assert.ok(ret.semicolons === "on" || ret.semicolons === "off")
+        if (Object.keys(ret).length > 0) assert.ok(ret.semi === "on" || ret.semi === "off")
     })
 
     it("uses integer bucket boundaries for exact 50% and near-boundary tails", async () => {
@@ -58,7 +58,7 @@ describe("runReportSemicolons (sample/semicolons-mixed)", () => {
         project.createSourceFile("/sample/all-semi.ts", statements(3, 3))
         const lines: string[] = []
         const ret = await runReportSemicolons({sourceFiles: selectSourceFiles(project, {paths: ["/sample/*.ts"]}), log, output: {write: (l) => lines.push(l)}})
-        assert.deepEqual(ret, {semicolons: "off"})
+        assert.deepEqual(ret, {semi: "off"})
     })
 
     it("returns an empty partial when files AND statements tie on both sides", async () => {
@@ -82,7 +82,7 @@ describe("runReportSemicolons (sample/semicolons-mixed)", () => {
 
         // 3 members counted (comma member excluded), 2 with `;`.
         assert.match(out, /\| total \| 3 \| 1 \| *\|/)
-        assert.deepEqual(ret, {semicolons: "on"})
+        assert.deepEqual(ret, {semi: "on"})
     })
 
     it("does not count grammar-required do-while semicolons", async () => {
@@ -106,7 +106,7 @@ describe("runReportSemicolons (sample/semicolons-mixed)", () => {
         project.createSourceFile("a.ts", ['import {a} from "./x.ts";', "const _ = a", "const b = 2", ""].join("\n"))
         const lines: string[] = []
         const ret = await runReportSemicolons({sourceFiles: selectSourceFiles(project, {paths: []}), log, output: {write: (l) => lines.push(l)}, importsOnly: true})
-        assert.deepEqual(ret, {semicolons: "on"})
+        assert.deepEqual(ret, {semi: "on"})
     })
 })
 

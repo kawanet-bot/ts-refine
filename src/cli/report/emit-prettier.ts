@@ -24,8 +24,8 @@ import type {TSR} from "ts-refine"
 // prettier output and the Markdown .prettierrc fence go through.
 function buildPrettierOptions(report: TSR.ReportResult): PrettierOptions {
     const opts: PrettierOptions = {}
-    if (report.semicolons?.semicolons === "on") opts.semi = true
-    else if (report.semicolons?.semicolons === "off") opts.semi = false
+    if (report.semi?.semi === "on") opts.semi = true
+    else if (report.semi?.semi === "off") opts.semi = false
     if (report.indent?.width === "tab") {
         opts.useTabs = true
     } else if (typeof report.indent?.width === "number") {
