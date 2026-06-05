@@ -34,6 +34,14 @@ describe("formatStyleToSettings", () => {
         assert.equal(formatStyleToSettings({bracketSpacing: "off"}).insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces, false)
     })
 
+    it("keeps empty braces tight regardless of bracketSpacing", () => {
+        // `export {}` must not become `export { }`; the empty-brace flag stays
+        // false even when the non-empty axis is on or unset (Prettier parity).
+        assert.equal(formatStyleToSettings({}).insertSpaceAfterOpeningAndBeforeClosingEmptyBraces, false)
+        assert.equal(formatStyleToSettings({bracketSpacing: "on"}).insertSpaceAfterOpeningAndBeforeClosingEmptyBraces, false)
+        assert.equal(formatStyleToSettings({bracketSpacing: "off"}).insertSpaceAfterOpeningAndBeforeClosingEmptyBraces, false)
+    })
+
     it("maps newLine lf → \\n in newLineCharacter", () => {
         assert.equal(formatStyleToSettings({newLine: "lf"}).newLineCharacter, "\n")
     })
