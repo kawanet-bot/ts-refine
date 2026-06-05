@@ -7,6 +7,7 @@
 
 import type {Node} from "ts-morph"
 import type {TSR} from "ts-refine"
+import {getTsRefineFormat} from "../cli/report/emit-ts-refine.ts"
 import {logging} from "../common/logging.ts"
 import {listOf, trailingCommaToken} from "../format/apply-trailing-comma.ts"
 import {displayPath} from "../lib/source-files.ts"
@@ -78,13 +79,16 @@ export async function runReportTrailingComma({sourceFiles, output, log, importsO
     }
 
     const recommend = pickRecommendByFiles(DISPLAY_ORDER, (k) => buckets.get(k))
+    const report: Partial<TSR.TrailingCommaReport> = recommend ? {trailingComma: recommend} : {}
+
 
     // The Markdown table is for display only; skip it when no sink is given —
     // the recommendation above is the result.
     if (output) {
         const totalLines = [...buckets.values()].reduce((s, b) => s + b.lines, 0)
 
-        output.write("### trailing-comma\n")
+        const heading = getTsRefineFormat({trailingComma: report}) || "(trailing-comma)"
+        output.write(`### ${heading}\n`)
         output.write("\n")
         output.write("| style | lists | files | example |\n")
         output.write("| --- | --- | --- | --- |\n")
@@ -103,7 +107,8 @@ export async function runReportTrailingComma({sourceFiles, output, log, importsO
         output.write("\n")
     }
     logging(log, `report trailing-comma: ${perFile.length} files counted / ${sourceFiles.length} files total`)
-    return recommend !== undefined ? {trailingComma: recommend} : {}
+
+    return report
 }
 
 // Primary = style with the highest count in this file. Ties follow the display

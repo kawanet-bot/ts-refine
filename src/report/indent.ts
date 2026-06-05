@@ -8,6 +8,7 @@
 // the report just picks the per-file mode out of that map.
 
 import type {TSR} from "ts-refine"
+import {getTsRefineFormat} from "../cli/report/emit-ts-refine.ts"
 import {logging} from "../common/logging.ts"
 import {displayPath} from "../lib/source-files.ts"
 import {detectIndent, type IndentCounts, type IndentWidth, primaryIndentWidth} from "./detect-indent.ts"
@@ -57,13 +58,15 @@ export async function runReportIndent({sourceFiles, output, log}: ReportRunOpts)
     // Recommendation: file-count majority, with line count breaking ties.
     // An empty "tab" bucket is skipped inside pickRecommendByFiles.
     const recommendWidth = pickRecommendByFiles(widths, (w) => buckets.get(w))
+    const report: Partial<TSR.IndentReport> = recommendWidth ? {width: recommendWidth} : {}
 
     // The Markdown table is for display only; skip it (and its formatting)
     // when no output sink is given — the recommendation above is the result.
     if (output) {
         const totalLines = [...buckets.values()].reduce((s, b) => s + b.lines, 0)
 
-        output.write("### indent\n")
+        const heading = getTsRefineFormat({indent: report}) || "(indent)"
+        output.write(`### ${heading}\n`)
         output.write("\n")
         output.write("| indent | lines | files | example |\n")
         output.write("| --- | --- | --- | --- |\n")
@@ -80,9 +83,5 @@ export async function runReportIndent({sourceFiles, output, log}: ReportRunOpts)
     }
     logging(log, `report indent: ${perFile.length} files counted / ${sourceFiles.length} files total`)
 
-    // The recommendation is rendered in the `## recommendation` section
-    // at the end of the Markdown survey. Both a numeric width and a "tab"
-    // majority are actionable (LS convertTabsToSpaces / Prettier useTabs),
-    // so either is returned; only a tie (undefined) yields empty.
-    return recommendWidth !== undefined ? {width: recommendWidth} : {}
+    return report
 }

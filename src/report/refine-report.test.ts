@@ -32,21 +32,22 @@ describe("refineReport", () => {
 
     it("runs requested reports in registry order regardless of input order", async () => {
         const project = initTestProject(SAMPLE_TSCONFIG)
-        const lines: string[] = []
-        await refineReport({
-            project,
-            log,
 
-            // Input deliberately in reverse of registry order to confirm the
-            // router re-orders. indent precedes semicolons in the registry.
-            reports: ["semi", "indent"],
-            output: {write: (l) => lines.push(l)},
-            paths: [],
-        })
-        const out = lines.join("")
-        const indentPos = out.indexOf("### indent")
-        const semiPos = out.indexOf("### semicolons")
-        assert.ok(indentPos >= 0 && semiPos >= 0, "both sections must appear")
-        assert.ok(semiPos < indentPos, "semicolons must precede indent")
+        const run = async (reports: TSR.ReportName[]) => {
+            const lines: string[] = []
+            await refineReport({
+                project,
+                log,
+                reports,
+                output: {write: (l) => lines.push(l)},
+                paths: [],
+            })
+            return lines.filter(v => /^#/.test(v)).join("")
+        }
+
+        // Input deliberately in reverse of registry order to confirm the
+        // router re-orders. indent precedes semicolons in the registry.
+        assert.equal(await run(["semi", "indent"]), "### --semi on\n### (indent)\n")
+        assert.equal(await run(["indent", "semi"]), "### --semi on\n### (indent)\n")
     })
 })

@@ -7,6 +7,7 @@
 import type {ClassMemberTypes, TypeElementTypes} from "ts-morph"
 import {Node} from "ts-morph"
 import type {TSR} from "ts-refine"
+import {getTsRefineFormat} from "../cli/report/emit-ts-refine.ts"
 import {logging} from "../common/logging.ts"
 import {displayPath} from "../lib/source-files.ts"
 import {pickRecommendByFiles} from "./pick-recommend.ts"
@@ -74,15 +75,17 @@ export async function runReportMemberDelimiter({sourceFiles, output, log, import
 
     // Recommendation: file-count majority, line count breaks ties.
     const recommendSep = pickRecommendByFiles(DISPLAY_ORDER, (s) => buckets.get(s))
+    const report: Partial<TSR.MemberDelimiterReport> = recommendSep ? {delimiter: SEP_FLAG_VALUE[recommendSep]} : {}
 
     // The Markdown table is for display only; skip it (and its formatting)
     // when no output sink is given — the recommendation above is the result.
     if (output) {
         const totalLines = [...buckets.values()].reduce((s, b) => s + b.lines, 0)
 
-        output.write("### member-delimiter\n")
+        const heading = getTsRefineFormat({memberDelimiter: report}) || "(member-delimiter)"
+        output.write(`### ${heading}\n`)
         output.write("\n")
-        output.write("| separator | lines | files | example |\n")
+        output.write("| delimiter | lines | files | example |\n")
         output.write("| --- | --- | --- | --- |\n")
         for (const s of DISPLAY_ORDER) {
             const b = buckets.get(s)
@@ -92,7 +95,7 @@ export async function runReportMemberDelimiter({sourceFiles, output, log, import
             // as a permanent 0-row.
             if (b) {
                 output.write(`| ${SEP_LABEL[s]} | ${b.lines} | ${b.files} | ${b.topPath} |\n`)
-            } else if (s !== ",") {
+            } else {
                 output.write(`| ${SEP_LABEL[s]} | 0 | 0 |  |\n`)
             }
         }
@@ -101,10 +104,7 @@ export async function runReportMemberDelimiter({sourceFiles, output, log, import
     }
     logging(log, `report member-delimiter: ${perFile.length} files counted / ${sourceFiles.length} files total`)
 
-    // The recommendation is rendered in the trailing `## recommendation`
-    // section, so all we return is the action params shape. An ambiguous
-    // file-count majority (no strict winner) returns an empty partial.
-    return recommendSep !== undefined ? {delimiter: SEP_FLAG_VALUE[recommendSep]} : {}
+    return report
 }
 
 // A member "owns" a trailing separator only when it isn't body-bearing: a

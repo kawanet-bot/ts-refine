@@ -5,6 +5,7 @@
 
 import {Node} from "ts-morph"
 import type {TSR} from "ts-refine"
+import {getTsRefineFormat} from "../cli/report/emit-ts-refine.ts"
 import {logging} from "../common/logging.ts"
 import {displayPath} from "../lib/source-files.ts"
 import type {ReportRunOpts} from "./report-run-opts.ts"
@@ -65,11 +66,13 @@ export async function runReportSemi({sourceFiles, output, log, importsOnly}: Rep
     const belowStmts = below.reduce((s, f) => s + f.total, 0)
     const aboveStmts = above.reduce((s, f) => s + f.total, 0)
     const recommend: "on" | "off" | undefined = belowFiles > aboveFiles ? "off" : aboveFiles > belowFiles ? "on" : belowStmts > aboveStmts ? "off" : aboveStmts > belowStmts ? "on" : undefined
+    const report: Partial<TSR.SemiReport> = recommend ? {semi: recommend} : {}
 
     // The Markdown table is for display only; skip it (and its formatting)
     // when no output sink is given — the recommendation above is the result.
     if (output) {
-        output.write("### semicolons\n")
+        const heading = getTsRefineFormat({semi: report}) || "(semi)"
+        output.write(`### ${heading}\n`)
         output.write("\n")
 
         // `lines` (statement count) sits next to `files` so the table mirrors
@@ -95,9 +98,7 @@ export async function runReportSemi({sourceFiles, output, log, importsOnly}: Rep
     }
     logging(log, `report semi: ${perFile.length} files counted / ${sourceFiles.length} files total`)
 
-    // The recommendation is rendered in the trailing `## recommendation`
-    // section, so all we return here is the action params shape.
-    return recommend ? {semi: recommend} : {}
+    return report
 }
 
 function bucketIndex({total, withSemi}: {total: number; withSemi: number}): number {

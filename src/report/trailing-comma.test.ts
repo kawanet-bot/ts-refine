@@ -19,7 +19,7 @@ describe("runReportTrailingComma", () => {
             "on.ts": "const a = [\n    1,\n    2,\n]\nconst b = {\n    x: 1,\n}\n",
             "off.ts": "const c = [\n    1,\n    2\n]\n",
         })
-        assert.match(out, /^### trailing-comma\n/)
+        assert.match(out, /^### --trailing-comma/)
         assert.match(out, /\| trailing `,` \| 2 \| 1 \| /)
         assert.match(out, /\| no trailing `,` \| 1 \| 1 \| /)
         assert.deepEqual(ret, {trailingComma: "on"})

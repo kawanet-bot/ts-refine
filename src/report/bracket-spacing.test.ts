@@ -17,7 +17,7 @@ describe("runReportBracketSpacing (sample/braces-mixed)", () => {
         const ret = await runReportBracketSpacing({sourceFiles: selectSourceFiles(project, {paths: []}), log, output: {write: (l) => lines.push(l)}})
 
         const out = lines.join("")
-        assert.match(out, /^### bracket-spacing\n/)
+        assert.match(out, /^### --bracket-spacing /m)
 
         // spaced-a.ts: 4 spaced (2 ObjectLiteral + 1 ObjectBindingPattern + 1 TypeLiteral)
         // spaced-b.ts: 2 spaced

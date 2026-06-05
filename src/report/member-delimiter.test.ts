@@ -24,7 +24,7 @@ describe("runReportMemberSeparators (sample/members-mixed)", () => {
         await runReportMemberDelimiter({sourceFiles: selectSourceFiles(project, {paths: []}), log, output: {write: (l) => lines.push(l)}})
 
         const out = lines.join("")
-        assert.match(out, /^### member-delimiter\n/)
+        assert.match(out, /^### \(member-delimiter\)/m)
 
         // all-none.ts:   3 members → primary `\n` (lines=3)
         // none-extra.ts: 2 members → primary `\n` (lines=2)
@@ -89,10 +89,9 @@ describe("runReportMemberSeparators (sample/members-mixed)", () => {
         // not be counted.
         assert.match(out, /\| total \| 0 \| 0 \| *\|/)
 
-        // `\n` and `;` keep a 0-row; `,` is omitted when absent.
         assert.match(out, /\| `\\n` \| 0 \| 0 \| *\|/)
+        assert.match(out, /\| `,` \| 0 \| 0 \| *\|/)
         assert.match(out, /\| `;` \| 0 \| 0 \| *\|/)
-        assert.equal(/\| `,` \|/.test(out), false)
     })
 
     it("counts class properties whose initializer ends with an object literal", async () => {

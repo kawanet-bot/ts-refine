@@ -7,6 +7,7 @@
 
 import {Node, SyntaxKind} from "ts-morph"
 import type {TSR} from "ts-refine"
+import {getTsRefineFormat} from "../cli/report/emit-ts-refine.ts"
 import {logging} from "../common/logging.ts"
 import {displayPath} from "../lib/source-files.ts"
 import {pickRecommendByFiles} from "./pick-recommend.ts"
@@ -66,13 +67,15 @@ export async function runReportBracketSpacing({sourceFiles, output, log, imports
     }
 
     const recommend = pickRecommendByFiles(DISPLAY_ORDER, (k) => buckets.get(k))
+    const report: Partial<TSR.BracketSpacingReport> = recommend ? {bracketSpacing: recommend} : {}
 
     // The Markdown table is for display only; skip it (and its formatting)
     // when no output sink is given — the recommendation above is the result.
     if (output) {
         const totalLines = [...buckets.values()].reduce((s, b) => s + b.lines, 0)
 
-        output.write("### bracket-spacing\n")
+        const heading = getTsRefineFormat({bracketSpacing: report}) || "(bracket-spacing)"
+        output.write(`### ${heading}\n`)
         output.write("\n")
         output.write("| style | nodes | files | example |\n")
         output.write("| --- | --- | --- | --- |\n")
@@ -91,7 +94,8 @@ export async function runReportBracketSpacing({sourceFiles, output, log, imports
         output.write("\n")
     }
     logging(log, `report bracket-spacing: ${perFile.length} files counted / ${sourceFiles.length} files total`)
-    return recommend !== undefined ? {bracketSpacing: recommend} : {}
+
+    return report
 }
 
 // Node kinds whose own brace pair the LS formatter re-spaces. ImportAttributes

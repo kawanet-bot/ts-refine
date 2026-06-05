@@ -17,7 +17,7 @@ describe("runReportSemi (sample/semicolons-mixed)", () => {
         const ret = await runReportSemi({sourceFiles: selectSourceFiles(project, {paths: []}), log, output: {write: (l) => lines.push(l)}})
 
         const out = lines.join("")
-        assert.match(out, /^### semicolons\n/)
+        assert.match(out, /^### --semi /)
 
         // The fixture has one all-semi (100%), one no-semi (0%), and one mixed
         // (around 50%). The empty file has no statements and must be excluded.

@@ -45,7 +45,7 @@ describe("refineCLI", () => {
     it("runs the report subcommand and prints Markdown", async () => {
         const r = await run(["report", "--semi", "-p", SAMPLE])
         assert.equal(r.status, 0)
-        assert.match(r.stdout, /### semicolons/)
+        assert.match(r.stdout, /^### --semi /m)
     })
 
     it("errors on a target path that matches no project file", async () => {
@@ -136,7 +136,7 @@ describe("refineCLI", () => {
         // The survey no longer embeds a list cleanup-candidate section; use
         // `list --unused-exports` for that on demand.
         assert.doesNotMatch(r.stdout, /^### list /m)
-        assert.match(r.stdout, /^### semicolons$/m)
+        assert.match(r.stdout, /^### --semi /m)
     })
 
     it("inspects files via the inspect subcommand", async () => {
@@ -152,10 +152,10 @@ describe("refineCLI", () => {
     it("accepts -p on either side of the subcommand", async () => {
         const left = await run(["-p", SAMPLE, "report", "--semi"])
         assert.equal(left.status, 0)
-        assert.match(left.stdout, /### semicolons/)
+        assert.match(left.stdout, /^### --semi /m)
         const right = await run(["report", "--semi", "-p", SAMPLE])
         assert.equal(right.status, 0)
-        assert.match(right.stdout, /### semicolons/)
+        assert.match(right.stdout, /^### --semi /m)
     })
 
     it("rejects -p duplicated across the subcommand", async () => {
