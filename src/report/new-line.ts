@@ -6,7 +6,7 @@ import type {TSR} from "ts-refine"
 import {logging} from "../common/logging.ts"
 import {displayPath} from "../lib/source-files.ts"
 import {pickRecommendByFiles} from "./pick-recommend.ts"
-import type {ReportRunOpts} from "./types.ts"
+import type {ReportRunOpts} from "./report-run-opts.ts"
 
 type NewLine = "lf" | "crlf" | "cr"
 
@@ -20,7 +20,7 @@ const NL_LABEL: Record<NewLine, string> = {
 
 type Bucket = {lines: number; files: number; topPath: string; topLines: number}
 
-export async function runReportNewLine({sourceFiles, output, log}: ReportRunOpts): Promise<Partial<TSR.NewLineOpts>> {
+export async function runReportNewLine({sourceFiles, output, log}: ReportRunOpts): Promise<Partial<TSR.NewLineReport>> {
     type PerFile = {path: string; counts: Map<NewLine, number>; primary: NewLine}
     const perFile: PerFile[] = []
 

@@ -37,13 +37,13 @@ describe("parseFormat", () => {
         assert.equal(c.dryRun, false)
     })
 
-    it("rejects --semicolons with an invalid value", () => {
-        assert.throws(() => parseFormatArgs(["--semicolons", "yes"], common()), /--semicolons expects/)
+    it("rejects --semi with an invalid value", () => {
+        assert.throws(() => parseFormatArgs(["--semi", "yes"], common()), /--semi expects/)
     })
 
-    it("accepts --semicolons on|off", () => {
-        assert.equal(parseFormatArgs(["--semicolons", "on"], common())?.applyOverrides.semicolons, "on")
-        assert.equal(parseFormatArgs(["--semicolons", "off"], common())?.applyOverrides.semicolons, "off")
+    it("accepts --semi on|off", () => {
+        assert.equal(parseFormatArgs(["--semi", "on"], common())?.applyOverrides.semi, "on")
+        assert.equal(parseFormatArgs(["--semi", "off"], common())?.applyOverrides.semi, "off")
     })
 
     it("accepts --indent N", () => {
@@ -71,13 +71,13 @@ describe("parseFormat", () => {
         assert.equal(parseFormatArgs(["--bracket-spacing", "off"], common())?.applyOverrides.bracketSpacing, "off")
     })
 
-    it("accepts --member-separators semi|comma|none", () => {
-        assert.equal(parseFormatArgs(["--member-separators", "comma"], common())?.applyOverrides.memberSeparators, "comma")
-        assert.equal(parseFormatArgs(["--member-separators", "none"], common())?.applyOverrides.memberSeparators, "none")
+    it("accepts --member-delimiter semi|comma|none", () => {
+        assert.equal(parseFormatArgs(["--member-delimiter", "comma"], common())?.applyOverrides.memberDelimiter, "comma")
+        assert.equal(parseFormatArgs(["--member-delimiter", "none"], common())?.applyOverrides.memberDelimiter, "none")
     })
 
-    it("rejects --member-separators with an invalid value", () => {
-        assert.throws(() => parseFormatArgs(["--member-separators", "semicolon"], common()), /--member-separators expects 'semi', 'comma' or 'none'/)
+    it("rejects --member-delimiter with an invalid value", () => {
+        assert.throws(() => parseFormatArgs(["--member-delimiter", "semicolon"], common()), /--member-delimiter expects 'semi', 'comma' or 'none'/)
     })
 
     it("accepts --trailing-comma on|off", () => {

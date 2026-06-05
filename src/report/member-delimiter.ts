@@ -1,21 +1,17 @@
-// report member-separators: classify each interface / class member by
+// report member-delimiter: classify each interface / class member by
 // its trailing punctuation (`;`, `,`, or none / newline-only), then bucket
 // files by the primary style they use. Body-bearing members (methods,
 // accessors, constructors) are skipped because the separator choice isn't
 // theirs to make.
-//
-// The recommendation drives the `format` command's memberSeparators apply
-// pass (src/format/apply-member-separators.ts). It still has no Prettier
-// mapping (comma members are unreachable there), so the .prettierrc emitter
-// omits it.
 
 import type {ClassMemberTypes, TypeElementTypes} from "ts-morph"
 import {Node} from "ts-morph"
 import type {TSR} from "ts-refine"
+import {getTsRefineFormat} from "../cli/report/emit-ts-refine.ts"
 import {logging} from "../common/logging.ts"
 import {displayPath} from "../lib/source-files.ts"
 import {pickRecommendByFiles} from "./pick-recommend.ts"
-import type {ReportRunOpts} from "./types.ts"
+import type {ReportRunOpts} from "./report-run-opts.ts"
 
 type Separator = "none" | "," | ";"
 
@@ -31,7 +27,7 @@ const SEP_LABEL: Record<Separator, string> = {
 
 // Maps internal Separator symbols to MemberSeparatorsOpts.separator's
 // value space (semi / comma / none).
-const SEP_FLAG_VALUE: Record<Separator, TSR.MemberSeparatorsOpts["separator"]> = {
+const SEP_FLAG_VALUE: Record<Separator, TSR.MemberDelimiterReport["delimiter"]> = {
     none: "none",
     ",": "comma",
     ";": "semi",
@@ -39,7 +35,7 @@ const SEP_FLAG_VALUE: Record<Separator, TSR.MemberSeparatorsOpts["separator"]> =
 
 type Bucket = {lines: number; files: number; topPath: string; topLines: number}
 
-export async function runReportMemberSeparators({sourceFiles, output, log, importsOnly}: ReportRunOpts): Promise<Partial<TSR.MemberSeparatorsOpts>> {
+export async function runReportMemberDelimiter({sourceFiles, output, log, importsOnly}: ReportRunOpts): Promise<Partial<TSR.MemberDelimiterReport>> {
     // import/export statements carry no interface/class members, so an
     // imports-only survey has nothing to weigh — skip the whole-file scan.
     if (importsOnly) return {}
@@ -79,15 +75,17 @@ export async function runReportMemberSeparators({sourceFiles, output, log, impor
 
     // Recommendation: file-count majority, line count breaks ties.
     const recommendSep = pickRecommendByFiles(DISPLAY_ORDER, (s) => buckets.get(s))
+    const report: Partial<TSR.MemberDelimiterReport> = recommendSep ? {delimiter: SEP_FLAG_VALUE[recommendSep]} : {}
 
     // The Markdown table is for display only; skip it (and its formatting)
     // when no output sink is given — the recommendation above is the result.
     if (output) {
         const totalLines = [...buckets.values()].reduce((s, b) => s + b.lines, 0)
 
-        output.write("### member-separators\n")
+        const heading = getTsRefineFormat({memberDelimiter: report}) || "(member-delimiter)"
+        output.write(`### ${heading}\n`)
         output.write("\n")
-        output.write("| separator | lines | files | example |\n")
+        output.write("| delimiter | lines | files | example |\n")
         output.write("| --- | --- | --- | --- |\n")
         for (const s of DISPLAY_ORDER) {
             const b = buckets.get(s)
@@ -97,19 +95,16 @@ export async function runReportMemberSeparators({sourceFiles, output, log, impor
             // as a permanent 0-row.
             if (b) {
                 output.write(`| ${SEP_LABEL[s]} | ${b.lines} | ${b.files} | ${b.topPath} |\n`)
-            } else if (s !== ",") {
+            } else {
                 output.write(`| ${SEP_LABEL[s]} | 0 | 0 |  |\n`)
             }
         }
         output.write(`| total | ${totalLines} | ${perFile.length} |  |\n`)
         output.write("\n")
     }
-    logging(log, `report member-separators: ${perFile.length} files counted / ${sourceFiles.length} files total`)
+    logging(log, `report member-delimiter: ${perFile.length} files counted / ${sourceFiles.length} files total`)
 
-    // The recommendation is rendered in the trailing `## recommendation`
-    // section, so all we return is the action params shape. An ambiguous
-    // file-count majority (no strict winner) returns an empty partial.
-    return recommendSep !== undefined ? {separator: SEP_FLAG_VALUE[recommendSep]} : {}
+    return report
 }
 
 // A member "owns" a trailing separator only when it isn't body-bearing: a

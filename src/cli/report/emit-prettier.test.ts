@@ -7,13 +7,13 @@ function capture(report: Parameters<typeof getPrettierConfig>[0]): string {
 }
 
 describe("getPrettierConfig", () => {
-    it("maps semicolons.semicolons=off → semi: false", () => {
-        const out = capture({semicolons: {semicolons: "off"}})
+    it("maps semi.semi=off → semi: false", () => {
+        const out = capture({semi: {semi: "off"}})
         assert.equal(JSON.parse(out).semi, false)
     })
 
-    it("maps semicolons.semicolons=on → semi: true", () => {
-        const out = capture({semicolons: {semicolons: "on"}})
+    it("maps semi.semi=on → semi: true", () => {
+        const out = capture({semi: {semi: "on"}})
         assert.equal(JSON.parse(out).semi, true)
     })
 
@@ -30,7 +30,7 @@ describe("getPrettierConfig", () => {
     })
 
     it("combines multiple recommendations into one JSON object", () => {
-        const out = capture({semicolons: {semicolons: "off"}, indent: {width: 2}})
+        const out = capture({semi: {semi: "off"}, indent: {width: 2}})
         const json = JSON.parse(out)
         assert.equal(json.semi, false)
         assert.equal(json.tabWidth, 2)
@@ -38,7 +38,7 @@ describe("getPrettierConfig", () => {
     })
 
     it("uses 4-space indentation matching the family .prettierrc convention", () => {
-        const out = capture({semicolons: {semicolons: "off"}})
+        const out = capture({semi: {semi: "off"}})
         assert.match(out, /\n {4}"semi":/)
     })
 
@@ -48,8 +48,8 @@ describe("getPrettierConfig", () => {
         assert.equal(json.tabWidth, undefined)
     })
 
-    it("ignores memberSeparators (comma members are unreachable in Prettier)", () => {
-        const json = JSON.parse(capture({memberSeparators: {separator: "comma"}}))
+    it("ignores memberDelimiter (comma members are unreachable in Prettier)", () => {
+        const json = JSON.parse(capture({memberDelimiter: {delimiter: "comma"}}))
         assert.deepEqual(json, {})
     })
 
@@ -87,7 +87,7 @@ describe("writePrettierMarkdown", () => {
     }
 
     it("wraps the JSON in a `### .prettierrc` fenced block ending in a trailing blank line", () => {
-        const out = captureMd({semicolons: {semicolons: "off"}, indent: {width: 4}})
+        const out = captureMd({semi: {semi: "off"}, indent: {width: 4}})
 
         // Section header + table-style blank + fence open + body + fence close + trailing blank.
         assert.match(out, /^### \.prettierrc\n\n```json\n/)

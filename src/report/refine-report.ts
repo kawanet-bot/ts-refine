@@ -13,17 +13,17 @@ import {reportNames} from "../common/report-names.ts"
 import {selectSourceFiles} from "../lib/source-files.ts"
 import {runReportBracketSpacing} from "./bracket-spacing.ts"
 import {runReportIndent} from "./indent.ts"
-import {runReportMemberSeparators} from "./member-separators.ts"
+import {runReportMemberDelimiter} from "./member-delimiter.ts"
 import {runReportNewLine} from "./new-line.ts"
-import {runReportSemicolons} from "./semicolons.ts"
+import type {ReportRunOpts} from "./report-run-opts.ts"
+import {runReportSemi} from "./semi.ts"
 import {runReportTrailingComma} from "./trailing-comma.ts"
-import type {ReportRunOpts} from "./types.ts"
 
 export const refineReport: typeof declared.refineReport = async (opts) => {
-    const {output, reportNames: requested, paths, log} = opts
+    const {output, reports: requested, paths, log} = opts
     const project = resolveProject(opts)
 
-    // Validate every requested name up-front so a typo fails before any
+    // Validate every requested report name up-front so a typo fails before any
     // report runs. `reportNames` is the source of truth for what exists.
     for (const name of requested) {
         if (!(reportNames as readonly string[]).includes(name)) {
@@ -44,14 +44,14 @@ export const refineReport: typeof declared.refineReport = async (opts) => {
 export const runReports = async (reportOpts: ReportRunOpts, requested: readonly TSR.ReportName[]): Promise<TSR.ReportResult> => {
     const report: TSR.ReportResult = {}
 
-    if (requested.includes("semicolons")) {
-        report.semicolons = await runReportSemicolons(reportOpts)
+    if (requested.includes("semi")) {
+        report.semi = await runReportSemi(reportOpts)
     }
     if (requested.includes("indent")) {
         report.indent = await runReportIndent(reportOpts)
     }
-    if (requested.includes("member-separators")) {
-        report.memberSeparators = await runReportMemberSeparators(reportOpts)
+    if (requested.includes("member-delimiter")) {
+        report.memberDelimiter = await runReportMemberDelimiter(reportOpts)
     }
     if (requested.includes("new-line")) {
         report.newLine = await runReportNewLine(reportOpts)

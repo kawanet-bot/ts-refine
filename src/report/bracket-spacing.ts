@@ -7,10 +7,11 @@
 
 import {Node, SyntaxKind} from "ts-morph"
 import type {TSR} from "ts-refine"
+import {getTsRefineFormat} from "../cli/report/emit-ts-refine.ts"
 import {logging} from "../common/logging.ts"
 import {displayPath} from "../lib/source-files.ts"
 import {pickRecommendByFiles} from "./pick-recommend.ts"
-import type {ReportRunOpts} from "./types.ts"
+import type {ReportRunOpts} from "./report-run-opts.ts"
 
 type Style = "on" | "off"
 
@@ -23,7 +24,7 @@ const STYLE_LABEL: Record<Style, string> = {
 
 type Bucket = {lines: number; files: number; topPath: string; topLines: number}
 
-export async function runReportBracketSpacing({sourceFiles, output, log, importsOnly}: ReportRunOpts): Promise<Partial<TSR.BracketSpacingOpts>> {
+export async function runReportBracketSpacing({sourceFiles, output, log, importsOnly}: ReportRunOpts): Promise<Partial<TSR.BracketSpacingReport>> {
     type PerFile = {path: string; counts: Map<Style, number>; primary: Style}
     const perFile: PerFile[] = []
 
@@ -66,13 +67,15 @@ export async function runReportBracketSpacing({sourceFiles, output, log, imports
     }
 
     const recommend = pickRecommendByFiles(DISPLAY_ORDER, (k) => buckets.get(k))
+    const report: Partial<TSR.BracketSpacingReport> = recommend ? {bracketSpacing: recommend} : {}
 
     // The Markdown table is for display only; skip it (and its formatting)
     // when no output sink is given — the recommendation above is the result.
     if (output) {
         const totalLines = [...buckets.values()].reduce((s, b) => s + b.lines, 0)
 
-        output.write("### bracket-spacing\n")
+        const heading = getTsRefineFormat({bracketSpacing: report}) || "(bracket-spacing)"
+        output.write(`### ${heading}\n`)
         output.write("\n")
         output.write("| style | nodes | files | example |\n")
         output.write("| --- | --- | --- | --- |\n")
@@ -91,7 +94,8 @@ export async function runReportBracketSpacing({sourceFiles, output, log, imports
         output.write("\n")
     }
     logging(log, `report bracket-spacing: ${perFile.length} files counted / ${sourceFiles.length} files total`)
-    return recommend !== undefined ? {bracketSpacing: recommend} : {}
+
+    return report
 }
 
 // Node kinds whose own brace pair the LS formatter re-spaces. ImportAttributes

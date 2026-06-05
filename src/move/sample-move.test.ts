@@ -28,7 +28,7 @@ async function withSampleCopy(name: string, fn: (workdir: string) => Promise<voi
     }
 }
 
-const log = {write: () => {}}
+const log = {write: (): void => null}
 
 describe("refineMove against sample fixtures (one era per sample)", () => {
     it("sample/move-ts-ext: keeps the explicit `.ts` extension", async () => {

@@ -33,12 +33,12 @@ function semiLineCount(text: string) {
 // organizes imports, so the comparison stays focused on semicolons).
 const SEMI_OFF = {dryRun: true, paths: [] as string[]}
 
-const log = {write: () => {}}
+const log = {write: (): void => null}
 
-describe("refineFormat --semicolons off (dry-run, sample/semicolons-mixed)", () => {
+describe("refineFormat --semi off (dry-run, sample/semicolons-mixed)", () => {
     it("strips every trailing `;` from ASI-eligible statements in-memory", async () => {
         const project = initTestProject(SAMPLE_TSCONFIG)
-        await refineFormat({project, log, ...SEMI_OFF, format: {semicolons: "off"}})
+        await refineFormat({project, log, ...SEMI_OFF, format: {semi: "off"}})
 
         // all-semi.ts and mixed.ts must end up with no trailing `;` on const lines.
         for (const suffix of ["/all-semi.ts", "/mixed.ts"]) {
@@ -55,10 +55,10 @@ describe("refineFormat --semicolons off (dry-run, sample/semicolons-mixed)", () 
     })
 })
 
-describe("refineFormat --semicolons on (dry-run, sample/semicolons-mixed)", () => {
+describe("refineFormat --semi on (dry-run, sample/semicolons-mixed)", () => {
     it("appends `;` to every ASI-eligible statement lacking one", async () => {
         const project = initTestProject(SAMPLE_TSCONFIG)
-        await refineFormat({project, log, ...SEMI_OFF, format: {semicolons: "on"}})
+        await refineFormat({project, log, ...SEMI_OFF, format: {semi: "on"}})
 
         // no-semi.ts and mixed.ts must converge on full-`;` on const lines.
         for (const suffix of ["/no-semi.ts", "/mixed.ts"]) {
@@ -75,7 +75,7 @@ describe("refineFormat --semicolons on (dry-run, sample/semicolons-mixed)", () =
     })
 })
 
-describe("refineFormat --semicolons off handles nested ASI-eligible statements", () => {
+describe("refineFormat --semi off handles nested ASI-eligible statements", () => {
     it("strips `;` from describe/it/assert blocks without overflowing offsets", async () => {
         // Original regression motivation: a parent-before-child visitor
         // with naive reverse iteration over-shifted the file. The LS
@@ -84,7 +84,7 @@ describe("refineFormat --semicolons off handles nested ASI-eligible statements",
         const project = initInMemoryProject()
         const sf = project.createSourceFile("nest.ts", ["describe('outer', () => {", "  it('inner', () => {", "    const x = 1;", "    inner(x);", "  });", "});"].join("\n"))
 
-        await refineFormat({project, log, ...SEMI_OFF, format: {semicolons: "off"}})
+        await refineFormat({project, log, ...SEMI_OFF, format: {semi: "off"}})
 
         const text = sf.getFullText()
         assert.equal(text.includes("const x = 1;"), false, "inner const lost its ;")
@@ -96,7 +96,7 @@ describe("refineFormat --semicolons off handles nested ASI-eligible statements",
     })
 })
 
-describe("refineFormat --semicolons off keeps `;` at ASI-hazard sites", () => {
+describe("refineFormat --semi off keeps `;` at ASI-hazard sites", () => {
     it("retains `;` before a method-chain continuation on the next line", async () => {
         // The LS rule isSemicolonDeletionContext is the original source the
         // self-implemented detector was modeled on; this test pins that the
@@ -112,7 +112,7 @@ describe("refineFormat --semicolons off keeps `;` at ASI-hazard sites", () => {
             ].join("\n"),
         )
 
-        await refineFormat({project, log, ...SEMI_OFF, format: {semicolons: "off"}})
+        await refineFormat({project, log, ...SEMI_OFF, format: {semi: "off"}})
 
         const text = sf.getFullText()
 
@@ -126,14 +126,14 @@ describe("refineFormat --semicolons off keeps `;` at ASI-hazard sites", () => {
     })
 })
 
-describe("refineFormat --semicolons off and do-while statements", () => {
+describe("refineFormat --semi off and do-while statements", () => {
     it("removes the trailing `;` after `} while (...)` (LS divergence from the old hand-rolled action)", async () => {
         // The LS deletion-context rule does not exempt do-while; the
         // retired hand-rolled filter did. Pinned as the LS outcome.
         const project = initInMemoryProject()
         const sf = project.createSourceFile("do-while.ts", ["let x = 0;", "do {", "  x++", "} while (x < 2);", "const y = x;"].join("\n"))
 
-        await refineFormat({project, log, ...SEMI_OFF, format: {semicolons: "off"}})
+        await refineFormat({project, log, ...SEMI_OFF, format: {semi: "off"}})
 
         const text = sf.getFullText()
 

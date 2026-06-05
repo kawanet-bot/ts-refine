@@ -30,12 +30,12 @@ export function parseFormatArgs(sub: string[], common: CommonArgs): FormatArgs |
             // Removed: organizing imports is now its own command. Named back
             // explicitly so existing scripts get a redirect, not "unknown option".
             throw new Error("--organize-imports was removed; use `ts-refine imports` instead")
-        } else if (a === "--semicolons") {
+        } else if (a === "--semi") {
             const v = sub[i + 1]
             if (v !== "on" && v !== "off") {
-                throw new Error(`--semicolons expects 'on' or 'off'; got: ${v ?? "(missing)"}`)
+                throw new Error(`--semi expects 'on' or 'off'; got: ${v ?? "(missing)"}`)
             }
-            overrides.semicolons = v
+            overrides.semi = v
             i += 2
         } else if (a === "--indent") {
             const v = sub[i + 1]
@@ -69,12 +69,12 @@ export function parseFormatArgs(sub: string[], common: CommonArgs): FormatArgs |
             }
             overrides.bracketSpacing = v
             i += 2
-        } else if (a === "--member-separators") {
+        } else if (a === "--member-delimiter") {
             const v = sub[i + 1]
             if (v !== "semi" && v !== "comma" && v !== "none") {
-                throw new Error(`--member-separators expects 'semi', 'comma' or 'none'; got: ${v ?? "(missing)"}`)
+                throw new Error(`--member-delimiter expects 'semi', 'comma' or 'none'; got: ${v ?? "(missing)"}`)
             }
-            overrides.memberSeparators = v
+            overrides.memberDelimiter = v
             i += 2
         } else if (a === "--trailing-comma") {
             const v = sub[i + 1]

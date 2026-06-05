@@ -1,5 +1,5 @@
 // ASI-eligible statement kinds: statements whose trailing semicolon is
-// optional under Automatic Semicolon Insertion. Used by the semicolons
+// optional under Automatic Semicolon Insertion. Used by the semi
 // report to count the same statements the LS rewrites.
 
 import {Node} from "ts-morph"

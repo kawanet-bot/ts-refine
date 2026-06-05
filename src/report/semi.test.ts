@@ -4,20 +4,20 @@ import {describe, it} from "node:test"
 import {initInMemoryProject} from "../common/init-project.ts"
 import {selectSourceFiles} from "../lib/source-files.ts"
 import {initTestProject} from "../test-utils/init-test-project.ts"
-import {runReportSemicolons} from "./semicolons.ts"
+import {runReportSemi} from "./semi.ts"
 
 const SAMPLE_TSCONFIG = path.resolve(import.meta.dirname, "../../sample/semicolons-mixed/tsconfig.json")
 
-const log = {write: () => {}}
+const log = {write: (): void => null}
 
-describe("runReportSemicolons (sample/semicolons-mixed)", () => {
+describe("runReportSemi (sample/semicolons-mixed)", () => {
     it("buckets files by trailing `;` ratio and returns the action params", async () => {
         const project = initTestProject(SAMPLE_TSCONFIG)
         const lines: string[] = []
-        const ret = await runReportSemicolons({sourceFiles: selectSourceFiles(project, {paths: []}), log, output: {write: (l) => lines.push(l)}})
+        const ret = await runReportSemi({sourceFiles: selectSourceFiles(project, {paths: []}), log, output: {write: (l) => lines.push(l)}})
 
         const out = lines.join("")
-        assert.match(out, /^### semicolons\n/)
+        assert.match(out, /^### --semi /)
 
         // The fixture has one all-semi (100%), one no-semi (0%), and one mixed
         // (around 50%). The empty file has no statements and must be excluded.
@@ -31,7 +31,7 @@ describe("runReportSemicolons (sample/semicolons-mixed)", () => {
 
         // Recommendation is no longer inlined in the Markdown.
         assert.equal(/^recommendation:/m.test(out), false)
-        if (Object.keys(ret).length > 0) assert.ok(ret.semicolons === "on" || ret.semicolons === "off")
+        if (Object.keys(ret).length > 0) assert.ok(ret.semi === "on" || ret.semi === "off")
     })
 
     it("uses integer bucket boundaries for exact 50% and near-boundary tails", async () => {
@@ -42,7 +42,7 @@ describe("runReportSemicolons (sample/semicolons-mixed)", () => {
         project.createSourceFile("/sample/ninety-percent.ts", statements(9, 10))
         const lines: string[] = []
 
-        await runReportSemicolons({sourceFiles: selectSourceFiles(project, {paths: ["/sample/*.ts"]}), log, output: {write: (l) => lines.push(l)}})
+        await runReportSemi({sourceFiles: selectSourceFiles(project, {paths: ["/sample/*.ts"]}), log, output: {write: (l) => lines.push(l)}})
 
         const out = lines.join("")
         assert.match(out, /\| 1-10% \| 10 \| 1 \| /)
@@ -57,8 +57,8 @@ describe("runReportSemicolons (sample/semicolons-mixed)", () => {
         project.createSourceFile("/sample/no-semi.ts", statements(0, 10))
         project.createSourceFile("/sample/all-semi.ts", statements(3, 3))
         const lines: string[] = []
-        const ret = await runReportSemicolons({sourceFiles: selectSourceFiles(project, {paths: ["/sample/*.ts"]}), log, output: {write: (l) => lines.push(l)}})
-        assert.deepEqual(ret, {semicolons: "off"})
+        const ret = await runReportSemi({sourceFiles: selectSourceFiles(project, {paths: ["/sample/*.ts"]}), log, output: {write: (l) => lines.push(l)}})
+        assert.deepEqual(ret, {semi: "off"})
     })
 
     it("returns an empty partial when files AND statements tie on both sides", async () => {
@@ -66,7 +66,7 @@ describe("runReportSemicolons (sample/semicolons-mixed)", () => {
         project.createSourceFile("/sample/no-semi.ts", statements(0, 5))
         project.createSourceFile("/sample/all-semi.ts", statements(5, 5))
         const lines: string[] = []
-        const ret = await runReportSemicolons({sourceFiles: selectSourceFiles(project, {paths: ["/sample/*.ts"]}), log, output: {write: (l) => lines.push(l)}})
+        const ret = await runReportSemi({sourceFiles: selectSourceFiles(project, {paths: ["/sample/*.ts"]}), log, output: {write: (l) => lines.push(l)}})
         assert.deepEqual(ret, {})
     })
 
@@ -77,12 +77,12 @@ describe("runReportSemicolons (sample/semicolons-mixed)", () => {
         const project = initInMemoryProject()
         project.createSourceFile("/sample/iface.ts", ["interface A {", "  a: string;", "  b: number;", "  c: boolean", "  d(): void,", "}"].join("\n"))
         const lines: string[] = []
-        const ret = await runReportSemicolons({sourceFiles: selectSourceFiles(project, {paths: ["/sample/*.ts"]}), log, output: {write: (l) => lines.push(l)}})
+        const ret = await runReportSemi({sourceFiles: selectSourceFiles(project, {paths: ["/sample/*.ts"]}), log, output: {write: (l) => lines.push(l)}})
         const out = lines.join("")
 
         // 3 members counted (comma member excluded), 2 with `;`.
         assert.match(out, /\| total \| 3 \| 1 \| *\|/)
-        assert.deepEqual(ret, {semicolons: "on"})
+        assert.deepEqual(ret, {semi: "on"})
     })
 
     it("does not count grammar-required do-while semicolons", async () => {
@@ -90,7 +90,7 @@ describe("runReportSemicolons (sample/semicolons-mixed)", () => {
         project.createSourceFile("/sample/do-while.ts", ["let x = 0", "do {", "  x++", "} while (x < 2);"].join("\n"))
         const lines: string[] = []
 
-        await runReportSemicolons({sourceFiles: selectSourceFiles(project, {paths: ["/sample/*.ts"]}), log, output: {write: (l) => lines.push(l)}})
+        await runReportSemi({sourceFiles: selectSourceFiles(project, {paths: ["/sample/*.ts"]}), log, output: {write: (l) => lines.push(l)}})
 
         const out = lines.join("")
         assert.match(out, /\| 0% \| \d+ \| 1 \| /)
@@ -105,8 +105,8 @@ describe("runReportSemicolons (sample/semicolons-mixed)", () => {
         // which is 100% — so the recommendation flips to "on".
         project.createSourceFile("a.ts", ['import {a} from "./x.ts";', "const _ = a", "const b = 2", ""].join("\n"))
         const lines: string[] = []
-        const ret = await runReportSemicolons({sourceFiles: selectSourceFiles(project, {paths: []}), log, output: {write: (l) => lines.push(l)}, importsOnly: true})
-        assert.deepEqual(ret, {semicolons: "on"})
+        const ret = await runReportSemi({sourceFiles: selectSourceFiles(project, {paths: []}), log, output: {write: (l) => lines.push(l)}, importsOnly: true})
+        assert.deepEqual(ret, {semi: "on"})
     })
 })
 

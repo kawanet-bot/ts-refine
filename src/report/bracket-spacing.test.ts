@@ -8,7 +8,7 @@ import {runReportBracketSpacing} from "./bracket-spacing.ts"
 
 const SAMPLE_TSCONFIG = path.resolve(import.meta.dirname, "../../sample/braces-mixed/tsconfig.json")
 
-const log = {write: () => {}}
+const log = {write: (): void => null}
 
 describe("runReportBracketSpacing (sample/braces-mixed)", () => {
     it("buckets files by primary spacing style and returns the majority", async () => {
@@ -17,7 +17,7 @@ describe("runReportBracketSpacing (sample/braces-mixed)", () => {
         const ret = await runReportBracketSpacing({sourceFiles: selectSourceFiles(project, {paths: []}), log, output: {write: (l) => lines.push(l)}})
 
         const out = lines.join("")
-        assert.match(out, /^### bracket-spacing\n/)
+        assert.match(out, /^### --bracket-spacing /m)
 
         // spaced-a.ts: 4 spaced (2 ObjectLiteral + 1 ObjectBindingPattern + 1 TypeLiteral)
         // spaced-b.ts: 2 spaced

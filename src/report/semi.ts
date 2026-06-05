@@ -1,14 +1,15 @@
-// report semicolons: per-file trailing-`;` ratio across the nodes the
+// report semi: per-file trailing-`;` ratio across the nodes the
 // LS SemicolonPreference rewrites — ASI-eligible statements plus
 // interface/type-literal members (comma-separated members excluded).
 // Helps decide which direction minimizes churn when standardizing.
 
 import {Node} from "ts-morph"
 import type {TSR} from "ts-refine"
+import {getTsRefineFormat} from "../cli/report/emit-ts-refine.ts"
 import {logging} from "../common/logging.ts"
 import {displayPath} from "../lib/source-files.ts"
+import type {ReportRunOpts} from "./report-run-opts.ts"
 import {isSemiEligibleStatement, isTypeMember} from "./statement-kinds.ts"
-import type {ReportRunOpts} from "./types.ts"
 
 // Fixed 7-row layout: 0% / 100% / exact-50% match by equality, "1-10%" and
 // "90-99%" are the near-boundary tails, and the two middle buckets fill the
@@ -16,7 +17,7 @@ import type {ReportRunOpts} from "./types.ts"
 // too sparse to be useful — every middle bucket was empty for typical files.
 const BUCKET_LABELS = ["0%", "1-10%", "11-49%", "50%", "51-89%", "90-99%", "100%"] as const
 
-export async function runReportSemicolons({sourceFiles, output, log, importsOnly}: ReportRunOpts): Promise<Partial<TSR.SemicolonsOpts>> {
+export async function runReportSemi({sourceFiles, output, log, importsOnly}: ReportRunOpts): Promise<Partial<TSR.SemiReport>> {
     type PerFile = {path: string; total: number; withSemi: number}
     const perFile: PerFile[] = []
 
@@ -65,11 +66,13 @@ export async function runReportSemicolons({sourceFiles, output, log, importsOnly
     const belowStmts = below.reduce((s, f) => s + f.total, 0)
     const aboveStmts = above.reduce((s, f) => s + f.total, 0)
     const recommend: "on" | "off" | undefined = belowFiles > aboveFiles ? "off" : aboveFiles > belowFiles ? "on" : belowStmts > aboveStmts ? "off" : aboveStmts > belowStmts ? "on" : undefined
+    const report: Partial<TSR.SemiReport> = recommend ? {semi: recommend} : {}
 
     // The Markdown table is for display only; skip it (and its formatting)
     // when no output sink is given — the recommendation above is the result.
     if (output) {
-        output.write("### semicolons\n")
+        const heading = getTsRefineFormat({semi: report}) || "(semi)"
+        output.write(`### ${heading}\n`)
         output.write("\n")
 
         // `lines` (statement count) sits next to `files` so the table mirrors
@@ -93,11 +96,9 @@ export async function runReportSemicolons({sourceFiles, output, log, importsOnly
         output.write(`| total | ${totalStmts} | ${perFile.length} |  |\n`)
         output.write("\n")
     }
-    logging(log, `report semicolons: ${perFile.length} files counted / ${sourceFiles.length} files total`)
+    logging(log, `report semi: ${perFile.length} files counted / ${sourceFiles.length} files total`)
 
-    // The recommendation is rendered in the trailing `## recommendation`
-    // section, so all we return here is the action params shape.
-    return recommend ? {semicolons: recommend} : {}
+    return report
 }
 
 function bucketIndex({total, withSemi}: {total: number; withSemi: number}): number {

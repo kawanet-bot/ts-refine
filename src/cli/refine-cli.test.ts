@@ -37,15 +37,15 @@ describe("refineCLI", () => {
             assert.match(r.stdout, /^  rename /m)
             assert.match(r.stdout, /^  imports /m)
             assert.match(r.stdout, /--emit <name>/)
-            assert.match(r.stdout, /--semicolons --indent --member-separators --new-line --bracket-spacing/)
+            assert.match(r.stdout, /--semi --indent --member-delimiter --new-line --bracket-spacing/)
             assert.match(r.stdout, /--exports --importers/)
         }
     })
 
     it("runs the report subcommand and prints Markdown", async () => {
-        const r = await run(["report", "--semicolons", "-p", SAMPLE])
+        const r = await run(["report", "--semi", "-p", SAMPLE])
         assert.equal(r.status, 0)
-        assert.match(r.stdout, /### semicolons/)
+        assert.match(r.stdout, /^### --semi /m)
     })
 
     it("errors on a target path that matches no project file", async () => {
@@ -68,8 +68,8 @@ describe("refineCLI", () => {
         assert.equal(r.status, 0)
         assert.match(r.stderr, /format: would change/)
 
-        // format now applies member-separators, so it is surveyed too.
-        assert.match(r.stderr, /report member-separators:/)
+        // format now applies member-delimiter, so it is surveyed too.
+        assert.match(r.stderr, /report member-delimiter:/)
     })
 
     it("skips surveying a field that a format override already pins", async () => {
@@ -78,7 +78,7 @@ describe("refineCLI", () => {
 
         // --indent pins indent, so its survey is skipped; the rest still run.
         assert.doesNotMatch(r.stderr, /report indent:/)
-        assert.match(r.stderr, /report semicolons:/)
+        assert.match(r.stderr, /report semi:/)
     })
 
     it("exits non-zero with a fix hint when format --check finds changes", async () => {
@@ -118,7 +118,7 @@ describe("refineCLI", () => {
     })
 
     it("rejects style override flags on the imports subcommand", async () => {
-        const r = await run(["imports", "--semicolons", "off", "-p", SAMPLE])
+        const r = await run(["imports", "--semi", "off", "-p", SAMPLE])
         assert.notEqual(r.status, 0)
         assert.match(r.stderr, /unknown option/)
     })
@@ -126,7 +126,7 @@ describe("refineCLI", () => {
     it("lists files via the list subcommand", async () => {
         const r = await run(["list", "-p", SAMPLE])
         assert.equal(r.status, 0)
-        assert.match(r.stdout, /^\| file \| exports \| unused \| importers \|/m)
+        assert.match(r.stdout, /^\| file \| exports \| unused exports \| importers \|/m)
     })
 
     it("opens the default survey with the first report table, not a list section", async () => {
@@ -136,7 +136,7 @@ describe("refineCLI", () => {
         // The survey no longer embeds a list cleanup-candidate section; use
         // `list --unused-exports` for that on demand.
         assert.doesNotMatch(r.stdout, /^### list /m)
-        assert.match(r.stdout, /^### semicolons$/m)
+        assert.match(r.stdout, /^### --semi /m)
     })
 
     it("inspects files via the inspect subcommand", async () => {
@@ -150,12 +150,12 @@ describe("refineCLI", () => {
     })
 
     it("accepts -p on either side of the subcommand", async () => {
-        const left = await run(["-p", SAMPLE, "report", "--semicolons"])
+        const left = await run(["-p", SAMPLE, "report", "--semi"])
         assert.equal(left.status, 0)
-        assert.match(left.stdout, /### semicolons/)
-        const right = await run(["report", "--semicolons", "-p", SAMPLE])
+        assert.match(left.stdout, /^### --semi /m)
+        const right = await run(["report", "--semi", "-p", SAMPLE])
         assert.equal(right.status, 0)
-        assert.match(right.stdout, /### semicolons/)
+        assert.match(right.stdout, /^### --semi /m)
     })
 
     it("rejects -p duplicated across the subcommand", async () => {

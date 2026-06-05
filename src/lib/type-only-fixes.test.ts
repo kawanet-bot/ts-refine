@@ -22,7 +22,7 @@ function read(project: Project, tsconfig: string, rel: string): string {
     return project.getSourceFile(abs)!.getFullText()
 }
 
-const log = {write: () => {}}
+const log = {write: (): void => null}
 
 describe("applyTypeOnlyFixes via refineImports (verbatimModuleSyntax on)", () => {
     it("fires all three fixes end-to-end without touching disk", async () => {

@@ -5,7 +5,7 @@
 import type {TSR} from "ts-refine"
 
 export function writeListTable(entries: TSR.ListEntry[], output: TSR.Writer): void {
-    output.write("| file | exports | unused | importers |\n")
+    output.write("| file | exports | unused exports | importers |\n")
     output.write("| --- | --- | --- | --- |\n")
     for (const e of entries) {
         output.write(`| ${e.file} | ${e.exports} | ${e.unused} | ${e.importers} |\n`)

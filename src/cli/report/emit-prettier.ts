@@ -4,14 +4,14 @@
 // `report --emit prettier`, an in-memory sink for tests, etc.).
 //
 // Mapping:
-//   semicolons.semicolons === "on"          → semi: true
-//   semicolons.semicolons === "off"         → semi: false
+//   semi.semi === "on"          → semi: true
+//   semi.semi === "off"         → semi: false
 //   indent.width === <number>               → tabWidth: <number>, useTabs: false
 //   indent.width === "tab"                  → useTabs: true
 //   newLine.newLine === <lf|crlf|cr>        → endOfLine: <lf|crlf|cr>
 //   bracketSpacing.bracketSpacing === "on"  → bracketSpacing: true
 //   bracketSpacing.bracketSpacing === "off" → bracketSpacing: false
-// member-separators has no Prettier mapping (comma members are
+// member-delimiter has no Prettier mapping (comma members are
 // unreachable; semi/none is already covered by semi), so it is omitted.
 // Reports that didn't recommend anything contribute no fields, so an
 // empty ReportResult renders as `{}`.
@@ -24,8 +24,8 @@ import type {TSR} from "ts-refine"
 // prettier output and the Markdown .prettierrc fence go through.
 function buildPrettierOptions(report: TSR.ReportResult): PrettierOptions {
     const opts: PrettierOptions = {}
-    if (report.semicolons?.semicolons === "on") opts.semi = true
-    else if (report.semicolons?.semicolons === "off") opts.semi = false
+    if (report.semi?.semi === "on") opts.semi = true
+    else if (report.semi?.semi === "off") opts.semi = false
     if (report.indent?.width === "tab") {
         opts.useTabs = true
     } else if (typeof report.indent?.width === "number") {
@@ -48,7 +48,7 @@ export function getPrettierConfig(report: TSR.ReportResult): string {
     return JSON.stringify(opts, null, 4)
 }
 
-export function writePrettierConfig(report: TSR.ReportResult, output: TSR.Writer): void {
+export function emitPrettierConfig(report: TSR.ReportResult, output: TSR.Writer): void {
     output.write(getPrettierConfig(report) + "\n")
 }
 

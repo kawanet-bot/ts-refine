@@ -13,7 +13,7 @@ describe("writeListTable", () => {
     it("renders the four-column table with a trailing blank line", () => {
         let out = ""
         writeListTable(ENTRIES, {write: (s) => (out += s)})
-        assert.match(out, /^\| file \| exports \| unused \| importers \|\n\| --- \| --- \| --- \| --- \|\n/)
+        assert.match(out, /^\| file \| exports \| unused exports \| importers \|\n\| --- \| --- \| --- \| --- \|\n/)
         assert.match(out, /\| stale\.ts \| 2 \| 1 \| 1 \|\n/)
         assert.match(out, /\n$/)
     })

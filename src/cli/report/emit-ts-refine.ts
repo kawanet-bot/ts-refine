@@ -11,9 +11,9 @@ import {reportToFormatStyle} from "../../common/format-style.ts"
 // `cr` is already dropped upstream, so --new-line is always runnable.
 export function buildFormatTokens(options: TSR.FormatStyle): string[] {
     const flags: string[] = []
-    if (options.semicolons) flags.push("--semicolons", options.semicolons)
+    if (options.semi) flags.push("--semi", options.semi)
     if (options.indent !== undefined) flags.push("--indent", String(options.indent))
-    if (options.memberSeparators) flags.push("--member-separators", options.memberSeparators)
+    if (options.memberDelimiter) flags.push("--member-delimiter", options.memberDelimiter)
     if (options.newLine) flags.push("--new-line", options.newLine)
     if (options.bracketSpacing) flags.push("--bracket-spacing", options.bracketSpacing)
     if (options.trailingComma) flags.push("--trailing-comma", options.trailingComma)
@@ -21,7 +21,7 @@ export function buildFormatTokens(options: TSR.FormatStyle): string[] {
 }
 
 // Renders the recommendation as the flag string the `format` command
-// consumes — the value writeFormatCommand frames and the Markdown survey
+// consumes — the value emitTsRefineFormat frames and the Markdown survey
 // embeds. Returns plain text (empty when nothing fired), so the caller
 // picks its own framing.
 export function getTsRefineFormat(report: TSR.ReportResult): string {
@@ -29,17 +29,10 @@ export function getTsRefineFormat(report: TSR.ReportResult): string {
     return flags.join(" ")
 }
 
-// Always starts with the `format` command (the verb the recommendation
-// translates to). Empty recommendations still emit `ts-refine format`,
-// paralleling `--emit prettier`'s empty `{}`.
-export function writeFormatCommand(report: TSR.ReportResult, output: TSR.Writer): void {
+export function emitTsRefineFormat(report: TSR.ReportResult, output: TSR.Writer): void {
     const format = getTsRefineFormat(report)
-    if (!format) {
-        output.write("ts-refine format\n")
-        return
-    }
-    output.write("ts-refine format \\\n")
-    output.write(`  ${format}\n`)
+    if (!format) return
+    output.write(`${format}\n`)
 }
 
 // `## recommendation` block in the default-survey Markdown. Skipped

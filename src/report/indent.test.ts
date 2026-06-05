@@ -9,7 +9,7 @@ import {runReportIndent} from "./indent.ts"
 const SAMPLE_TSCONFIG = path.resolve(import.meta.dirname, "../../sample/indents-mixed/tsconfig.json")
 const TAB_TSCONFIG = path.resolve(import.meta.dirname, "../../sample/tab-indent/tsconfig.json")
 
-const log = {write: () => {}}
+const log = {write: (): void => null}
 
 describe("runReportIndent (sample/indents-mixed)", () => {
     it("groups files by primary leading width and returns the file-count majority", async () => {
@@ -18,7 +18,7 @@ describe("runReportIndent (sample/indents-mixed)", () => {
         const ret = await runReportIndent({sourceFiles: selectSourceFiles(project, {paths: []}), log, output: {write: (l) => lines.push(l)}})
 
         const out = lines.join("")
-        assert.match(out, /^### indent\n/)
+        assert.match(out, /^### --indent /m)
 
         // two-space.ts:    {2: 4, 4: 1} → primary = 2 (mode)
         // four-space-a.ts: {4: 4, 8: 1} → primary = 4

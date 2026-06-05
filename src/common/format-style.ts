@@ -1,16 +1,16 @@
 import type {TSR} from "ts-refine"
 
 // ReportResult → FormatStyle. `cr` is read and discarded (see FormatStyle).
-// member-separators maps through: `format` applies it via a self-pass, so it
+// member-delimiter maps through: `format` applies it via a self-pass, so it
 // is an apply target even though it has no LS / Prettier mapping.
 export function reportToFormatStyle(report: TSR.ReportResult): TSR.FormatStyle {
     const options: TSR.FormatStyle = {}
-    if (report.semicolons?.semicolons) options.semicolons = report.semicolons.semicolons
+    if (report.semi?.semi) options.semi = report.semi.semi
     if (report.indent?.width !== undefined) options.indent = report.indent.width
     const newLine = report.newLine?.newLine
     if (newLine === "lf" || newLine === "crlf") options.newLine = newLine
     if (report.bracketSpacing?.bracketSpacing) options.bracketSpacing = report.bracketSpacing.bracketSpacing
-    if (report.memberSeparators?.separator) options.memberSeparators = report.memberSeparators.separator
+    if (report.memberDelimiter?.delimiter) options.memberDelimiter = report.memberDelimiter.delimiter
     if (report.trailingComma?.trailingComma) options.trailingComma = report.trailingComma.trailingComma
     return options
 }

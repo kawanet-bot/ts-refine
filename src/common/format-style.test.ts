@@ -5,12 +5,12 @@ import {reportToFormatStyle} from "./format-style.ts"
 describe("reportToFormatStyle", () => {
     it("maps the actionable report fields", () => {
         const o = reportToFormatStyle({
-            semicolons: {semicolons: "on"},
+            semi: {semi: "on"},
             indent: {width: 4},
             newLine: {newLine: "crlf"},
             bracketSpacing: {bracketSpacing: "off"},
         })
-        assert.deepEqual(o, {semicolons: "on", indent: 4, newLine: "crlf", bracketSpacing: "off"})
+        assert.deepEqual(o, {semi: "on", indent: 4, newLine: "crlf", bracketSpacing: "off"})
     })
 
     it("carries indent.width=tab through", () => {
@@ -22,8 +22,8 @@ describe("reportToFormatStyle", () => {
         assert.equal(o.newLine, undefined)
     })
 
-    it("maps member-separators through (the format command applies it via a self-pass)", () => {
-        const o = reportToFormatStyle({memberSeparators: {separator: "comma"}})
-        assert.deepEqual(o, {memberSeparators: "comma"})
+    it("maps member-delimiter through (the format command applies it via a self-pass)", () => {
+        const o = reportToFormatStyle({memberDelimiter: {delimiter: "comma"}})
+        assert.deepEqual(o, {memberDelimiter: "comma"})
     })
 })

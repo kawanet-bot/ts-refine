@@ -7,8 +7,7 @@ import type {Project} from "ts-morph"
 export {} // external module indicator
 
 export declare namespace TSR {
-    // A minimal output sink: anything with a line-oriented write. The report
-    // stream, the CLI's stdout, the diagnostics log, and NULL_SINK all satisfy it.
+    // output stream
     type Writer = {write: (line: string) => void}
 
     // Common base for every entry. Supply the ts-morph project one of two ways:
@@ -28,35 +27,34 @@ export declare namespace TSR {
     // Recommendation shapes. Not runtime inputs — they describe the value
     // type of each `ReportResult` slot.
 
-    interface SemicolonsOpts {
-        semicolons: "on" | "off"
+    interface SemiReport {
+        semi: "on" | "off"
     }
 
     // "tab" recommends tab indentation (LS convertTabsToSpaces:false /
     // Prettier useTabs); a number recommends that many spaces.
-    interface IndentOpts {
+    interface IndentReport {
         width: number | "tab"
     }
 
-    interface MemberSeparatorsOpts {
-        separator: "semi" | "comma" | "none"
+    interface MemberDelimiterReport {
+        delimiter: "semi" | "comma" | "none"
     }
 
-    interface NewLineOpts {
+    interface NewLineReport {
         newLine: "lf" | "crlf" | "cr"
     }
 
-    interface BracketSpacingOpts {
+    interface BracketSpacingReport {
         bracketSpacing: "on" | "off"
     }
 
-    interface TrailingCommaOpts {
+    interface TrailingCommaReport {
         trailingComma: "on" | "off"
     }
 
-    // Every report refineReport knows about. Pair with src/report/report-names.ts
-    // (runtime list) and src/report/refine-report.ts (dispatch).
-    type ReportName = "semicolons" | "indent" | "member-separators" | "new-line" | "bracket-spacing" | "trailing-comma"
+    // Every report refineReport supports.
+    type ReportName = "semi" | "indent" | "member-delimiter" | "new-line" | "bracket-spacing" | "trailing-comma"
 
     interface ReportOpts extends CommonOpts {
         paths: string[]
@@ -64,18 +62,18 @@ export declare namespace TSR {
         // Markdown sink for the per-report tables. Omit it to compute the
         // recommendations only (callers that just want the ReportResult).
         output?: Writer
-        reportNames: ReportName[]
+        reports: ReportName[]
     }
 
     // Per-report recommendations. A missing key means the report didn't run
     // or had nothing to recommend.
     interface ReportResult {
-        semicolons?: Partial<SemicolonsOpts>
-        indent?: Partial<IndentOpts>
-        memberSeparators?: Partial<MemberSeparatorsOpts>
-        newLine?: Partial<NewLineOpts>
-        bracketSpacing?: Partial<BracketSpacingOpts>
-        trailingComma?: Partial<TrailingCommaOpts>
+        semi?: Partial<SemiReport>
+        indent?: Partial<IndentReport>
+        memberDelimiter?: Partial<MemberDelimiterReport>
+        newLine?: Partial<NewLineReport>
+        bracketSpacing?: Partial<BracketSpacingReport>
+        trailingComma?: Partial<TrailingCommaReport>
     }
 
     // Per-field format intent derived from a report recommendation, and what the
@@ -84,13 +82,13 @@ export declare namespace TSR {
     // refineMove/refineRename take this to organize the imports they rewrote.
     interface FormatStyle {
         indent?: number | "tab"
-        semicolons?: "on" | "off"
+        semi?: "on" | "off"
         newLine?: "lf" | "crlf"
         bracketSpacing?: "on" | "off"
 
-        // Interface / class member separators. Applied by a self-pass (the LS
+        // Interface / class member delimiter. Applied by a self-pass (the LS
         // can't set these and can't emit `comma` at all); no LS/Prettier mapping.
-        memberSeparators?: "semi" | "comma" | "none"
+        memberDelimiter?: "semi" | "comma" | "none"
 
         // Trailing comma on multi-line comma lists (arrays, objects, args, params,
         // tuples, enums, import/export specifiers). `on` adds it on multi-line and
@@ -193,7 +191,7 @@ export declare namespace TSR {
 
     interface InspectOpts extends CommonOpts {
         paths: string[]
-        inspectorNames: InspectorName[]
+        inspectors: InspectorName[]
     }
 
     // Input to `refineMove`. `sources` are absolute paths of existing project
