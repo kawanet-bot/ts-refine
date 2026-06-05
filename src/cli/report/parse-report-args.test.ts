@@ -4,7 +4,7 @@ import type {CommonArgs} from "../parse-common-args.ts"
 import {parseReportArgs} from "./parse-report-args.ts"
 
 function common(): CommonArgs {
-    return {tsconfigPath: null, dryRun: false, help: false}
+    return {}
 }
 
 describe("parseReport", () => {

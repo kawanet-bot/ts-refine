@@ -10,9 +10,10 @@ describe("selectOutput", () => {
 
     it("leaves the report stream unset and writes prettier JSON on finalize", () => {
         const f = selectEmitter("prettier")
+        assert.ok(f)
         const config = f({semi: {semi: "off"}, indent: {width: 4}})
 
-        const json = JSON.parse(config)
+        const json = config && JSON.parse(config)
         assert.equal(json.semi, false)
         assert.equal(json.tabWidth, 4)
         assert.equal(json.useTabs, false)
@@ -20,6 +21,7 @@ describe("selectOutput", () => {
 
     it("leaves the report stream unset and writes the format command on finalize", () => {
         const f = selectEmitter("ts-refine")
+        assert.ok(f)
         const config = f({semi: {semi: "off"}, indent: {width: 4}, memberDelimiter: {delimiter: "comma"}})
 
         // Single-line form: just the `format` flags (no leading `ts-refine format`),
@@ -29,9 +31,10 @@ describe("selectOutput", () => {
 
     it("leaves the report stream unset and writes stylistic JSON on finalize", () => {
         const f = selectEmitter("stylistic")
+        assert.ok(f)
         const config = f({semi: {semi: "off"}, indent: {width: 4}})
 
-        const json = JSON.parse(config)
+        const json = config && JSON.parse(config)
         assert.deepEqual(json.rules["@stylistic/semi"], ["error", "never"])
         assert.deepEqual(json.rules["@stylistic/indent"], ["error", 4])
     })

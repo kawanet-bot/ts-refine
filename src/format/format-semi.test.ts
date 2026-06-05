@@ -33,7 +33,7 @@ function semiLineCount(text: string) {
 // organizes imports, so the comparison stays focused on semicolons).
 const SEMI_OFF = {dryRun: true, paths: [] as string[]}
 
-const log = {write: (): void => null}
+const log = {write: (): void => undefined}
 
 describe("refineFormat --semi off (dry-run, sample/semicolons-mixed)", () => {
     it("strips every trailing `;` from ASI-eligible statements in-memory", async () => {

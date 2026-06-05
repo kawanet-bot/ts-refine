@@ -15,7 +15,7 @@ function opts(project: Project, width: number): TSR.FormatOpts {
     return {project, dryRun: true, paths: [], format: {indent: width}, log}
 }
 
-const log = {write: (): void => null}
+const log = {write: (): void => undefined}
 
 describe("refineFormat --indent (dry-run, in-memory)", () => {
     it("expands 2-space indent to 4-space", async () => {

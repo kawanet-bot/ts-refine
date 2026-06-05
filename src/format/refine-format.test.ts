@@ -5,7 +5,7 @@ import {initInMemoryProject} from "../common/init-project.ts"
 import {refineReport} from "../report/refine-report.ts"
 import {refineFormat} from "./refine-format.ts"
 
-const log = {write: (): void => null}
+const log = {write: (): void => undefined}
 
 describe("refineFormat", () => {
     it("applies the indent width from the format style", async () => {
