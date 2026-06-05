@@ -4,7 +4,7 @@ import {describe, it} from "node:test"
 import {initInMemoryProject} from "../common/init-project.ts"
 import {selectSourceFiles} from "../lib/source-files.ts"
 import {initTestProject} from "../test-utils/init-test-project.ts"
-import {runReportSemi} from "./semicolons.ts"
+import {runReportSemi} from "./semi.ts"
 
 const SAMPLE_TSCONFIG = path.resolve(import.meta.dirname, "../../sample/semicolons-mixed/tsconfig.json")
 

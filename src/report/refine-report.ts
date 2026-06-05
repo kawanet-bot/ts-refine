@@ -16,7 +16,7 @@ import {runReportIndent} from "./indent.ts"
 import {runReportMemberDelimiter} from "./member-delimiter.ts"
 import {runReportNewLine} from "./new-line.ts"
 import type {ReportRunOpts} from "./report-run-opts.ts"
-import {runReportSemi} from "./semicolons.ts"
+import {runReportSemi} from "./semi.ts"
 import {runReportTrailingComma} from "./trailing-comma.ts"
 
 export const refineReport: typeof declared.refineReport = async (opts) => {
