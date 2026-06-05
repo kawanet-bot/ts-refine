@@ -16,7 +16,7 @@ import {formatReportNames} from "../../common/report-names.ts"
 const reportByOverride: {field: keyof TSR.FormatStyle; report: TSR.ReportName}[] = [
     {field: "semicolons", report: "semicolons"},
     {field: "indent", report: "indent"},
-    {field: "memberSeparators", report: "member-separators"},
+    {field: "memberDelimiter", report: "member-separators"},
     {field: "newLine", report: "new-line"},
     {field: "bracketSpacing", report: "bracket-spacing"},
     {field: "trailingComma", report: "trailing-comma"},
@@ -34,7 +34,7 @@ export function mergeFormatStyles(base: TSR.FormatStyle, override: TSR.FormatSty
         semicolons: override.semicolons ?? base.semicolons,
         newLine: override.newLine ?? base.newLine,
         bracketSpacing: override.bracketSpacing ?? base.bracketSpacing,
-        memberSeparators: override.memberSeparators ?? base.memberSeparators,
+        memberDelimiter: override.memberDelimiter ?? base.memberDelimiter,
         trailingComma: override.trailingComma ?? base.trailingComma,
     }
 }

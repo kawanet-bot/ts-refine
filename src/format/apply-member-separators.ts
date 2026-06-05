@@ -1,4 +1,4 @@
-// memberSeparators apply pass. The LS formatter can't set interface / class
+// memberDelimiter apply pass. The LS formatter can't set interface / class
 // member separators (and can't emit commas at all), so refineFormat runs this
 // after formatText to normalize each member's trailing punctuation to the
 // chosen style. Scope mirrors the member-separators report: interface and
@@ -45,7 +45,7 @@ function survey(scratch: Project, probePath: string, containerText: string): {ki
     return {kinds, errors}
 }
 
-export function applyMemberSeparators(sf: SourceFile, style: TSR.MemberSeparatorsOpts["separator"]): void {
+export function applyMemberDelimiter(sf: SourceFile, style: TSR.MemberDelimiterOpts["separator"]): void {
     const want = SEPARATOR[style]
 
     // The scratch project for the verification re-parses. Built lazily on the

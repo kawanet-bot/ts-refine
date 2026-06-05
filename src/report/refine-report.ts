@@ -13,7 +13,7 @@ import {reportNames} from "../common/report-names.ts"
 import {selectSourceFiles} from "../lib/source-files.ts"
 import {runReportBracketSpacing} from "./bracket-spacing.ts"
 import {runReportIndent} from "./indent.ts"
-import {runReportMemberSeparators} from "./member-separators.ts"
+import {runReportMemberDelimiter} from "./member-separators.ts"
 import {runReportNewLine} from "./new-line.ts"
 import {runReportSemicolons} from "./semicolons.ts"
 import {runReportTrailingComma} from "./trailing-comma.ts"
@@ -51,7 +51,7 @@ export const runReports = async (reportOpts: ReportRunOpts, requested: readonly 
         report.indent = await runReportIndent(reportOpts)
     }
     if (requested.includes("member-separators")) {
-        report.memberSeparators = await runReportMemberSeparators(reportOpts)
+        report.memberDelimiter = await runReportMemberDelimiter(reportOpts)
     }
     if (requested.includes("new-line")) {
         report.newLine = await runReportNewLine(reportOpts)

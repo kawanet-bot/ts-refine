@@ -9,7 +9,7 @@ import {resolveProject} from "../common/init-project.ts"
 import {logging} from "../common/logging.ts"
 import {formatStyleToSettings, normalizeNewLines} from "../lib/format-settings.ts"
 import {selectSourceFiles} from "../lib/source-files.ts"
-import {applyMemberSeparators} from "./apply-member-separators.ts"
+import {applyMemberDelimiter} from "./apply-member-separators.ts"
 import {applyTrailingComma} from "./apply-trailing-comma.ts"
 
 export const refineFormat: typeof declared.refineFormat = async (opts) => {
@@ -41,7 +41,7 @@ export const refineFormat: typeof declared.refineFormat = async (opts) => {
 
         // The LS formatter can't set interface/class member separators (and
         // can't emit commas); apply the surveyed style on the formatted AST.
-        if (format.memberSeparators != null) applyMemberSeparators(sf, format.memberSeparators)
+        if (format.memberDelimiter != null) applyMemberDelimiter(sf, format.memberDelimiter)
 
         // The LS formatter has no trailing-comma control either; apply it too.
         if (format.trailingComma != null) applyTrailingComma(sf, format.trailingComma)

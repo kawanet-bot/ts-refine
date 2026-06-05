@@ -38,7 +38,7 @@ export declare namespace TSR {
         width: number | "tab"
     }
 
-    interface MemberSeparatorsOpts {
+    interface MemberDelimiterOpts {
         separator: "semi" | "comma" | "none"
     }
 
@@ -72,7 +72,7 @@ export declare namespace TSR {
     interface ReportResult {
         semicolons?: Partial<SemicolonsOpts>
         indent?: Partial<IndentOpts>
-        memberSeparators?: Partial<MemberSeparatorsOpts>
+        memberDelimiter?: Partial<MemberDelimiterOpts>
         newLine?: Partial<NewLineOpts>
         bracketSpacing?: Partial<BracketSpacingOpts>
         trailingComma?: Partial<TrailingCommaOpts>
@@ -90,7 +90,7 @@ export declare namespace TSR {
 
         // Interface / class member separators. Applied by a self-pass (the LS
         // can't set these and can't emit `comma` at all); no LS/Prettier mapping.
-        memberSeparators?: "semi" | "comma" | "none"
+        memberDelimiter?: "semi" | "comma" | "none"
 
         // Trailing comma on multi-line comma lists (arrays, objects, args, params,
         // tuples, enums, import/export specifiers). `on` adds it on multi-line and

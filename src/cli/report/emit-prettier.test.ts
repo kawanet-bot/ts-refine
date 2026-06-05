@@ -48,8 +48,8 @@ describe("getPrettierConfig", () => {
         assert.equal(json.tabWidth, undefined)
     })
 
-    it("ignores memberSeparators (comma members are unreachable in Prettier)", () => {
-        const json = JSON.parse(capture({memberSeparators: {separator: "comma"}}))
+    it("ignores memberDelimiter (comma members are unreachable in Prettier)", () => {
+        const json = JSON.parse(capture({memberDelimiter: {separator: "comma"}}))
         assert.deepEqual(json, {})
     })
 

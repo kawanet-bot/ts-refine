@@ -72,8 +72,8 @@ describe("parseFormat", () => {
     })
 
     it("accepts --member-separators semi|comma|none", () => {
-        assert.equal(parseFormatArgs(["--member-separators", "comma"], common())?.applyOverrides.memberSeparators, "comma")
-        assert.equal(parseFormatArgs(["--member-separators", "none"], common())?.applyOverrides.memberSeparators, "none")
+        assert.equal(parseFormatArgs(["--member-separators", "comma"], common())?.applyOverrides.memberDelimiter, "comma")
+        assert.equal(parseFormatArgs(["--member-separators", "none"], common())?.applyOverrides.memberDelimiter, "none")
     })
 
     it("rejects --member-separators with an invalid value", () => {

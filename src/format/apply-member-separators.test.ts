@@ -1,14 +1,14 @@
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
 import {initInMemoryProject} from "../common/init-project.ts"
-import {applyMemberSeparators} from "./apply-member-separators.ts"
+import {applyMemberDelimiter} from "./apply-member-separators.ts"
 
 // Operates on the AST directly (no formatText) so the assertions pin exactly
 // what the separator pass does, free of LS whitespace normalization.
 function run(src: string, style: "semi" | "comma" | "none"): string {
     const project = initInMemoryProject()
     const sf = project.createSourceFile("/a.ts", src, {overwrite: true})
-    applyMemberSeparators(sf, style)
+    applyMemberDelimiter(sf, style)
     return sf.getFullText()
 }
 
@@ -198,7 +198,7 @@ describe("applyMemberSeparators", () => {
         // them. The probe path mirrors the source extension to avoid that.
         const project = initInMemoryProject()
         const sf = project.createSourceFile("/c.tsx", "class C {\n    x = <Foo />;\n    [y] = 1;\n}\n", {overwrite: true})
-        applyMemberSeparators(sf, "none")
+        applyMemberDelimiter(sf, "none")
         assert.equal(sf.getFullText(), "class C {\n    x = <Foo />\n    [y] = 1\n}\n")
     })
 

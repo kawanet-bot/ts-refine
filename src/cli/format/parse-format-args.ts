@@ -74,7 +74,7 @@ export function parseFormatArgs(sub: string[], common: CommonArgs): FormatArgs |
             if (v !== "semi" && v !== "comma" && v !== "none") {
                 throw new Error(`--member-separators expects 'semi', 'comma' or 'none'; got: ${v ?? "(missing)"}`)
             }
-            overrides.memberSeparators = v
+            overrides.memberDelimiter = v
             i += 2
         } else if (a === "--trailing-comma") {
             const v = sub[i + 1]

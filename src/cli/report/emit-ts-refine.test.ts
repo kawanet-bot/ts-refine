@@ -27,9 +27,9 @@ describe("getTsRefineFormat", () => {
         assert.equal(getTsRefineFormat({indent: {width: "tab"}}), "--indent tab")
     })
 
-    it("maps memberSeparators.separator → --member-separators V (the format command applies it)", () => {
-        assert.equal(getTsRefineFormat({memberSeparators: {separator: "none"}}), "--member-separators none")
-        assert.equal(getTsRefineFormat({memberSeparators: {separator: "comma"}}), "--member-separators comma")
+    it("maps memberDelimiter.separator → --member-separators V (the format command applies it)", () => {
+        assert.equal(getTsRefineFormat({memberDelimiter: {separator: "none"}}), "--member-separators none")
+        assert.equal(getTsRefineFormat({memberDelimiter: {separator: "comma"}}), "--member-separators comma")
     })
 
     it("maps newLine.newLine → --new-line V", () => {
@@ -48,7 +48,7 @@ describe("getTsRefineFormat", () => {
     it("combines all recommendations in a fixed order", () => {
         const out = getTsRefineFormat(
             // Input keys are intentionally reversed; the output order is fixed.
-            {trailingComma: {trailingComma: "on"}, bracketSpacing: {bracketSpacing: "on"}, newLine: {newLine: "lf"}, memberSeparators: {separator: "none"}, indent: {width: 4}, semicolons: {semicolons: "off"}},
+            {trailingComma: {trailingComma: "on"}, bracketSpacing: {bracketSpacing: "on"}, newLine: {newLine: "lf"}, memberDelimiter: {separator: "none"}, indent: {width: 4}, semicolons: {semicolons: "off"}},
         )
         assert.equal(out, "--semicolons off --indent 4 --member-separators none --new-line lf --bracket-spacing on --trailing-comma on")
     })

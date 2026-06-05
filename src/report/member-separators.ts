@@ -4,7 +4,7 @@
 // accessors, constructors) are skipped because the separator choice isn't
 // theirs to make.
 //
-// The recommendation drives the `format` command's memberSeparators apply
+// The recommendation drives the `format` command's memberDelimiter apply
 // pass (src/format/apply-member-separators.ts). It still has no Prettier
 // mapping (comma members are unreachable there), so the .prettierrc emitter
 // omits it.
@@ -31,7 +31,7 @@ const SEP_LABEL: Record<Separator, string> = {
 
 // Maps internal Separator symbols to MemberSeparatorsOpts.separator's
 // value space (semi / comma / none).
-const SEP_FLAG_VALUE: Record<Separator, TSR.MemberSeparatorsOpts["separator"]> = {
+const SEP_FLAG_VALUE: Record<Separator, TSR.MemberDelimiterOpts["separator"]> = {
     none: "none",
     ",": "comma",
     ";": "semi",
@@ -39,7 +39,7 @@ const SEP_FLAG_VALUE: Record<Separator, TSR.MemberSeparatorsOpts["separator"]> =
 
 type Bucket = {lines: number; files: number; topPath: string; topLines: number}
 
-export async function runReportMemberSeparators({sourceFiles, output, log, importsOnly}: ReportRunOpts): Promise<Partial<TSR.MemberSeparatorsOpts>> {
+export async function runReportMemberDelimiter({sourceFiles, output, log, importsOnly}: ReportRunOpts): Promise<Partial<TSR.MemberDelimiterOpts>> {
     // import/export statements carry no interface/class members, so an
     // imports-only survey has nothing to weigh — skip the whole-file scan.
     if (importsOnly) return {}

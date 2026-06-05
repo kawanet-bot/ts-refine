@@ -1,5 +1,6 @@
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
+import type {TSR} from "../../../types/ts-refine"
 import {mergeFormatStyles, reportNamesForFormat} from "./format-options.ts"
 
 describe("mergeFormatStyles", () => {
@@ -22,12 +23,12 @@ describe("reportNamesForFormat", () => {
     it("drops the report for each pinned field", () => {
         assert.deepEqual(reportNamesForFormat({indent: 4}), ["semicolons", "member-separators", "new-line", "bracket-spacing", "trailing-comma"])
         assert.deepEqual(reportNamesForFormat({newLine: "lf"}), ["semicolons", "indent", "member-separators", "bracket-spacing", "trailing-comma"])
-        assert.deepEqual(reportNamesForFormat({memberSeparators: "semi"}), ["semicolons", "indent", "new-line", "bracket-spacing", "trailing-comma"])
+        assert.deepEqual(reportNamesForFormat({memberDelimiter: "semi"}), ["semicolons", "indent", "new-line", "bracket-spacing", "trailing-comma"])
         assert.deepEqual(reportNamesForFormat({trailingComma: "on"}), ["semicolons", "indent", "member-separators", "new-line", "bracket-spacing"])
     })
 
     it("returns an empty set when every surveyed field is pinned", () => {
-        const all = {semicolons: "on", indent: 2, memberSeparators: "semi", newLine: "lf", bracketSpacing: "off", trailingComma: "on"} as const
+        const all: TSR.FormatStyle = {semicolons: "on", indent: 2, memberDelimiter: "semi", newLine: "lf", bracketSpacing: "off", trailingComma: "on"}
         assert.deepEqual(reportNamesForFormat(all), [])
     })
 })
