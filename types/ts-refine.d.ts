@@ -222,7 +222,7 @@ export declare namespace TSR {
     interface RenameOpts extends CommonOpts {
         from: string
         to: string
-        file: string | null
+        file?: string
         dryRun?: boolean
     }
 
