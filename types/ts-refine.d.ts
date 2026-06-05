@@ -57,7 +57,7 @@ export declare namespace TSR {
     type ReportName = "semi" | "indent" | "member-delimiter" | "new-line" | "bracket-spacing" | "trailing-comma"
 
     interface ReportOpts extends CommonOpts {
-        paths: string[]
+        paths?: string[]
 
         // Markdown sink for the per-report tables. Omit it to compute the
         // recommendations only (callers that just want the ReportResult).
@@ -101,7 +101,7 @@ export declare namespace TSR {
     // overrides). Reformats the surrounding text only; organizing imports is the
     // separate `imports` command. `format` is one style applied to the whole run.
     interface FormatOpts extends CommonOpts {
-        paths: string[]
+        paths?: string[]
         dryRun?: boolean
         format: FormatStyle
     }
@@ -118,7 +118,7 @@ export declare namespace TSR {
     // surrounding text. Each file is surveyed on its own (import/export tallies)
     // and organized in that style, so the project's existing style barely shifts.
     interface ImportsOpts extends CommonOpts {
-        paths: string[]
+        paths?: string[]
         dryRun?: boolean
     }
 
@@ -190,7 +190,7 @@ export declare namespace TSR {
     type InspectorName = "exports" | "importers"
 
     interface InspectOpts extends CommonOpts {
-        paths: string[]
+        paths?: string[]
         inspectors: InspectorName[]
     }
 
