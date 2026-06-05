@@ -102,7 +102,7 @@ export declare namespace TSR {
     // separate `imports` command. `format` is one style applied to the whole run.
     interface FormatOpts extends CommonOpts {
         paths: string[]
-        dryRun: boolean
+        dryRun?: boolean
         format: FormatStyle
     }
 
@@ -119,7 +119,7 @@ export declare namespace TSR {
     // and organized in that style, so the project's existing style barely shifts.
     interface ImportsOpts extends CommonOpts {
         paths: string[]
-        dryRun: boolean
+        dryRun?: boolean
     }
 
     // refineImports returns the in-project files whose import block was rewritten,
@@ -202,7 +202,7 @@ export declare namespace TSR {
     interface MoveOpts extends CommonOpts {
         sources: string[]
         dest: string
-        dryRun: boolean
+        dryRun?: boolean
     }
 
     // refineMove returns the planned moves (from → to) and the set of in-project
@@ -223,7 +223,7 @@ export declare namespace TSR {
         from: string
         to: string
         file: string | null
-        dryRun: boolean
+        dryRun?: boolean
     }
 
     // refineRename returns the applied rename and the in-project files whose text
