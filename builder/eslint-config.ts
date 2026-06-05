@@ -1,5 +1,5 @@
-import stylistic from "@stylistic/eslint-plugin"
 import type {RuleOptions} from "@stylistic/eslint-plugin"
+import stylistic from "@stylistic/eslint-plugin"
 import tsParser from "@typescript-eslint/parser"
 import type {Linter} from "eslint"
 
