@@ -37,7 +37,7 @@ describe("refineCLI", () => {
             assert.match(r.stdout, /^  rename /m)
             assert.match(r.stdout, /^  imports /m)
             assert.match(r.stdout, /--emit <name>/)
-            assert.match(r.stdout, /--semicolons --indent --member-separators --new-line --bracket-spacing/)
+            assert.match(r.stdout, /--semicolons --indent --member-delimiter --new-line --bracket-spacing/)
             assert.match(r.stdout, /--exports --importers/)
         }
     })
@@ -68,8 +68,8 @@ describe("refineCLI", () => {
         assert.equal(r.status, 0)
         assert.match(r.stderr, /format: would change/)
 
-        // format now applies member-separators, so it is surveyed too.
-        assert.match(r.stderr, /report member-separators:/)
+        // format now applies member-delimiter, so it is surveyed too.
+        assert.match(r.stderr, /report member-delimiter:/)
     })
 
     it("skips surveying a field that a format override already pins", async () => {

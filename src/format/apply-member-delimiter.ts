@@ -1,7 +1,7 @@
 // memberDelimiter apply pass. The LS formatter can't set interface / class
-// member separators (and can't emit commas at all), so refineFormat runs this
+// member delimiter (and can't emit commas at all), so refineFormat runs this
 // after formatText to normalize each member's trailing punctuation to the
-// chosen style. Scope mirrors the member-separators report: interface and
+// chosen style. Scope mirrors the member-delimiter report: interface and
 // class members (body-bearing members carry no separator).
 //
 // Every rewrite is checked by re-parsing the member with its immediate
@@ -17,7 +17,7 @@ import type {ClassMemberTypes, Project, SourceFile, TypeElementTypes} from "ts-m
 import {Node} from "ts-morph"
 import type {TSR} from "ts-refine"
 import {initInMemoryProject} from "../common/init-project.ts"
-import {isSeparableMember} from "../report/member-separators.ts"
+import {isSeparableMember} from "../report/member-delimiter.ts"
 
 type Member = ClassMemberTypes | TypeElementTypes
 

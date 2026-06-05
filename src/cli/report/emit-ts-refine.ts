@@ -13,7 +13,7 @@ export function buildFormatTokens(options: TSR.FormatStyle): string[] {
     const flags: string[] = []
     if (options.semicolons) flags.push("--semicolons", options.semicolons)
     if (options.indent !== undefined) flags.push("--indent", String(options.indent))
-    if (options.memberDelimiter) flags.push("--member-separators", options.memberDelimiter)
+    if (options.memberDelimiter) flags.push("--member-delimiter", options.memberDelimiter)
     if (options.newLine) flags.push("--new-line", options.newLine)
     if (options.bracketSpacing) flags.push("--bracket-spacing", options.bracketSpacing)
     if (options.trailingComma) flags.push("--trailing-comma", options.trailingComma)

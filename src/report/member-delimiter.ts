@@ -1,13 +1,8 @@
-// report member-separators: classify each interface / class member by
+// report member-delimiter: classify each interface / class member by
 // its trailing punctuation (`;`, `,`, or none / newline-only), then bucket
 // files by the primary style they use. Body-bearing members (methods,
 // accessors, constructors) are skipped because the separator choice isn't
 // theirs to make.
-//
-// The recommendation drives the `format` command's memberDelimiter apply
-// pass (src/format/apply-member-separators.ts). It still has no Prettier
-// mapping (comma members are unreachable there), so the .prettierrc emitter
-// omits it.
 
 import type {ClassMemberTypes, TypeElementTypes} from "ts-morph"
 import {Node} from "ts-morph"
@@ -85,7 +80,7 @@ export async function runReportMemberDelimiter({sourceFiles, output, log, import
     if (output) {
         const totalLines = [...buckets.values()].reduce((s, b) => s + b.lines, 0)
 
-        output.write("### member-separators\n")
+        output.write("### member-delimiter\n")
         output.write("\n")
         output.write("| separator | lines | files | example |\n")
         output.write("| --- | --- | --- | --- |\n")
@@ -104,7 +99,7 @@ export async function runReportMemberDelimiter({sourceFiles, output, log, import
         output.write(`| total | ${totalLines} | ${perFile.length} |  |\n`)
         output.write("\n")
     }
-    logging(log, `report member-separators: ${perFile.length} files counted / ${sourceFiles.length} files total`)
+    logging(log, `report member-delimiter: ${perFile.length} files counted / ${sourceFiles.length} files total`)
 
     // The recommendation is rendered in the trailing `## recommendation`
     // section, so all we return is the action params shape. An ambiguous

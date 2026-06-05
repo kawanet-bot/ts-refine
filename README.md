@@ -208,7 +208,7 @@ re-exports only. Projects with neither flag see no type-only change.
 ## Report
 
 `report` surveys the code style and prints a recommendation per dimension —
-semicolons, indent, member-separators, new-line, bracket-spacing,
+semicolons, indent, member-delimiter, new-line, bracket-spacing,
 trailing-comma.
 
 ```sh
@@ -253,8 +253,8 @@ npx ts-refine format --new-line lf
 # pin inner-brace spacing
 npx ts-refine format --bracket-spacing off
 
-# pin interface/class member separators (`semi`, `comma`, or `none`)
-npx ts-refine format --member-separators semi
+# pin interface/class member delimiter (`semi`, `comma`, or `none`)
+npx ts-refine format --member-delimiter semi
 
 # pin trailing commas in multi-line lists (added when `on`, stripped when `off`)
 npx ts-refine format --trailing-comma on

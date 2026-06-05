@@ -1,7 +1,7 @@
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
 import {initInMemoryProject} from "../common/init-project.ts"
-import {applyMemberDelimiter} from "./apply-member-separators.ts"
+import {applyMemberDelimiter} from "./apply-member-delimiter.ts"
 
 // Operates on the AST directly (no formatText) so the assertions pin exactly
 // what the separator pass does, free of LS whitespace normalization.

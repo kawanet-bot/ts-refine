@@ -72,7 +72,7 @@ export function usage(): string {
         "  --semicolons on|off         Override semicolon insertion",
         "  --new-line lf|crlf          Override end-of-line",
         "  --bracket-spacing on|off    Override inner-brace spacing",
-        "  --member-separators <v>     Override member separators (semi|comma|none)",
+        "  --member-delimiter <v>     Override member delimiter (semi|comma|none)",
         "  --trailing-comma on|off     Override trailing commas in multi-line lists",
         "  --check                     Report only; exit non-zero if any file would change",
         "",

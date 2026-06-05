@@ -11,7 +11,7 @@
 //   newLine.newLine === <lf|crlf|cr>        → endOfLine: <lf|crlf|cr>
 //   bracketSpacing.bracketSpacing === "on"  → bracketSpacing: true
 //   bracketSpacing.bracketSpacing === "off" → bracketSpacing: false
-// member-separators has no Prettier mapping (comma members are
+// member-delimiter has no Prettier mapping (comma members are
 // unreachable; semi/none is already covered by semi), so it is omitted.
 // Reports that didn't recommend anything contribute no fields, so an
 // empty ReportResult renders as `{}`.

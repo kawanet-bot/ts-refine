@@ -16,7 +16,7 @@ import {formatReportNames} from "../../common/report-names.ts"
 const reportByOverride: {field: keyof TSR.FormatStyle; report: TSR.ReportName}[] = [
     {field: "semicolons", report: "semicolons"},
     {field: "indent", report: "indent"},
-    {field: "memberDelimiter", report: "member-separators"},
+    {field: "memberDelimiter", report: "member-delimiter"},
     {field: "newLine", report: "new-line"},
     {field: "bracketSpacing", report: "bracket-spacing"},
     {field: "trailingComma", report: "trailing-comma"},

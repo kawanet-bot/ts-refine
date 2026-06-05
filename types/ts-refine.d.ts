@@ -56,7 +56,7 @@ export declare namespace TSR {
 
     // Every report refineReport knows about. Pair with src/report/report-names.ts
     // (runtime list) and src/report/refine-report.ts (dispatch).
-    type ReportName = "semicolons" | "indent" | "member-separators" | "new-line" | "bracket-spacing" | "trailing-comma"
+    type ReportName = "semicolons" | "indent" | "member-delimiter" | "new-line" | "bracket-spacing" | "trailing-comma"
 
     interface ReportOpts extends CommonOpts {
         paths: string[]
@@ -88,7 +88,7 @@ export declare namespace TSR {
         newLine?: "lf" | "crlf"
         bracketSpacing?: "on" | "off"
 
-        // Interface / class member separators. Applied by a self-pass (the LS
+        // Interface / class member delimiter. Applied by a self-pass (the LS
         // can't set these and can't emit `comma` at all); no LS/Prettier mapping.
         memberDelimiter?: "semi" | "comma" | "none"
 

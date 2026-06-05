@@ -9,7 +9,7 @@ import {resolveProject} from "../common/init-project.ts"
 import {logging} from "../common/logging.ts"
 import {formatStyleToSettings, normalizeNewLines} from "../lib/format-settings.ts"
 import {selectSourceFiles} from "../lib/source-files.ts"
-import {applyMemberDelimiter} from "./apply-member-separators.ts"
+import {applyMemberDelimiter} from "./apply-member-delimiter.ts"
 import {applyTrailingComma} from "./apply-trailing-comma.ts"
 
 export const refineFormat: typeof declared.refineFormat = async (opts) => {
@@ -39,7 +39,7 @@ export const refineFormat: typeof declared.refineFormat = async (opts) => {
         sf.forgetDescendants()
         sf.formatText(settings)
 
-        // The LS formatter can't set interface/class member separators (and
+        // The LS formatter can't set interface/class member delimiter (and
         // can't emit commas); apply the surveyed style on the formatted AST.
         if (format.memberDelimiter != null) applyMemberDelimiter(sf, format.memberDelimiter)
 

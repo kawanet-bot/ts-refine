@@ -17,14 +17,14 @@ describe("mergeFormatStyles", () => {
 
 describe("reportNamesForFormat", () => {
     it("surveys the full apply set when nothing is overridden", () => {
-        assert.deepEqual(reportNamesForFormat({}), ["semicolons", "indent", "member-separators", "new-line", "bracket-spacing", "trailing-comma"])
+        assert.deepEqual(reportNamesForFormat({}), ["semicolons", "indent", "member-delimiter", "new-line", "bracket-spacing", "trailing-comma"])
     })
 
     it("drops the report for each pinned field", () => {
-        assert.deepEqual(reportNamesForFormat({indent: 4}), ["semicolons", "member-separators", "new-line", "bracket-spacing", "trailing-comma"])
-        assert.deepEqual(reportNamesForFormat({newLine: "lf"}), ["semicolons", "indent", "member-separators", "bracket-spacing", "trailing-comma"])
+        assert.deepEqual(reportNamesForFormat({indent: 4}), ["semicolons", "member-delimiter", "new-line", "bracket-spacing", "trailing-comma"])
+        assert.deepEqual(reportNamesForFormat({newLine: "lf"}), ["semicolons", "indent", "member-delimiter", "bracket-spacing", "trailing-comma"])
         assert.deepEqual(reportNamesForFormat({memberDelimiter: "semi"}), ["semicolons", "indent", "new-line", "bracket-spacing", "trailing-comma"])
-        assert.deepEqual(reportNamesForFormat({trailingComma: "on"}), ["semicolons", "indent", "member-separators", "new-line", "bracket-spacing"])
+        assert.deepEqual(reportNamesForFormat({trailingComma: "on"}), ["semicolons", "indent", "member-delimiter", "new-line", "bracket-spacing"])
     })
 
     it("returns an empty set when every surveyed field is pinned", () => {

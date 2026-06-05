@@ -4,7 +4,7 @@ import {describe, it} from "node:test"
 import {initInMemoryProject} from "../common/init-project.ts"
 import {selectSourceFiles} from "../lib/source-files.ts"
 import {initTestProject} from "../test-utils/init-test-project.ts"
-import {runReportMemberDelimiter} from "./member-separators.ts"
+import {runReportMemberDelimiter} from "./member-delimiter.ts"
 
 const SAMPLE_TSCONFIG = path.resolve(import.meta.dirname, "../../sample/members-mixed/tsconfig.json")
 
@@ -24,7 +24,7 @@ describe("runReportMemberSeparators (sample/members-mixed)", () => {
         await runReportMemberDelimiter({sourceFiles: selectSourceFiles(project, {paths: []}), log, output: {write: (l) => lines.push(l)}})
 
         const out = lines.join("")
-        assert.match(out, /^### member-separators\n/)
+        assert.match(out, /^### member-delimiter\n/)
 
         // all-none.ts:   3 members → primary `\n` (lines=3)
         // none-extra.ts: 2 members → primary `\n` (lines=2)

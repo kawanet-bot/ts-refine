@@ -12,7 +12,7 @@ export interface ReportRunOpts {
 
     // Restrict scanning to import/export statements (see TSR.ReportOpts).
     // Omitted = false. bracket-spacing/semicolons scan only those statements;
-    // member-separators returns empty (they carry no members); indent/new-line
+    // member-delimiter returns empty (they carry no members); indent/new-line
     // are whole-file by nature and ignore it.
     importsOnly?: boolean
 }

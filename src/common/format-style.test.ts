@@ -22,7 +22,7 @@ describe("reportToFormatStyle", () => {
         assert.equal(o.newLine, undefined)
     })
 
-    it("maps member-separators through (the format command applies it via a self-pass)", () => {
+    it("maps member-delimiter through (the format command applies it via a self-pass)", () => {
         const o = reportToFormatStyle({memberDelimiter: {separator: "comma"}})
         assert.deepEqual(o, {memberDelimiter: "comma"})
     })
