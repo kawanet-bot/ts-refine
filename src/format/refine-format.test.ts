@@ -43,10 +43,23 @@ describe("refineFormat", () => {
 
     it("leaves multiline type literal member semicolons when semicolons are on", async () => {
         const project = initInMemoryProject()
-        const sf = project.createSourceFile("a.ts", "type X = {\n    [key: string]: boolean\n}\n")
+        const sf = project.createSourceFile("a.ts", "type X = {\n    [key: string]: boolean\n}\nconst x = (): {\n    [key: string]: boolean\n} => ({})\n")
         await refineFormat({project, log, dryRun: true, paths: [], format: {semi: "on"}})
 
-        assert.equal(sf.getFullText(), "type X = {\n    [key: string]: boolean;\n};\n")
+        assert.equal(sf.getFullText(), "type X = {\n    [key: string]: boolean;\n};\nconst x = (): {\n    [key: string]: boolean;\n} => ({});\n")
+    })
+
+    it("trims only the last single-line type literal member across delimiter styles", async () => {
+        for (const memberDelimiter of [undefined, "semi", "comma", "none"] as const) {
+            const project = initInMemoryProject()
+            const sf = project.createSourceFile("a.ts", "type A = { a: number, b: number }\ntype B = { a: number; b: number }\n")
+            await refineFormat({project, log, dryRun: true, paths: [], format: {semi: "on", memberDelimiter}})
+
+            // `memberDelimiter` currently owns interface/class members. For
+            // type literals this pass only removes the final LS-inserted `;`;
+            // existing between-member `,` / `;` choices are preserved.
+            assert.equal(sf.getFullText(), "type A = { a: number, b: number };\ntype B = { a: number; b: number };\n")
+        }
     })
 
     it("leaves JSON modules untouched instead of corrupting them with semicolons", async () => {
