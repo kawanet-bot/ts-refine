@@ -7,8 +7,8 @@ import {Node} from "ts-morph"
 import type {TSR} from "ts-refine"
 import {logging} from "../common/logging.ts"
 import {displayPath} from "../lib/source-files.ts"
+import type {ReportRunOpts} from "./report-run-opts.ts"
 import {isSemiEligibleStatement, isTypeMember} from "./statement-kinds.ts"
-import type {ReportRunOpts} from "./types.ts"
 
 // Fixed 7-row layout: 0% / 100% / exact-50% match by equality, "1-10%" and
 // "90-99%" are the near-boundary tails, and the two middle buckets fill the

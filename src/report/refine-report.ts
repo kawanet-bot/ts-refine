@@ -15,9 +15,9 @@ import {runReportBracketSpacing} from "./bracket-spacing.ts"
 import {runReportIndent} from "./indent.ts"
 import {runReportMemberDelimiter} from "./member-delimiter.ts"
 import {runReportNewLine} from "./new-line.ts"
+import type {ReportRunOpts} from "./report-run-opts.ts"
 import {runReportSemi} from "./semicolons.ts"
 import {runReportTrailingComma} from "./trailing-comma.ts"
-import type {ReportRunOpts} from "./types.ts"
 
 export const refineReport: typeof declared.refineReport = async (opts) => {
     const {output, reportNames: requested, paths, log} = opts

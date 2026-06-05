@@ -11,7 +11,7 @@ import {logging} from "../common/logging.ts"
 import {listOf, trailingCommaToken} from "../format/apply-trailing-comma.ts"
 import {displayPath} from "../lib/source-files.ts"
 import {pickRecommendByFiles} from "./pick-recommend.ts"
-import type {ReportRunOpts} from "./types.ts"
+import type {ReportRunOpts} from "./report-run-opts.ts"
 
 type Style = "on" | "off"
 

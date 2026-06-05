@@ -10,7 +10,7 @@ import type {TSR} from "ts-refine"
 import {logging} from "../common/logging.ts"
 import {displayPath} from "../lib/source-files.ts"
 import {pickRecommendByFiles} from "./pick-recommend.ts"
-import type {ReportRunOpts} from "./types.ts"
+import type {ReportRunOpts} from "./report-run-opts.ts"
 
 type Separator = "none" | "," | ";"
 

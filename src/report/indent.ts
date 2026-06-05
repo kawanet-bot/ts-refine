@@ -12,7 +12,7 @@ import {logging} from "../common/logging.ts"
 import {displayPath} from "../lib/source-files.ts"
 import {detectIndent, type IndentCounts, type IndentWidth, primaryIndentWidth} from "./detect-indent.ts"
 import {pickRecommendByFiles} from "./pick-recommend.ts"
-import type {ReportRunOpts} from "./types.ts"
+import type {ReportRunOpts} from "./report-run-opts.ts"
 
 type Bucket = {lines: number; files: number; topPath: string; topLines: number}
 
