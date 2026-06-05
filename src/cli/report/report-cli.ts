@@ -13,8 +13,6 @@ import {writeFormatMarkdown} from "./emit-ts-refine.ts"
 import {parseReportArgs} from "./parse-report-args.ts"
 import {selectEmitter} from "./select-emitter.ts"
 
-const NULL_SINK: TSR.Writer = {write: () => null}
-
 export const reportCLI: CLI = async (ctx) => {
     const {args: common, tokens, output, log} = ctx
     const args = parseReportArgs(tokens, common)
@@ -27,7 +25,7 @@ export const reportCLI: CLI = async (ctx) => {
     const reports = args.reports as TSR.ReportName[]
     const emitter = selectEmitter(args.emit)
 
-    const report = await refineReport({project, paths, reports, output: emitter ? NULL_SINK : output, log})
+    const report = await refineReport({project, paths, reports, output: emitter ? undefined : output, log})
     if (emitter) {
         const config = emitter(report)
         if (config) output.write(config + "\n")
