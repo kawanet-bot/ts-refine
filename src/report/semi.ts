@@ -5,7 +5,7 @@
 
 import {Node} from "ts-morph"
 import type {TSR} from "ts-refine"
-import {getTsRefineFormat} from "../cli/report/emit-ts-refine.ts"
+import {getTsRefineFormat} from "../common/emit/emit-ts-refine.ts"
 import {logging} from "../common/logging.ts"
 import {displayPath} from "../lib/source-files.ts"
 import type {ReportRunOpts} from "./report-run-opts.ts"

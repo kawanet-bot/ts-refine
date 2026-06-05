@@ -3,7 +3,7 @@
 // `grep -E '^ +--'` extract just the flags.
 
 import type {TSR} from "ts-refine"
-import {reportToFormatStyle} from "../../common/format-style.ts"
+import {reportToFormatStyle} from "../format-style.ts"
 
 // Returns argv-style tokens (flag and value pushed separately), the same
 // shape parseArgs consumes. Reads FormatStyle — the same value the
@@ -24,18 +24,4 @@ export function buildFormatTokens(options: TSR.FormatStyle): string[] {
 export function getTsRefineFormat(report: TSR.ReportResult): string {
     const flags = buildFormatTokens(reportToFormatStyle(report))
     return flags.join(" ")
-}
-
-// `## recommendation` block in the default-survey Markdown. Skipped
-// when no recommendations fired (the empty form carries no information).
-export function writeFormatMarkdown(report: TSR.ReportResult, output: TSR.Writer): void {
-    const format = getTsRefineFormat(report)
-    if (!format) return
-    output.write("## recommendation\n")
-    output.write("\n")
-    output.write("```sh\n")
-    output.write("ts-refine format \\\n")
-    output.write(`  ${format}\n`)
-    output.write("```\n")
-    output.write("\n")
 }

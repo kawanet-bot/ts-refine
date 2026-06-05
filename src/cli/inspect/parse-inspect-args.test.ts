@@ -8,7 +8,7 @@ function common(): CommonArgs {
 }
 
 describe("parseInspect", () => {
-    it("defaults to none of inspectors", () => {
+    it("defaults to no inspectors", () => {
         const r = parseInspectArgs([], common())
         assert.ok(r)
         assert.deepEqual(r.inspectors, undefined)

@@ -1,15 +1,7 @@
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
-import {getTsRefineFormat, writeFormatMarkdown} from "./emit-ts-refine.ts"
+import {getTsRefineFormat} from "./emit-ts-refine.ts"
 
-function capture(fn: (s: {write: (chunk: string) => void}) => void): string {
-    let out = ""
-    fn({write: (s) => (out += s)})
-    return out
-}
-
-// The framing (`ts-refine format \`) that getTsRefineFormat feeds is
-// covered by select-emitter.test.ts.
 describe("getTsRefineFormat", () => {
     it("maps semi.semi=off → --semi off", () => {
         assert.equal(getTsRefineFormat({semi: {semi: "off"}}), "--semi off")
@@ -56,18 +48,5 @@ describe("getTsRefineFormat", () => {
     it("returns an empty string when nothing was recommended", () => {
         // Symmetric with `--emit prettier` emitting an empty `{}` for the same case.
         assert.equal(getTsRefineFormat({}), "")
-    })
-})
-
-describe("writeFormatMarkdown", () => {
-    it("wraps the command in a `## recommendation` fenced block", () => {
-        const out = capture((s) => writeFormatMarkdown({semi: {semi: "off"}, indent: {width: 4}}, s))
-        assert.match(out, /^## recommendation\n\n```sh\nts-refine format \\\n/)
-        assert.match(out, /\n {2}--semi off --indent 4\n```\n\n$/)
-    })
-
-    it("emits nothing when no recommendations fired (no empty ## recommendation block)", () => {
-        const out = capture((s) => writeFormatMarkdown({}, s))
-        assert.equal(out, "")
     })
 })

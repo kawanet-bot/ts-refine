@@ -2,12 +2,12 @@
 // (plus any CLI overrides). The Markdown stream is swallowed; refineFormat
 // writes the files. Organizing imports is the separate `imports` command.
 
+import {buildFormatTokens} from "../../common/emit/emit-ts-refine.ts"
 import {reportToFormatStyle} from "../../common/format-style.ts"
 import {initProject} from "../../common/init-project.ts"
 import {logging} from "../../common/logging.ts"
 import {refineFormat, refineReport} from "../../index.ts"
 import type {CLI} from "../cli-io.ts"
-import {buildFormatTokens} from "../report/emit-ts-refine.ts"
 import {resolvePaths} from "../resolve-paths.ts"
 import {mergeFormatStyles, reportNamesForFormat} from "./format-options.ts"
 import {parseFormatArgs} from "./parse-format-args.ts"

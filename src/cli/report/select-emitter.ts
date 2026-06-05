@@ -1,8 +1,8 @@
 import type {TSR} from "ts-refine"
-import {emitNames} from "./emit-names.ts"
-import {getPrettierConfig} from "./emit-prettier.ts"
-import {getStylisticConfig} from "./emit-stylistic.ts"
-import {getTsRefineFormat} from "./emit-ts-refine.ts"
+import {emitNames} from "../../common/emit-names.ts"
+import {getPrettierConfig} from "../../common/emit/emit-prettier.ts"
+import {getStylisticConfig} from "../../common/emit/emit-stylistic.ts"
+import {getTsRefineFormat} from "../../common/emit/emit-ts-refine.ts"
 
 // `--emit` router
 export function selectEmitter(name: string | undefined): ((report: TSR.ReportResult) => string | undefined) | undefined {
