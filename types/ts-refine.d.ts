@@ -103,7 +103,7 @@ export declare namespace TSR {
     interface FormatOpts extends CommonOpts {
         paths?: string[]
         dryRun?: boolean
-        format: FormatStyle
+        style: FormatStyle
     }
 
     // refineFormat returns the in-project files whose text was rewritten, so a

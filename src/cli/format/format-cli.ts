@@ -27,19 +27,19 @@ export const formatCLI: CLI = async (ctx) => {
     // format unifies the project: survey once and apply one merged style. CLI
     // overrides are already a FormatStyle, so they merge in directly.
     const report = await refineReport({project, paths, reports, log})
-    const format = mergeFormatStyles(reportToFormatStyle(report), args.applyOverrides)
+    const style = mergeFormatStyles(reportToFormatStyle(report), args.applyOverrides)
 
     // `cr` is dropped from FormatStyle, so flag it from the report: the survey
     // recommended CR-only newlines but no override forced an applicable value.
     if (args.applyOverrides.newLine == null && report.newLine?.newLine === "cr") {
         logging(log, "note: report recommends CR-only newlines; not applied (LS formatter supports LF/CRLF only)")
     }
-    logging(log, `format: ${buildFormatTokens(format).join(" ")}`)
+    logging(log, `format: ${buildFormatTokens(style).join(" ")}`)
 
     // `--check` reports without writing, so it forces dry-run; the per-file
     // list and summary are already on the log, so only the fix hint is added.
     const dryRun = common.dryRun || args.check
-    const result = await refineFormat({project, paths, dryRun, format, log})
+    const result = await refineFormat({project, paths, dryRun, style, log})
     if (args.check && result.touched.length > 0) {
         logging(log, "Run `ts-refine format` to fix.")
         return 1
