@@ -31,8 +31,8 @@ describe("refineInspect", () => {
         assert.deepEqual(
             unused.exports!.map((e) => ({name: e.name, importers: e.importers, example: e.example})),
             [
-                {name: "deadConst", importers: 0, example: null},
-                {name: "DeadType", importers: 0, example: null},
+                {name: "deadConst", importers: 0, example: undefined},
+                {name: "DeadType", importers: 0, example: undefined},
             ],
         )
     })

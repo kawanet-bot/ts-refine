@@ -171,7 +171,7 @@ export declare namespace TSR {
         kind: string
         name: string
         importers: number
-        example: string | null
+        example?: string
     }
 
     // One importer of the inspected file (collapsed to a single row even when

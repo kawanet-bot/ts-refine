@@ -165,7 +165,7 @@ function gatherExports(sf: SourceFile): TSR.InspectExport[] {
                 kind: kindLabel(decl),
                 name,
                 importers: sortedImporters.length,
-                example: sortedImporters[0] ?? null,
+                example: sortedImporters[0],
             })
         }
     }
