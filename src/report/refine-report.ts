@@ -15,7 +15,7 @@ import {runReportBracketSpacing} from "./bracket-spacing.ts"
 import {runReportIndent} from "./indent.ts"
 import {runReportMemberDelimiter} from "./member-delimiter.ts"
 import {runReportNewLine} from "./new-line.ts"
-import {runReportSemicolons} from "./semicolons.ts"
+import {runReportSemi} from "./semicolons.ts"
 import {runReportTrailingComma} from "./trailing-comma.ts"
 import type {ReportRunOpts} from "./types.ts"
 
@@ -45,7 +45,7 @@ export const runReports = async (reportOpts: ReportRunOpts, requested: readonly 
     const report: TSR.ReportResult = {}
 
     if (requested.includes("semi")) {
-        report.semi = await runReportSemicolons(reportOpts)
+        report.semi = await runReportSemi(reportOpts)
     }
     if (requested.includes("indent")) {
         report.indent = await runReportIndent(reportOpts)

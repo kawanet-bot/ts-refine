@@ -4,17 +4,17 @@ import {describe, it} from "node:test"
 import {initInMemoryProject} from "../common/init-project.ts"
 import {selectSourceFiles} from "../lib/source-files.ts"
 import {initTestProject} from "../test-utils/init-test-project.ts"
-import {runReportSemicolons} from "./semicolons.ts"
+import {runReportSemi} from "./semicolons.ts"
 
 const SAMPLE_TSCONFIG = path.resolve(import.meta.dirname, "../../sample/semicolons-mixed/tsconfig.json")
 
 const log = {write: () => {}}
 
-describe("runReportSemicolons (sample/semicolons-mixed)", () => {
+describe("runReportSemi (sample/semicolons-mixed)", () => {
     it("buckets files by trailing `;` ratio and returns the action params", async () => {
         const project = initTestProject(SAMPLE_TSCONFIG)
         const lines: string[] = []
-        const ret = await runReportSemicolons({sourceFiles: selectSourceFiles(project, {paths: []}), log, output: {write: (l) => lines.push(l)}})
+        const ret = await runReportSemi({sourceFiles: selectSourceFiles(project, {paths: []}), log, output: {write: (l) => lines.push(l)}})
 
         const out = lines.join("")
         assert.match(out, /^### semicolons\n/)
@@ -42,7 +42,7 @@ describe("runReportSemicolons (sample/semicolons-mixed)", () => {
         project.createSourceFile("/sample/ninety-percent.ts", statements(9, 10))
         const lines: string[] = []
 
-        await runReportSemicolons({sourceFiles: selectSourceFiles(project, {paths: ["/sample/*.ts"]}), log, output: {write: (l) => lines.push(l)}})
+        await runReportSemi({sourceFiles: selectSourceFiles(project, {paths: ["/sample/*.ts"]}), log, output: {write: (l) => lines.push(l)}})
 
         const out = lines.join("")
         assert.match(out, /\| 1-10% \| 10 \| 1 \| /)
@@ -57,7 +57,7 @@ describe("runReportSemicolons (sample/semicolons-mixed)", () => {
         project.createSourceFile("/sample/no-semi.ts", statements(0, 10))
         project.createSourceFile("/sample/all-semi.ts", statements(3, 3))
         const lines: string[] = []
-        const ret = await runReportSemicolons({sourceFiles: selectSourceFiles(project, {paths: ["/sample/*.ts"]}), log, output: {write: (l) => lines.push(l)}})
+        const ret = await runReportSemi({sourceFiles: selectSourceFiles(project, {paths: ["/sample/*.ts"]}), log, output: {write: (l) => lines.push(l)}})
         assert.deepEqual(ret, {semi: "off"})
     })
 
@@ -66,7 +66,7 @@ describe("runReportSemicolons (sample/semicolons-mixed)", () => {
         project.createSourceFile("/sample/no-semi.ts", statements(0, 5))
         project.createSourceFile("/sample/all-semi.ts", statements(5, 5))
         const lines: string[] = []
-        const ret = await runReportSemicolons({sourceFiles: selectSourceFiles(project, {paths: ["/sample/*.ts"]}), log, output: {write: (l) => lines.push(l)}})
+        const ret = await runReportSemi({sourceFiles: selectSourceFiles(project, {paths: ["/sample/*.ts"]}), log, output: {write: (l) => lines.push(l)}})
         assert.deepEqual(ret, {})
     })
 
@@ -77,7 +77,7 @@ describe("runReportSemicolons (sample/semicolons-mixed)", () => {
         const project = initInMemoryProject()
         project.createSourceFile("/sample/iface.ts", ["interface A {", "  a: string;", "  b: number;", "  c: boolean", "  d(): void,", "}"].join("\n"))
         const lines: string[] = []
-        const ret = await runReportSemicolons({sourceFiles: selectSourceFiles(project, {paths: ["/sample/*.ts"]}), log, output: {write: (l) => lines.push(l)}})
+        const ret = await runReportSemi({sourceFiles: selectSourceFiles(project, {paths: ["/sample/*.ts"]}), log, output: {write: (l) => lines.push(l)}})
         const out = lines.join("")
 
         // 3 members counted (comma member excluded), 2 with `;`.
@@ -90,7 +90,7 @@ describe("runReportSemicolons (sample/semicolons-mixed)", () => {
         project.createSourceFile("/sample/do-while.ts", ["let x = 0", "do {", "  x++", "} while (x < 2);"].join("\n"))
         const lines: string[] = []
 
-        await runReportSemicolons({sourceFiles: selectSourceFiles(project, {paths: ["/sample/*.ts"]}), log, output: {write: (l) => lines.push(l)}})
+        await runReportSemi({sourceFiles: selectSourceFiles(project, {paths: ["/sample/*.ts"]}), log, output: {write: (l) => lines.push(l)}})
 
         const out = lines.join("")
         assert.match(out, /\| 0% \| \d+ \| 1 \| /)
@@ -105,7 +105,7 @@ describe("runReportSemicolons (sample/semicolons-mixed)", () => {
         // which is 100% — so the recommendation flips to "on".
         project.createSourceFile("a.ts", ['import {a} from "./x.ts";', "const _ = a", "const b = 2", ""].join("\n"))
         const lines: string[] = []
-        const ret = await runReportSemicolons({sourceFiles: selectSourceFiles(project, {paths: []}), log, output: {write: (l) => lines.push(l)}, importsOnly: true})
+        const ret = await runReportSemi({sourceFiles: selectSourceFiles(project, {paths: []}), log, output: {write: (l) => lines.push(l)}, importsOnly: true})
         assert.deepEqual(ret, {semi: "on"})
     })
 })
