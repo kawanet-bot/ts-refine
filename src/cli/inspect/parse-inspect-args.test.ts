@@ -8,10 +8,10 @@ function common(): CommonArgs {
 }
 
 describe("parseInspect", () => {
-    it("defaults to the full inspector registry", () => {
+    it("defaults to none of inspectors", () => {
         const r = parseInspectArgs([], common())
         assert.ok(r)
-        assert.deepEqual(r.inspectors, ["exports", "importers"])
+        assert.deepEqual(r.inspectors, [])
     })
 
     it("collects inspector selectors and dedupes", () => {

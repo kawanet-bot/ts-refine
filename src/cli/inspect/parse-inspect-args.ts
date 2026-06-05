@@ -4,7 +4,6 @@
 // `--<name>` catch runs only after parseCommonArgs so it can't swallow
 // --project / --dry-run.
 
-import {inspectorNames as knownInspectorNames} from "../../common/inspector-names.ts"
 import {type CommonArgs, parseCommonArgs} from "../parse-common-args.ts"
 
 // Raw values only: the runner resolves `paths` into absolute paths.
@@ -45,6 +44,5 @@ export function parseInspectArgs(sub: string[], common: CommonArgs): InspectArgs
         throw new Error("--dry-run is not valid for the inspect command")
     }
 
-    const effective = inspectorNames.length > 0 ? inspectorNames : [...knownInspectorNames]
-    return {paths, inspectors: effective}
+    return {paths, inspectors: inspectorNames}
 }

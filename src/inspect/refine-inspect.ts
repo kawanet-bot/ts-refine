@@ -19,8 +19,9 @@ import {logging} from "../common/logging.ts"
 import {displayPath, inProjectSourceFiles, selectSourceFiles} from "../lib/source-files.ts"
 
 export const refineInspect: typeof declared.refineInspect = async (opts) => {
-    const {paths, inspectors: requested, log} = opts
+    const {paths, inspectors, log} = opts
     const project = resolveProject(opts)
+    const requested = inspectors?.length ? inspectors : inspectorNames
 
     for (const name of requested) {
         if (!(inspectorNames as readonly string[]).includes(name)) {
