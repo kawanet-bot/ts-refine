@@ -4,7 +4,6 @@
 // into `common`; the `--<name>` catch runs only after parseCommonArgs so it
 // can't swallow --project / --dry-run.
 
-import {reportNames as knownReportNames} from "../../common/report-names.ts"
 import {type CommonArgs, parseCommonArgs} from "../parse-common-args.ts"
 
 // Raw values only: the runner resolves `paths` into absolute paths.
@@ -16,10 +15,6 @@ export interface ReportArgs {
 
     // Suppress Markdown and emit the named output instead.
     emit: string | null
-
-    // True only for a bare `report` (no selectors, no --emit); gates the
-    // recommendation + .prettierrc blocks under the per-report Markdown.
-    surveyDefault: boolean
 }
 
 export function parseReportArgs(sub: string[], common: CommonArgs): ReportArgs | undefined {
@@ -60,7 +55,5 @@ export function parseReportArgs(sub: string[], common: CommonArgs): ReportArgs |
         throw new Error("--dry-run is not valid for the report command")
     }
 
-    const surveyDefault = reportNames.length === 0 && emit === null
-    const effectiveReports = reportNames.length > 0 ? reportNames : [...knownReportNames]
-    return {paths, reports: effectiveReports, emit, surveyDefault}
+    return {paths, reports: reportNames, emit}
 }

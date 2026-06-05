@@ -31,7 +31,7 @@ export const reportCLI: CLI = async (ctx) => {
     if (emitter) {
         const config = emitter(report)
         if (config) output.write(config + "\n")
-    } else if (args.surveyDefault) {
+    } else if (!args.reports?.length) {
         writeFormatMarkdown(report, output)
         writePrettierMarkdown(report, output)
         writeStylisticMarkdown(report, output)

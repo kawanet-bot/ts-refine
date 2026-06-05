@@ -20,8 +20,9 @@ import {runReportSemi} from "./semi.ts"
 import {runReportTrailingComma} from "./trailing-comma.ts"
 
 export const refineReport: typeof declared.refineReport = async (opts) => {
-    const {output, reports: requested, paths, log} = opts
+    const {output, reports, paths, log} = opts
     const project = resolveProject(opts)
+    const requested = reports?.length ? reports : reportNames
 
     // Validate every requested report name up-front so a typo fails before any
     // report runs. `reportNames` is the source of truth for what exists.
@@ -30,9 +31,6 @@ export const refineReport: typeof declared.refineReport = async (opts) => {
             throw new Error(`unknown report name: ${name} (known: ${reportNames.join(", ")})`)
         }
     }
-
-    // No reports requested: skip the project scan entirely.
-    if (requested.length === 0) return {}
 
     // Select the in-project files once and share them across the reports, so
     // the project scan runs a single time instead of per report.
