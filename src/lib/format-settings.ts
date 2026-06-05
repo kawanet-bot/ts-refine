@@ -47,6 +47,12 @@ export function formatStyleToSettings(options: TSR.FormatStyle): FormatCodeSetti
         settings.semicolons = ts.SemicolonPreference.Remove
     }
 
+    // Empty braces stay tight (`{}`) regardless of bracketSpacing, matching
+    // Prettier, which never emits `{ }`. The LS default would otherwise space
+    // them whenever the non-empty axis is on or unset, turning a bare
+    // `export {}` into `export { }`.
+    settings.insertSpaceAfterOpeningAndBeforeClosingEmptyBraces = false
+
     if (options.bracketSpacing === "on") {
         settings.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces = true
     } else if (options.bracketSpacing === "off") {

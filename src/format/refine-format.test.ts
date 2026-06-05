@@ -88,6 +88,18 @@ describe("refineFormat", () => {
         assert.equal(sf.getFullText(), "interface I { x: number }\n")
     })
 
+    it("keeps empty braces tight even with bracketSpacing 'on'", async () => {
+        // The formatter spaces non-empty braces but must leave empty ones tight;
+        // a bare `export {}` / `function f() {}` must not gain an inner space,
+        // matching Prettier. Guards the actual formatText output, not just the
+        // resolved settings.
+        const project = initInMemoryProject()
+        const sf = project.createSourceFile("a.ts", "const a = 1\nexport {a}\nexport {}\nexport { }\nfunction f() {}\nconst o = {b: 1}\n")
+        await refineFormat({project, log, dryRun: true, paths: [], format: {bracketSpacing: "on"}})
+
+        assert.equal(sf.getFullText(), "const a = 1\nexport { a }\nexport {}\nexport {}\nfunction f() {}\nconst o = { b: 1 }\n")
+    })
+
     it("dryRun does not call fs.writeFile (verified by using an in-memory project that would error on real-fs writes)", async () => {
         const project = initInMemoryProject()
         const sf = project.createSourceFile("a.ts", "const a = 1\n")
