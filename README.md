@@ -218,11 +218,14 @@ npx ts-refine report
 # restrict to specific dimensions
 npx ts-refine report --semi --indent
 
+# emit a runnable `format` command instead of Markdown
+npx ts-refine report --emit ts-refine
+
 # emit a .prettierrc from the survey instead of Markdown
 npx ts-refine report --emit prettier
 
-# emit a runnable `format` command instead of Markdown
-npx ts-refine report --emit ts-refine
+# emit @stylistic/eslint-plugin rules from the survey instead of Markdown
+npx ts-refine report --emit stylistic
 ```
 
 ## Format

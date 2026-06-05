@@ -11,9 +11,10 @@
 
 import type {TSR} from "ts-refine"
 import {emitPrettierConfig} from "./emit-prettier.ts"
+import {emitStylisticConfig} from "./emit-stylistic.ts"
 import {emitTsRefineFormat} from "./emit-ts-refine.ts"
 
-export const emitNames = ["prettier", "ts-refine"] as const
+export const emitNames = ["ts-refine", "prettier", "stylistic"] as const
 
 interface EmitterDispatch {
     reportStream?: TSR.Writer
@@ -35,6 +36,11 @@ export function selectEmitter(name: string | null, output: TSR.Writer): EmitterD
     if (name === "ts-refine") {
         return {
             finalize: (report) => emitTsRefineFormat(report, output),
+        }
+    }
+    if (name === "stylistic") {
+        return {
+            finalize: (report) => emitStylisticConfig(report, output),
         }
     }
 

@@ -37,6 +37,7 @@ describe("refineCLI", () => {
             assert.match(r.stdout, /^  rename /m)
             assert.match(r.stdout, /^  imports /m)
             assert.match(r.stdout, /--emit <name>/)
+            assert.match(r.stdout, /--emit ts-refine \/ --emit prettier \/ --emit stylistic/)
             assert.match(r.stdout, /--semi --indent --member-delimiter --new-line --bracket-spacing/)
             assert.match(r.stdout, /--exports --importers/)
         }
@@ -61,6 +62,15 @@ describe("refineCLI", () => {
         // Output is JSON, not Markdown.
         assert.doesNotMatch(r.stdout, /^### /m)
         assert.match(r.stdout, /^\{/)
+    })
+
+    it("emits stylistic rules via report --emit stylistic", async () => {
+        const r = await run(["report", "--emit", "stylistic", "-p", SAMPLE])
+        assert.equal(r.status, 0)
+
+        const json = JSON.parse(r.stdout)
+        assert.ok(json.rules)
+        assert.doesNotMatch(r.stdout, /^### /m)
     })
 
     it("applies via the format subcommand (dry-run)", async () => {

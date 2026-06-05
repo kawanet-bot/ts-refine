@@ -41,8 +41,19 @@ describe("selectOutput", () => {
         assert.equal(out(), "--semi off --indent 4 --member-delimiter comma\n")
     })
 
+    it("leaves the report stream unset and writes stylistic JSON on finalize", () => {
+        const {writer, out} = makeStdout()
+        const f = selectEmitter("stylistic", writer)
+        assert.equal(f.reportStream, undefined)
+        f.finalize({semi: {semi: "off"}, indent: {width: 4}})
+
+        const json = JSON.parse(out())
+        assert.deepEqual(json.rules["@stylistic/semi"], ["error", "never"])
+        assert.deepEqual(json.rules["@stylistic/indent"], ["error", 4])
+    })
+
     it("throws on an unknown output name", () => {
         const {writer} = makeStdout()
-        assert.throws(() => selectEmitter("typo-format", writer), /unknown --emit: typo-format/)
+        assert.throws(() => selectEmitter("typo-format", writer), /unknown --emit: typo-format \(known: ts-refine, prettier, stylistic\)/)
     })
 })
