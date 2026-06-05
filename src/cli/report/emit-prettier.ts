@@ -4,8 +4,8 @@
 // `report --emit prettier`, an in-memory sink for tests, etc.).
 //
 // Mapping:
-//   semicolons.semicolons === "on"          → semi: true
-//   semicolons.semicolons === "off"         → semi: false
+//   semi.semi === "on"          → semi: true
+//   semi.semi === "off"         → semi: false
 //   indent.width === <number>               → tabWidth: <number>, useTabs: false
 //   indent.width === "tab"                  → useTabs: true
 //   newLine.newLine === <lf|crlf|cr>        → endOfLine: <lf|crlf|cr>

@@ -9,9 +9,9 @@ function common(): CommonArgs {
 
 describe("parseReport", () => {
     it("collects report-name selector flags with de-duplication", () => {
-        const r = parseReportArgs(["--unused-exports", "--semicolons", "--unused-exports"], common())
+        const r = parseReportArgs(["--unused-exports", "--semi", "--unused-exports"], common())
         assert.ok(r)
-        assert.deepEqual(r.reportNames, ["unused-exports", "semicolons"])
+        assert.deepEqual(r.reportNames, ["unused-exports", "semi"])
     })
 
     it("passes unknown report selectors through without rejecting (refineReport validates)", () => {
@@ -27,18 +27,18 @@ describe("parseReport", () => {
     })
 
     it("accepts report selectors alongside --emit", () => {
-        const r = parseReportArgs(["--semicolons", "--emit", "ts-refine"], common())
+        const r = parseReportArgs(["--semi", "--emit", "ts-refine"], common())
         assert.ok(r)
-        assert.deepEqual(r.reportNames, ["semicolons"])
+        assert.deepEqual(r.reportNames, ["semi"])
         assert.equal(r.emit, "ts-refine")
         assert.equal(r.surveyDefault, false)
     })
 
     it("does not mistake --project for a report selector", () => {
         const c = common()
-        const r = parseReportArgs(["--project", "x.json", "--semicolons"], c)
+        const r = parseReportArgs(["--project", "x.json", "--semi"], c)
         assert.ok(r)
-        assert.deepEqual(r.reportNames, ["semicolons"])
+        assert.deepEqual(r.reportNames, ["semi"])
         assert.equal(c.tsconfigPath, "x.json")
     })
 
@@ -47,7 +47,7 @@ describe("parseReport", () => {
         assert.ok(r)
 
         // Survey-style default: every report in the registry runs.
-        assert.ok(r.reportNames.includes("semicolons"))
+        assert.ok(r.reportNames.includes("semi"))
         assert.ok(r.reportNames.includes("bracket-spacing"))
         assert.equal(r.surveyDefault, true)
     })

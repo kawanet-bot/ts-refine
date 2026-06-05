@@ -39,7 +39,7 @@ describe("refineReport", () => {
 
             // Input deliberately in reverse of registry order to confirm the
             // router re-orders. indent precedes semicolons in the registry.
-            reportNames: ["semicolons", "indent"],
+            reportNames: ["semi", "indent"],
             output: {write: (l) => lines.push(l)},
             paths: [],
         })

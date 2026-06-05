@@ -45,7 +45,7 @@ describe("parseImports", () => {
     })
 
     it("rejects style override flags (organizing is style-preserving)", () => {
-        assert.throws(() => parseImportsArgs(["--semicolons", "off"], common()), /unknown option/)
+        assert.throws(() => parseImportsArgs(["--semi", "off"], common()), /unknown option/)
     })
 
     it("throws on an unknown option", () => {

@@ -27,7 +27,7 @@ describe("refineFormat", () => {
     it("inserts trailing semicolons when format.semicolons is 'on'", async () => {
         const project = initInMemoryProject()
         const sf = project.createSourceFile("a.ts", "const a = 1\nconst b = 2\n")
-        await refineFormat({project, log, dryRun: true, paths: [], format: {semicolons: "on"}})
+        await refineFormat({project, log, dryRun: true, paths: [], format: {semi: "on"}})
         assert.match(sf.getFullText(), /const a = 1;\nconst b = 2;\n/)
     })
 
@@ -43,7 +43,7 @@ describe("refineFormat", () => {
         const json = project.createSourceFile("/data.json", '{\n  "a": 1\n}\n')
         const main = project.createSourceFile("/main.ts", 'import DATA from "./data.json" with {type: "json"}\nconst v = DATA.a\n')
         const before = json.getFullText()
-        await refineFormat({project, log, dryRun: true, paths: [], format: {semicolons: "on"}})
+        await refineFormat({project, log, dryRun: true, paths: [], format: {semi: "on"}})
 
         assert.equal(json.getFullText(), before)
         assert.match(main.getFullText(), /const v = DATA\.a;/)
@@ -52,7 +52,7 @@ describe("refineFormat", () => {
     it("strips trailing semicolons when format.semicolons is 'off'", async () => {
         const project = initInMemoryProject()
         const sf = project.createSourceFile("a.ts", "const a = 1;\nconst b = 2;\n")
-        await refineFormat({project, log, dryRun: true, paths: [], format: {semicolons: "off"}})
+        await refineFormat({project, log, dryRun: true, paths: [], format: {semi: "off"}})
         assert.match(sf.getFullText(), /const a = 1\nconst b = 2\n/)
     })
 
@@ -64,7 +64,7 @@ describe("refineFormat", () => {
         const project = initInMemoryProject()
         const sf = project.createSourceFile("a.ts", "export abstract class Foo {\n  protected abstract bar(): Promise<number>;\n}\n")
         await refineReport({project, paths: [], reportNames: ["trailing-comma"], log})
-        await refineFormat({project, log, dryRun: true, paths: [], format: {semicolons: "off"}})
+        await refineFormat({project, log, dryRun: true, paths: [], format: {semi: "off"}})
         assert.match(sf.getFullText(), /protected abstract bar\(\): Promise<number>\n/)
     })
 
@@ -91,7 +91,7 @@ describe("refineFormat", () => {
     it("dryRun does not call fs.writeFile (verified by using an in-memory project that would error on real-fs writes)", async () => {
         const project = initInMemoryProject()
         const sf = project.createSourceFile("a.ts", "const a = 1\n")
-        await refineFormat({project, log, dryRun: true, paths: [], format: {semicolons: "on"}})
+        await refineFormat({project, log, dryRun: true, paths: [], format: {semi: "on"}})
 
         // No throw → no real-fs write attempt; in-memory FS would have surfaced it.
         assert.match(sf.getFullText(), /const a = 1;\n/)
@@ -100,11 +100,11 @@ describe("refineFormat", () => {
     it("returns the touched files, and an empty list when nothing changes", async () => {
         const project = initInMemoryProject()
         const sf = project.createSourceFile("a.ts", "const a = 1\n")
-        const changed = await refineFormat({project, log, dryRun: true, paths: [], format: {semicolons: "on"}})
+        const changed = await refineFormat({project, log, dryRun: true, paths: [], format: {semi: "on"}})
         assert.deepEqual(changed.touched, [sf.getFilePath()])
 
         // The same pass over the now-formatted in-memory state changes nothing.
-        const again = await refineFormat({project, log, dryRun: true, paths: [], format: {semicolons: "on"}})
+        const again = await refineFormat({project, log, dryRun: true, paths: [], format: {semi: "on"}})
         assert.deepEqual(again.touched, [])
     })
 })

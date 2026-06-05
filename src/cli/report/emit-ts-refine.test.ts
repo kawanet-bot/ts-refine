@@ -11,12 +11,12 @@ function capture(fn: (s: {write: (chunk: string) => void}) => void): string {
 // The framing (`ts-refine format \`) that getTsRefineFormat feeds is
 // covered by select-emitter.test.ts.
 describe("getTsRefineFormat", () => {
-    it("maps semicolons.semicolons=off → --semicolons off", () => {
-        assert.equal(getTsRefineFormat({semi: {semi: "off"}}), "--semicolons off")
+    it("maps semi.semi=off → --semi off", () => {
+        assert.equal(getTsRefineFormat({semi: {semi: "off"}}), "--semi off")
     })
 
-    it("maps semicolons.semicolons=on → --semicolons on", () => {
-        assert.equal(getTsRefineFormat({semi: {semi: "on"}}), "--semicolons on")
+    it("maps semi.semi=on → --semi on", () => {
+        assert.equal(getTsRefineFormat({semi: {semi: "on"}}), "--semi on")
     })
 
     it("maps indent.width → --indent N", () => {
@@ -50,7 +50,7 @@ describe("getTsRefineFormat", () => {
             // Input keys are intentionally reversed; the output order is fixed.
             {trailingComma: {trailingComma: "on"}, bracketSpacing: {bracketSpacing: "on"}, newLine: {newLine: "lf"}, memberDelimiter: {delimiter: "none"}, indent: {width: 4}, semi: {semi: "off"}},
         )
-        assert.equal(out, "--semicolons off --indent 4 --member-delimiter none --new-line lf --bracket-spacing on --trailing-comma on")
+        assert.equal(out, "--semi off --indent 4 --member-delimiter none --new-line lf --bracket-spacing on --trailing-comma on")
     })
 
     it("returns an empty string when nothing was recommended", () => {
@@ -70,7 +70,7 @@ describe("writeFormatCommand", () => {
 
     it("frames the flags on a continued second line", () => {
         const out = capture((s) => writeFormatCommand({semi: {semi: "off"}}, s))
-        assert.equal(out, "ts-refine format \\\n  --semicolons off\n")
+        assert.equal(out, "ts-refine format \\\n  --semi off\n")
     })
 })
 
@@ -78,7 +78,7 @@ describe("writeFormatMarkdown", () => {
     it("wraps the command in a `## recommendation` fenced block", () => {
         const out = capture((s) => writeFormatMarkdown({semi: {semi: "off"}, indent: {width: 4}}, s))
         assert.match(out, /^## recommendation\n\n```sh\nts-refine format \\\n/)
-        assert.match(out, /\n {2}--semicolons off --indent 4\n```\n\n$/)
+        assert.match(out, /\n {2}--semi off --indent 4\n```\n\n$/)
     })
 
     it("emits nothing when no recommendations fired (no empty ## recommendation block)", () => {

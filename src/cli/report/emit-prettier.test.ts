@@ -7,12 +7,12 @@ function capture(report: Parameters<typeof getPrettierConfig>[0]): string {
 }
 
 describe("getPrettierConfig", () => {
-    it("maps semicolons.semicolons=off → semi: false", () => {
+    it("maps semi.semi=off → semi: false", () => {
         const out = capture({semi: {semi: "off"}})
         assert.equal(JSON.parse(out).semi, false)
     })
 
-    it("maps semicolons.semicolons=on → semi: true", () => {
+    it("maps semi.semi=on → semi: true", () => {
         const out = capture({semi: {semi: "on"}})
         assert.equal(JSON.parse(out).semi, true)
     })

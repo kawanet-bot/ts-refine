@@ -25,8 +25,8 @@ describe("formatStyleToSettings", () => {
     })
 
     it("maps semicolons on/off to the SemicolonPreference", () => {
-        assert.equal(formatStyleToSettings({semicolons: "on"}).semicolons, ts.SemicolonPreference.Insert)
-        assert.equal(formatStyleToSettings({semicolons: "off"}).semicolons, ts.SemicolonPreference.Remove)
+        assert.equal(formatStyleToSettings({semi: "on"}).semicolons, ts.SemicolonPreference.Insert)
+        assert.equal(formatStyleToSettings({semi: "off"}).semicolons, ts.SemicolonPreference.Remove)
     })
 
     it("maps bracketSpacing on/off to the brace-padding flag", () => {

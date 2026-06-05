@@ -10,7 +10,7 @@ describe("reportToFormatStyle", () => {
             newLine: {newLine: "crlf"},
             bracketSpacing: {bracketSpacing: "off"},
         })
-        assert.deepEqual(o, {semicolons: "on", indent: 4, newLine: "crlf", bracketSpacing: "off"})
+        assert.deepEqual(o, {semi: "on", indent: 4, newLine: "crlf", bracketSpacing: "off"})
     })
 
     it("carries indent.width=tab through", () => {

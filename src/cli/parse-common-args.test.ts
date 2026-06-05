@@ -42,7 +42,7 @@ describe("parseCommonArgs", () => {
     it("reports zero for a token that is not a global", () => {
         const c = fresh()
         assert.equal(parseCommonArgs(c, ["report"], 0), 0)
-        assert.equal(parseCommonArgs(c, ["--semicolons"], 0), 0)
+        assert.equal(parseCommonArgs(c, ["--semi"], 0), 0)
     })
 
     it("reads at the given index, not just the front", () => {

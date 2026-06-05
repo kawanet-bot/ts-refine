@@ -37,13 +37,13 @@ describe("refineCLI", () => {
             assert.match(r.stdout, /^  rename /m)
             assert.match(r.stdout, /^  imports /m)
             assert.match(r.stdout, /--emit <name>/)
-            assert.match(r.stdout, /--semicolons --indent --member-delimiter --new-line --bracket-spacing/)
+            assert.match(r.stdout, /--semi --indent --member-delimiter --new-line --bracket-spacing/)
             assert.match(r.stdout, /--exports --importers/)
         }
     })
 
     it("runs the report subcommand and prints Markdown", async () => {
-        const r = await run(["report", "--semicolons", "-p", SAMPLE])
+        const r = await run(["report", "--semi", "-p", SAMPLE])
         assert.equal(r.status, 0)
         assert.match(r.stdout, /### semicolons/)
     })
@@ -78,7 +78,7 @@ describe("refineCLI", () => {
 
         // --indent pins indent, so its survey is skipped; the rest still run.
         assert.doesNotMatch(r.stderr, /report indent:/)
-        assert.match(r.stderr, /report semicolons:/)
+        assert.match(r.stderr, /report semi:/)
     })
 
     it("exits non-zero with a fix hint when format --check finds changes", async () => {
@@ -118,7 +118,7 @@ describe("refineCLI", () => {
     })
 
     it("rejects style override flags on the imports subcommand", async () => {
-        const r = await run(["imports", "--semicolons", "off", "-p", SAMPLE])
+        const r = await run(["imports", "--semi", "off", "-p", SAMPLE])
         assert.notEqual(r.status, 0)
         assert.match(r.stderr, /unknown option/)
     })
@@ -150,10 +150,10 @@ describe("refineCLI", () => {
     })
 
     it("accepts -p on either side of the subcommand", async () => {
-        const left = await run(["-p", SAMPLE, "report", "--semicolons"])
+        const left = await run(["-p", SAMPLE, "report", "--semi"])
         assert.equal(left.status, 0)
         assert.match(left.stdout, /### semicolons/)
-        const right = await run(["report", "--semicolons", "-p", SAMPLE])
+        const right = await run(["report", "--semi", "-p", SAMPLE])
         assert.equal(right.status, 0)
         assert.match(right.stdout, /### semicolons/)
     })

@@ -44,7 +44,7 @@ export const refineReport: typeof declared.refineReport = async (opts) => {
 export const runReports = async (reportOpts: ReportRunOpts, requested: readonly TSR.ReportName[]): Promise<TSR.ReportResult> => {
     const report: TSR.ReportResult = {}
 
-    if (requested.includes("semicolons")) {
+    if (requested.includes("semi")) {
         report.semi = await runReportSemicolons(reportOpts)
     }
     if (requested.includes("indent")) {

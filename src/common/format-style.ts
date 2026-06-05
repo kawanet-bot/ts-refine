@@ -5,7 +5,7 @@ import type {TSR} from "ts-refine"
 // is an apply target even though it has no LS / Prettier mapping.
 export function reportToFormatStyle(report: TSR.ReportResult): TSR.FormatStyle {
     const options: TSR.FormatStyle = {}
-    if (report.semi?.semi) options.semicolons = report.semi.semi
+    if (report.semi?.semi) options.semi = report.semi.semi
     if (report.indent?.width !== undefined) options.indent = report.indent.width
     const newLine = report.newLine?.newLine
     if (newLine === "lf" || newLine === "crlf") options.newLine = newLine

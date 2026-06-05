@@ -54,9 +54,8 @@ export declare namespace TSR {
         trailingComma: "on" | "off"
     }
 
-    // Every report refineReport knows about. Pair with src/report/report-names.ts
-    // (runtime list) and src/report/refine-report.ts (dispatch).
-    type ReportName = "semicolons" | "indent" | "member-delimiter" | "new-line" | "bracket-spacing" | "trailing-comma"
+    // Every report refineReport supports.
+    type ReportName = "semi" | "indent" | "member-delimiter" | "new-line" | "bracket-spacing" | "trailing-comma"
 
     interface ReportOpts extends CommonOpts {
         paths: string[]
@@ -84,7 +83,7 @@ export declare namespace TSR {
     // refineMove/refineRename take this to organize the imports they rewrote.
     interface FormatStyle {
         indent?: number | "tab"
-        semicolons?: "on" | "off"
+        semi?: "on" | "off"
         newLine?: "lf" | "crlf"
         bracketSpacing?: "on" | "off"
 

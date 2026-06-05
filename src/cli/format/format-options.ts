@@ -14,7 +14,7 @@ import {formatReportNames} from "../../common/report-names.ts"
 // reportNamesForFormat trims the apply set to the reports still worth running —
 // a fully-pinned format skips the survey.
 const reportByOverride: {field: keyof TSR.FormatStyle; report: TSR.ReportName}[] = [
-    {field: "semicolons", report: "semicolons"},
+    {field: "semi", report: "semi"},
     {field: "indent", report: "indent"},
     {field: "memberDelimiter", report: "member-delimiter"},
     {field: "newLine", report: "new-line"},
@@ -31,7 +31,7 @@ export function reportNamesForFormat(overrides: TSR.FormatStyle): TSR.ReportName
 export function mergeFormatStyles(base: TSR.FormatStyle, override: TSR.FormatStyle): TSR.FormatStyle {
     return {
         indent: override.indent ?? base.indent,
-        semicolons: override.semicolons ?? base.semicolons,
+        semi: override.semi ?? base.semi,
         newLine: override.newLine ?? base.newLine,
         bracketSpacing: override.bracketSpacing ?? base.bracketSpacing,
         memberDelimiter: override.memberDelimiter ?? base.memberDelimiter,

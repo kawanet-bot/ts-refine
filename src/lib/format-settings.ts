@@ -41,9 +41,9 @@ export function formatStyleToSettings(options: TSR.FormatStyle): FormatCodeSetti
         settings.convertTabsToSpaces = true
     }
 
-    if (options.semicolons === "on") {
+    if (options.semi === "on") {
         settings.semicolons = ts.SemicolonPreference.Insert
-    } else if (options.semicolons === "off") {
+    } else if (options.semi === "off") {
         settings.semicolons = ts.SemicolonPreference.Remove
     }
 

@@ -216,7 +216,7 @@ trailing-comma.
 npx ts-refine report
 
 # restrict to specific dimensions
-npx ts-refine report --semicolons --indent
+npx ts-refine report --semi --indent
 
 # emit a .prettierrc from the survey instead of Markdown
 npx ts-refine report --emit prettier
@@ -245,7 +245,7 @@ npx ts-refine format --check
 npx ts-refine format --indent 2
 
 # pin semicolon insertion
-npx ts-refine format --semicolons off
+npx ts-refine format --semi off
 
 # pin the end-of-line
 npx ts-refine format --new-line lf

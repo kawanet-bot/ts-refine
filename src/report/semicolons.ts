@@ -1,4 +1,4 @@
-// report semicolons: per-file trailing-`;` ratio across the nodes the
+// report semi: per-file trailing-`;` ratio across the nodes the
 // LS SemicolonPreference rewrites — ASI-eligible statements plus
 // interface/type-literal members (comma-separated members excluded).
 // Helps decide which direction minimizes churn when standardizing.
@@ -93,7 +93,7 @@ export async function runReportSemicolons({sourceFiles, output, log, importsOnly
         output.write(`| total | ${totalStmts} | ${perFile.length} |  |\n`)
         output.write("\n")
     }
-    logging(log, `report semicolons: ${perFile.length} files counted / ${sourceFiles.length} files total`)
+    logging(log, `report semi: ${perFile.length} files counted / ${sourceFiles.length} files total`)
 
     // The recommendation is rendered in the trailing `## recommendation`
     // section, so all we return here is the action params shape.

@@ -37,13 +37,13 @@ describe("parseFormat", () => {
         assert.equal(c.dryRun, false)
     })
 
-    it("rejects --semicolons with an invalid value", () => {
-        assert.throws(() => parseFormatArgs(["--semicolons", "yes"], common()), /--semicolons expects/)
+    it("rejects --semi with an invalid value", () => {
+        assert.throws(() => parseFormatArgs(["--semi", "yes"], common()), /--semi expects/)
     })
 
-    it("accepts --semicolons on|off", () => {
-        assert.equal(parseFormatArgs(["--semicolons", "on"], common())?.applyOverrides.semicolons, "on")
-        assert.equal(parseFormatArgs(["--semicolons", "off"], common())?.applyOverrides.semicolons, "off")
+    it("accepts --semi on|off", () => {
+        assert.equal(parseFormatArgs(["--semi", "on"], common())?.applyOverrides.semi, "on")
+        assert.equal(parseFormatArgs(["--semi", "off"], common())?.applyOverrides.semi, "off")
     })
 
     it("accepts --indent N", () => {
