@@ -65,6 +65,7 @@ export function usage(): string {
         `                              ${emitFlags}`,
         `                              "prettier": .prettierrc JSON`,
         `                              "ts-refine": ts-refine format's CLI arguments`,
+        `                              "stylistic": @stylistic/eslint-plugin rules JSON`,
         "",
         "format (write; follows inferred conventions):",
         "  format                      Apply the recommended formatting settings",
