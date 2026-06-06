@@ -1,6 +1,6 @@
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
-import type {TSR} from "../../types/ts-refine"
+import type {TSR} from "ts-refine"
 import {writeFormatMarkdown, writePrettierMarkdown, writeStylisticMarkdown} from "./recommend-markdown.ts"
 
 describe("writeFormatMarkdown", () => {

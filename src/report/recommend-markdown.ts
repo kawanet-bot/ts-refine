@@ -1,4 +1,4 @@
-import type {TSR} from "../../types/ts-refine"
+import type {TSR} from "ts-refine"
 import {getPrettierConfig} from "../common/emit/emit-prettier.ts"
 import {getStylisticConfig} from "../common/emit/emit-stylistic.ts"
 import {getTsRefineFormat} from "../common/emit/emit-ts-refine.ts"

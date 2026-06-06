@@ -33,6 +33,9 @@ export const refineReport: typeof declared.refineReport = async (opts) => {
         }
     }
 
+    // No reports requested: skip the project scan entirely.
+    if (requested.length === 0) return {}
+
     // Select the in-project files once and share them across the reports, so
     // the project scan runs a single time instead of per report.
     const sourceFiles = selectSourceFiles(project, {paths})
