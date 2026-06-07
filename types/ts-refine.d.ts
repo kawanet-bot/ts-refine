@@ -54,8 +54,11 @@ export declare namespace TSR {
     }
 
     interface FunctionSpacingReport {
+        // Space after `function` before `(` or a generic `<...>` list.
         anonymousFunctionSpacing?: "on" | "off"
+        // Space before `(` on named functions and methods, after any `<...>` list.
         namedFunctionSpacing?: "on" | "off"
+        // Space after parenthesized control-flow keywords such as `if` or `catch`.
         controlKeywordSpacing?: "on" | "off"
     }
 
@@ -92,8 +95,11 @@ export declare namespace TSR {
         semi?: "on" | "off"
         newLine?: "lf" | "crlf"
         bracketSpacing?: "on" | "off"
+        // Space after `function` before `(` or a generic `<...>` list.
         anonymousFunctionSpacing?: "on" | "off"
+        // Space before `(` on named functions and methods, after any `<...>` list.
         namedFunctionSpacing?: "on" | "off"
+        // Space after parenthesized control-flow keywords such as `if` or `catch`.
         controlKeywordSpacing?: "on" | "off"
 
         // Interface / class member delimiter. Applied by a self-pass (the LS

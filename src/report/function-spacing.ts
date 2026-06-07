@@ -11,6 +11,7 @@ type Bucket = {lines: number; files: number; topPath: string; topLines: number}
 type AxisConfig = {axis: Axis; label: string; order: readonly Style[]; example: Record<Style, string>}
 type PerFile = {path: string; counts: Map<Style, number>; primary: Style}
 
+// Keep the TS LS spacing knobs together as one formatting decision.
 const AXES: readonly AxisConfig[] = [
     {
         axis: "anonymousFunctionSpacing",
@@ -107,6 +108,7 @@ function collectFileCounts(sf: SourceFile): Map<Axis, Map<Style, number>> {
         counts.set(style, (counts.get(style) ?? 0) + 1)
     }
 
+    // Constructors and async arrows are absent; these fields ignore them.
     sf.forEachDescendant((node) => {
         if (Node.isFunctionExpression(node) && !node.getName()) {
             add("anonymousFunctionSpacing", classifyAnonymousFunction(node))
@@ -127,7 +129,9 @@ function classifyAnonymousFunction(node: Node): Style | null {
     const keyword = node.getFirstChildByKind(SyntaxKind.FunctionKeyword)
     const open = node.getFirstChildByKind(SyntaxKind.OpenParenToken)
     if (!keyword || !open) return null
-    return classifyGap(text, keyword.getEnd(), open.getStart())
+    const less = text.indexOf("<", keyword.getEnd())
+    const end = less >= 0 && less < open.getStart() ? less : open.getStart()
+    return classifyGap(text, keyword.getEnd(), end)
 }
 
 function classifyNamedFunction(node: Node): Style | null {
@@ -136,7 +140,10 @@ function classifyNamedFunction(node: Node): Style | null {
     if (!open) return null
     const name = Node.isFunctionDeclaration(node) || Node.isFunctionExpression(node) || Node.isMethodDeclaration(node) ? node.getNameNode() : undefined
     if (!name) return null
-    return classifyGap(node.getSourceFile().getFullText(), name.getEnd(), open.getStart())
+    const text = node.getSourceFile().getFullText()
+    const gt = text.lastIndexOf(">", open.getStart())
+    const from = gt >= name.getEnd() ? gt + 1 : name.getEnd()
+    return classifyGap(text, from, open.getStart())
 }
 
 function classifyControlKeyword(node: Node): Style | null {
@@ -153,14 +160,17 @@ function classifyDoWhile(node: Node): Style | null {
     const openAt = nodeText.indexOf("(", whileAt)
     if (openAt < 0) return null
     const base = node.getStart()
-    return classifyGap(node.getSourceFile().getFullText(), base + whileAt + "while".length, base + openAt)
+    return classifyGap(node.getSourceFile().getFullText(), base + whileAt + 5, base + openAt)
 }
 
+// Only token-adjacent spacing votes; comments and `for await` do not.
 function classifyGap(text: string, from: number, to: number): Style | null {
     if (to < from) return null
-    const gap = text.slice(from, to)
-    if (/\/[/*]/.test(gap)) return null
-    return /\s/.test(gap) ? "on" : "off"
+    if (from === to) return "off"
+    for (let i = from; i < to; i++) {
+        if (text.charCodeAt(i) > 32) return null
+    }
+    return "on"
 }
 
 function controlKeywordEnd(node: Node): number {

@@ -114,7 +114,19 @@ describe("getStylisticConfig", () => {
                 asyncArrow: "ignore",
             },
         ])
-        assert.deepEqual(json.rules["@stylistic/keyword-spacing"], ["error", {after: true}])
+        assert.deepEqual(json.rules["@stylistic/keyword-spacing"], [
+            "error",
+            {
+                overrides: {
+                    catch: {after: true},
+                    do: {after: true},
+                    for: {after: true},
+                    if: {after: true},
+                    switch: {after: true},
+                    while: {after: true},
+                },
+            },
+        ])
     })
 
     it("keeps rule arrays compact in the JSON output", () => {
