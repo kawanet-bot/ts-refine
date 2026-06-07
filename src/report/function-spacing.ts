@@ -11,7 +11,8 @@ type Bucket = {lines: number; files: number; topPath: string; topLines: number}
 type AxisConfig = {axis: Axis; label: string; order: readonly Style[]; example: Record<Style, string>}
 type PerFile = {path: string; counts: Map<Style, number>; primary: Style}
 
-// Keep the three TS LS spacing knobs together as one formatting decision.
+// Keep the three TS LS spacing knobs together: anonymous `function ()`,
+// named `function foo()`, and control-flow `if (x)` are reviewed as one choice.
 const AXES: readonly AxisConfig[] = [
     {
         axis: "anonymousFunctionSpacing",
@@ -42,6 +43,9 @@ const AXES: readonly AxisConfig[] = [
     },
 ]
 
+// Survey project files for the three spacing axes and render one table:
+// `function ()` vs `function()`, `function foo()` vs `function foo ()`,
+// and `if (x)`/`catch (e)` vs `if(x)`/`catch(e)`.
 export async function runReportFunctionSpacing({sourceFiles, output, importsOnly}: ReportRunOpts): Promise<Partial<TSR.FunctionSpacingReport>> {
     if (importsOnly) return {}
 
@@ -96,6 +100,9 @@ export async function runReportFunctionSpacing({sourceFiles, output, importsOnly
     return report
 }
 
+// Walk one file and count the AST shapes that TS LS can actually reformat:
+// anonymous functions, named functions/methods, and parenthesized controls.
+// Constructors and async arrows are absent; these fields do not control them.
 function collectFileCounts(sf: SourceFile): Map<Axis, Map<Style, number>> {
     const countsByAxis = new Map<Axis, Map<Style, number>>()
     const add = (axis: Axis, style: Style | null): void => {
@@ -108,7 +115,6 @@ function collectFileCounts(sf: SourceFile): Map<Axis, Map<Style, number>> {
         counts.set(style, (counts.get(style) ?? 0) + 1)
     }
 
-    // Constructors and async arrows are absent; these fields do not control them.
     sf.forEachDescendant((node) => {
         if ((Node.isFunctionExpression(node) || Node.isFunctionDeclaration(node)) && !node.getName()) {
             add("anonymousFunctionSpacing", classifyAnonymousFunction(node))
@@ -124,6 +130,9 @@ function collectFileCounts(sf: SourceFile): Map<Axis, Map<Style, number>> {
     return countsByAxis
 }
 
+// Detect spacing after `function` in anonymous forms such as
+// `const f = function () {}` and `export default function () {}`.
+// Generic anonymous `function<T>()` is skipped because TS formats it as `function <T>()`.
 function classifyAnonymousFunction(node: Node): Style | null {
     const text = node.getSourceFile().getFullText()
     const keyword = node.getFirstChildByKind(SyntaxKind.FunctionKeyword)
@@ -138,6 +147,9 @@ function classifyAnonymousFunction(node: Node): Style | null {
     return classifyGap(text, from, to)
 }
 
+// Detect spacing before the parameter paren in named forms:
+// `function foo()` / `function foo ()` and `class C { method() {} }`.
+// For `function foo<T> ()`, the vote is the gap after `>`, not after `foo`.
 function classifyNamedFunction(node: Node): Style | null {
     if (Node.isFunctionExpression(node) && !node.getName()) return null
     const open = node.getFirstChildByKind(SyntaxKind.OpenParenToken)
@@ -152,6 +164,8 @@ function classifyNamedFunction(node: Node): Style | null {
     return classifyGap(text, gt < 0 ? from : from + gt + 1, to)
 }
 
+// Detect parenthesized control keyword spacing, e.g. `if (x)`, `for(x)`,
+// `switch (x)`, and `catch(e)`. `do ... while` is delegated to the `while` side.
 function classifyControlKeyword(node: Node): Style | null {
     if (Node.isDoStatement(node)) return classifyDoWhile(node)
     const open = node.getFirstChildByKind(SyntaxKind.OpenParenToken)
@@ -159,6 +173,8 @@ function classifyControlKeyword(node: Node): Style | null {
     return classifyGap(node.getSourceFile().getFullText(), controlKeywordEnd(node), open.getStart())
 }
 
+// Detect only the `while (...)` spacing in `do { ... } while (x)`;
+// the leading `do {` gap is not part of TS LS control-parenthesis spacing.
 function classifyDoWhile(node: Node): Style | null {
     const nodeText = node.getText()
     const whileAt = nodeText.lastIndexOf("while")
@@ -169,8 +185,8 @@ function classifyDoWhile(node: Node): Style | null {
     return classifyGap(node.getSourceFile().getFullText(), base + whileAt + 5, base + openAt)
 }
 
-// Only token-adjacent spacing should vote. Long gaps with comments, `for await`,
-// or generic lists are rare and may use string checks after the common path.
+// Turn a token-adjacent gap into `off` for `foo()` or `on` for `foo ()`.
+// Comments and non-adjacent tokens like `for await (` return null instead of voting.
 function classifyGap(text: string, from: number, to: number): Style | null {
     if (to < from) return null
     if (from === to) return "off"
@@ -178,14 +194,20 @@ function classifyGap(text: string, from: number, to: number): Style | null {
     return text.slice(from, to).trim() ? null : "on"
 }
 
+// Return the end offset of the keyword before `(`: `if`, `for`, `while`,
+// `switch`, or `catch`, so the gap to `(` can be classified.
 function controlKeywordEnd(node: Node): number {
     return node.getStart() + (Node.isIfStatement(node) ? 2 : Node.isForStatement(node) || Node.isForInStatement(node) || Node.isForOfStatement(node) ? 3 : Node.isWhileStatement(node) ? 5 : Node.isSwitchStatement(node) ? 6 : 5)
 }
 
+// Select only control nodes whose keyword spacing maps to the TS LS setting:
+// `if`, `for`/`for-in`/`for-of`, `while`, `switch`, `catch`, and `do while`.
 function isControlKeywordNode(node: Node): boolean {
     return Node.isIfStatement(node) || Node.isForStatement(node) || Node.isForInStatement(node) || Node.isForOfStatement(node) || Node.isWhileStatement(node) || Node.isDoStatement(node) || Node.isSwitchStatement(node) || Node.isCatchClause(node)
 }
 
+// Group files by their primary style on one axis. For example, a file with
+// mostly `function foo()` lands in the `off` bucket even if it has one `foo ()`.
 function buildBuckets(files: PerFile[]): Map<Style, Bucket> {
     const buckets = new Map<Style, Bucket>()
     for (const f of files) {
@@ -205,6 +227,8 @@ function buildBuckets(files: PerFile[]): Map<Style, Bucket> {
     return buckets
 }
 
+// Pick the dominant style inside one file, using the axis order as the tie-breaker:
+// anonymous/control prefer spaced examples, named functions prefer no gap.
 function pickPrimary(order: readonly Style[], counts: Map<Style, number>): Style {
     let best = order[0]
     let bestCount = -1
