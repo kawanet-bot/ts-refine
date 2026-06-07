@@ -14,7 +14,6 @@
 
 import type {Node, SourceFile} from "ts-morph"
 import {Node as N, SyntaxKind} from "ts-morph"
-import {hasLineBreakBetween} from "../lib/text-ranges.ts"
 
 export type List = {elements: Node[]; close: Node}
 
@@ -98,7 +97,7 @@ export function applyTrailingComma(sf: SourceFile, mode: "on" | "off", opts?: {i
         // The author's layout decides "multiline": the closing bracket is on a
         // later line than the last element. No printWidth / reflow.
         const end = last.getEnd()
-        const multiline = hasLineBreakBetween(full, end, list.close.getStart())
+        const multiline = last.getEndLineNumber() !== list.close.getStartLineNumber()
         const wantComma = mode === "on" && multiline
 
         const commaTok = trailingCommaToken(last)

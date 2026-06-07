@@ -11,7 +11,6 @@ import {getTsRefineFormat} from "../common/emit/emit-ts-refine.ts"
 import {logging} from "../common/logging.ts"
 import {isSpreadOrRestElement, listOf, trailingCommaToken} from "../format/apply-trailing-comma.ts"
 import {displayPath} from "../lib/source-files.ts"
-import {hasLineBreakBetween} from "../lib/text-ranges.ts"
 import {pickRecommendByFiles} from "./pick-recommend.ts"
 import type {ReportRunOpts} from "./report-run-opts.ts"
 
@@ -29,12 +28,12 @@ type Bucket = {lines: number; files: number; topPath: string; topLines: number}
 // The trailing-comma vote of one list, or null when it can't speak to the
 // convention: empty, single-line, or a spread/rest last element (where adding
 // a comma would be a syntax error — see the apply pass).
-function classify(text: string, node: Node): Style | null {
+function classify(node: Node): Style | null {
     const list = listOf(node)
     if (list == null || list.elements.length === 0) return null
     const last = list.elements[list.elements.length - 1]
     if (isSpreadOrRestElement(last)) return null
-    const multiline = hasLineBreakBetween(text, last.getEnd(), list.close.getStart())
+    const multiline = last.getEndLineNumber() !== list.close.getStartLineNumber()
     if (!multiline) return null
     return trailingCommaToken(last) != null ? "on" : "off"
 }
@@ -44,10 +43,9 @@ export async function runReportTrailingComma({sourceFiles, output, log, importsO
     const perFile: PerFile[] = []
 
     for (const sf of sourceFiles) {
-        const text = sf.getFullText()
         const counts = new Map<Style, number>()
         const visit = (node: Node) => {
-            const style = classify(text, node)
+            const style = classify(node)
             if (style == null) return
             counts.set(style, (counts.get(style) ?? 0) + 1)
         }

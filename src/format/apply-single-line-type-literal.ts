@@ -1,5 +1,4 @@
 import {Node, type SourceFile} from "ts-morph"
-import {hasLineBreakBetween} from "../lib/text-ranges.ts"
 
 // TS LS SemicolonPreference.Insert adds `;` to the last type member too, while
 // Prettier keeps single-line type literals bare at the tail. This narrow pass
@@ -10,7 +9,7 @@ export function applySingleLineTypeLiteralTail(sf: SourceFile): void {
 
     sf.forEachDescendant((node) => {
         if (!Node.isTypeLiteral(node)) return
-        if (hasLineBreakBetween(fullText, node.getStart(), node.getEnd())) return
+        if (node.getStartLineNumber() !== node.getEndLineNumber()) return
 
         const members = node.getMembers()
         const last = members[members.length - 1]
