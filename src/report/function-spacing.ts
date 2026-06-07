@@ -125,12 +125,9 @@ function classifyAnonymousFunction(text: string, node: Node): Style | null {
     const keyword = node.getFirstChildByKind(SyntaxKind.FunctionKeyword)
     const open = node.getFirstChildByKind(SyntaxKind.OpenParenToken)
     if (!keyword || !open) return null
+    if (hasFunctionTypeParameters(node)) return null
     const from = keyword.getEnd()
     const to = open.getStart()
-    if (to < from + 2) return classifyGap(text, from, to)
-    const between = text.slice(from, to)
-    const less = between.indexOf("<")
-    if (less >= 0 && !between.slice(0, less).trim()) return null
     return classifyGap(text, from, to)
 }
 
@@ -143,11 +140,8 @@ function classifyNamedFunction(text: string, node: Node): Style | null {
     if (!open) return null
     const name = Node.isFunctionDeclaration(node) || Node.isFunctionExpression(node) || Node.isMethodDeclaration(node) ? node.getNameNode() : undefined
     if (!name) return null
-    const from = name.getEnd()
-    const to = open.getStart()
-    if (to < from + 2) return classifyGap(text, from, to)
-    const gt = text.slice(from, to).lastIndexOf(">")
-    return classifyGap(text, gt < 0 ? from : from + gt + 1, to)
+    const greater = hasFunctionTypeParameters(node) ? node.getFirstChildByKind(SyntaxKind.GreaterThanToken) : undefined
+    return classifyGap(text, greater ? greater.getEnd() : name.getEnd(), open.getStart())
 }
 
 // Detect parenthesized control keyword spacing, e.g. `if (x)`, `for(x)`,
@@ -187,6 +181,13 @@ function controlKeywordEnd(node: Node): number {
 // `if`, `for`/`for-in`/`for-of`, `while`, `switch`, `catch`, and `do while`.
 function isControlKeywordNode(node: Node): boolean {
     return Node.isIfStatement(node) || Node.isForStatement(node) || Node.isForInStatement(node) || Node.isForOfStatement(node) || Node.isWhileStatement(node) || Node.isDoStatement(node) || Node.isSwitchStatement(node) || Node.isCatchClause(node)
+}
+
+// Recognize generic function shapes through the AST, e.g. `function<T>()`
+// and `function foo<T>()`, so literal `<` characters never affect the vote.
+function hasFunctionTypeParameters(node: Node): boolean {
+    if (Node.isFunctionDeclaration(node) || Node.isFunctionExpression(node) || Node.isMethodDeclaration(node)) return node.getTypeParameters().length > 0
+    return false
 }
 
 // Group files by their primary style on one axis. For example, a file with
