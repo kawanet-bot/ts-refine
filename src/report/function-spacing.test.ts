@@ -66,6 +66,18 @@ describe("runReportFunctionSpacing", () => {
         assert.match(lines.join(""), /\| control keyword \| total \| 0 \| 0 \| *\|/)
     })
 
+    it("counts anonymous declarations but skips generic anonymous functions", async () => {
+        const project = initInMemoryProject()
+        project.createSourceFile("default.ts", ["export default function () { return 1 }", ""].join("\n"))
+        project.createSourceFile("generic.ts", ["const f = function<T>() { return 1 }", ""].join("\n"))
+        const lines: string[] = []
+        const ret = await runReportFunctionSpacing({sourceFiles: selectSourceFiles(project, {paths: []}), log, output: {write: (l) => lines.push(l)}})
+
+        assert.deepEqual(ret, {anonymousFunctionSpacing: "on"})
+        assert.match(lines.join(""), /\| anonymous function \| `function\(\)` \| 0 \| 0 \| *\|/)
+        assert.match(lines.join(""), /\| anonymous function \| total \| 1 \| 1 \| *\|/)
+    })
+
     it("returns no recommendation when files and nodes tie on an axis", async () => {
         const project = initInMemoryProject()
         project.createSourceFile("tight.ts", "const a = function() { return 1 }\n")

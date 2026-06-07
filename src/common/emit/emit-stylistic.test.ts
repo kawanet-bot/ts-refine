@@ -119,7 +119,6 @@ describe("getStylisticConfig", () => {
             {
                 overrides: {
                     catch: {after: true},
-                    do: {after: true},
                     for: {after: true},
                     if: {after: true},
                     switch: {after: true},

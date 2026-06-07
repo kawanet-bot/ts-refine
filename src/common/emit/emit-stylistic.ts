@@ -45,7 +45,7 @@ function keywordSpacingConfig(report: TSR.ReportResult): Linter.RuleEntry<RuleOp
     const control = report.functionSpacing?.controlKeywordSpacing
     if (!control) return undefined
     const after = control === "on"
-    return ["error", {overrides: Object.fromEntries(["catch", "do", "for", "if", "switch", "while"].map((k) => [k, {after}]))}]
+    return ["error", {overrides: Object.fromEntries(["catch", "for", "if", "switch", "while"].map((k) => [k, {after}]))}]
 }
 
 function semiConfig(report: TSR.ReportResult): Linter.RuleEntry<RuleOptions["@stylistic/semi"]> | undefined {

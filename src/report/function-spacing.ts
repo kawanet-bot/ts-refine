@@ -110,7 +110,7 @@ function collectFileCounts(sf: SourceFile): Map<Axis, Map<Style, number>> {
 
     // Constructors and async arrows are absent; these fields do not control them.
     sf.forEachDescendant((node) => {
-        if (Node.isFunctionExpression(node) && !node.getName()) {
+        if ((Node.isFunctionExpression(node) || Node.isFunctionDeclaration(node)) && !node.getName()) {
             add("anonymousFunctionSpacing", classifyAnonymousFunction(node))
         }
         if (Node.isFunctionDeclaration(node) || Node.isFunctionExpression(node) || Node.isMethodDeclaration(node)) {
@@ -134,7 +134,8 @@ function classifyAnonymousFunction(node: Node): Style | null {
     if (to < from + 2) return classifyGap(text, from, to)
     const between = text.slice(from, to)
     const less = between.indexOf("<")
-    return classifyGap(text, from, less < 0 || between.slice(0, less).trim() ? to : from + less)
+    if (less >= 0 && !between.slice(0, less).trim()) return null
+    return classifyGap(text, from, to)
 }
 
 function classifyNamedFunction(node: Node): Style | null {
