@@ -90,15 +90,15 @@ describe("parseFormat", () => {
     })
 
     it("accepts function spacing flags", () => {
-        const r = parseFormatArgs(["--anonymous-function-spacing", "on", "--named-function-spacing", "off", "--control-keyword-spacing", "on"], common())
-        assert.equal(r?.applyOverrides.anonymousFunctionSpacing, "on")
-        assert.equal(r?.applyOverrides.namedFunctionSpacing, "off")
+        const r = parseFormatArgs(["--function-keyword-spacing", "on", "--function-paren-spacing", "off", "--control-keyword-spacing", "on"], common())
+        assert.equal(r?.applyOverrides.functionKeywordSpacing, "on")
+        assert.equal(r?.applyOverrides.functionParenSpacing, "off")
         assert.equal(r?.applyOverrides.controlKeywordSpacing, "on")
     })
 
     it("rejects function spacing flags with invalid values", () => {
-        assert.throws(() => parseFormatArgs(["--anonymous-function-spacing", "yes"], common()), /--anonymous-function-spacing expects 'on' or 'off'/)
-        assert.throws(() => parseFormatArgs(["--named-function-spacing", "yes"], common()), /--named-function-spacing expects 'on' or 'off'/)
+        assert.throws(() => parseFormatArgs(["--function-keyword-spacing", "yes"], common()), /--function-keyword-spacing expects 'on' or 'off'/)
+        assert.throws(() => parseFormatArgs(["--function-paren-spacing", "yes"], common()), /--function-paren-spacing expects 'on' or 'off'/)
         assert.throws(() => parseFormatArgs(["--control-keyword-spacing", "yes"], common()), /--control-keyword-spacing expects 'on' or 'off'/)
     })
 

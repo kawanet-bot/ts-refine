@@ -35,16 +35,16 @@ describe("reportNamesForFormat", () => {
             newLine: "lf",
             bracketSpacing: "off",
             trailingComma: "on",
-            anonymousFunctionSpacing: "on",
-            namedFunctionSpacing: "off",
+            functionKeywordSpacing: "on",
+            functionParenSpacing: "off",
             controlKeywordSpacing: "on",
         }
         assert.deepEqual(reportNamesForFormat(all), [])
     })
 
     it("keeps function-spacing until all three function spacing fields are pinned", () => {
-        assert.ok(reportNamesForFormat({anonymousFunctionSpacing: "on"}).includes("function-spacing"))
-        assert.ok(reportNamesForFormat({anonymousFunctionSpacing: "on", namedFunctionSpacing: "off"}).includes("function-spacing"))
-        assert.equal(reportNamesForFormat({anonymousFunctionSpacing: "on", namedFunctionSpacing: "off", controlKeywordSpacing: "on"}).includes("function-spacing"), false)
+        assert.ok(reportNamesForFormat({functionKeywordSpacing: "on"}).includes("function-spacing"))
+        assert.ok(reportNamesForFormat({functionKeywordSpacing: "on", functionParenSpacing: "off"}).includes("function-spacing"))
+        assert.equal(reportNamesForFormat({functionKeywordSpacing: "on", functionParenSpacing: "off", controlKeywordSpacing: "on"}).includes("function-spacing"), false)
     })
 })

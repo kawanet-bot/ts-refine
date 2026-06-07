@@ -17,8 +17,8 @@ export function buildFormatTokens(options: TSR.FormatStyle): string[] {
     if (options.newLine) flags.push("--new-line", options.newLine)
     if (options.bracketSpacing) flags.push("--bracket-spacing", options.bracketSpacing)
     if (options.trailingComma) flags.push("--trailing-comma", options.trailingComma)
-    if (options.anonymousFunctionSpacing) flags.push("--anonymous-function-spacing", options.anonymousFunctionSpacing)
-    if (options.namedFunctionSpacing) flags.push("--named-function-spacing", options.namedFunctionSpacing)
+    if (options.functionKeywordSpacing) flags.push("--function-keyword-spacing", options.functionKeywordSpacing)
+    if (options.functionParenSpacing) flags.push("--function-paren-spacing", options.functionParenSpacing)
     if (options.controlKeywordSpacing) flags.push("--control-keyword-spacing", options.controlKeywordSpacing)
     return flags
 }

@@ -39,8 +39,8 @@ describe("getTsRefineFormat", () => {
 
     it("maps functionSpacing fields to their format flags", () => {
         assert.equal(
-            getTsRefineFormat({functionSpacing: {anonymousFunctionSpacing: "on", namedFunctionSpacing: "off", controlKeywordSpacing: "on"}}),
-            "--anonymous-function-spacing on --named-function-spacing off --control-keyword-spacing on",
+            getTsRefineFormat({functionSpacing: {functionKeywordSpacing: "on", functionParenSpacing: "off", controlKeywordSpacing: "on"}}),
+            "--function-keyword-spacing on --function-paren-spacing off --control-keyword-spacing on",
         )
     })
 
@@ -48,7 +48,7 @@ describe("getTsRefineFormat", () => {
         const out = getTsRefineFormat(
             // Input keys are intentionally reversed; the output order is fixed.
             {
-                functionSpacing: {anonymousFunctionSpacing: "on", namedFunctionSpacing: "off", controlKeywordSpacing: "on"},
+                functionSpacing: {functionKeywordSpacing: "on", functionParenSpacing: "off", controlKeywordSpacing: "on"},
                 trailingComma: {trailingComma: "on"},
                 bracketSpacing: {bracketSpacing: "on"},
                 newLine: {newLine: "lf"},
@@ -57,7 +57,7 @@ describe("getTsRefineFormat", () => {
                 semi: {semi: "off"},
             },
         )
-        assert.equal(out, "--semi off --indent 4 --member-delimiter none --new-line lf --bracket-spacing on --trailing-comma on --anonymous-function-spacing on --named-function-spacing off --control-keyword-spacing on")
+        assert.equal(out, "--semi off --indent 4 --member-delimiter none --new-line lf --bracket-spacing on --trailing-comma on --function-keyword-spacing on --function-paren-spacing off --control-keyword-spacing on")
     })
 
     it("returns an empty string when nothing was recommended", () => {
