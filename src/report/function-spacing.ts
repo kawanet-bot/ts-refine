@@ -1,14 +1,19 @@
 import {Node, SyntaxKind, type SourceFile} from "ts-morph"
 import type {TSR} from "ts-refine"
-import {getTsRefineFormat} from "../common/emit/emit-ts-refine.ts"
 import {displayPath} from "../lib/source-files.ts"
+import {writeFunctionSpacingMarkdown} from "./function-spacing-markdown.ts"
 import {pickRecommendByFiles} from "./pick-recommend.ts"
 import type {ReportRunOpts} from "./report-run-opts.ts"
 
-type Style = "on" | "off"
-type Axis = keyof TSR.FunctionSpacingReport
-type Bucket = {lines: number; files: number; topPath: string; topLines: number}
-type AxisConfig = {axis: Axis; label: string; order: readonly Style[]; example: Record<Style, string>}
+export type FunctionSpacingStyle = "on" | "off"
+export type FunctionSpacingAxis = keyof TSR.FunctionSpacingReport
+export type FunctionSpacingBucket = {lines: number; files: number; topPath: string; topLines: number}
+export type FunctionSpacingAxisConfig = {axis: FunctionSpacingAxis; label: string; order: readonly FunctionSpacingStyle[]; example: Record<FunctionSpacingStyle, string>}
+export type FunctionSpacingRow = {config: FunctionSpacingAxisConfig; buckets: Map<FunctionSpacingStyle, FunctionSpacingBucket>; files: number; total: number}
+type Style = FunctionSpacingStyle
+type Axis = FunctionSpacingAxis
+type Bucket = FunctionSpacingBucket
+type AxisConfig = FunctionSpacingAxisConfig
 type PerFile = {path: string; counts: Map<Style, number>; primary: Style}
 
 // Keep the three TS LS spacing knobs together: anonymous `function ()`,
@@ -62,7 +67,7 @@ export async function runReportFunctionSpacing({sourceFiles, output, importsOnly
         }
     }
 
-    const rows: {config: AxisConfig; buckets: Map<Style, Bucket>; files: number; total: number}[] = []
+    const rows: FunctionSpacingRow[] = []
     const report: TSR.FunctionSpacingReport = {}
 
     for (const config of AXES) {
@@ -78,25 +83,7 @@ export async function runReportFunctionSpacing({sourceFiles, output, importsOnly
         })
     }
 
-    if (output) {
-        const heading = getTsRefineFormat({functionSpacing: report}) || "(function-spacing)"
-        output.write(`### ${heading}\n`)
-        output.write("\n")
-        output.write("| axis | style | nodes | files | example |\n")
-        output.write("| --- | --- | --- | --- | --- |\n")
-        for (const row of rows) {
-            for (const style of row.config.order) {
-                const b = row.buckets.get(style)
-                if (b) {
-                    output.write(`| ${row.config.label} | ${row.config.example[style]} | ${b.lines} | ${b.files} | ${b.topPath} |\n`)
-                } else {
-                    output.write(`| ${row.config.label} | ${row.config.example[style]} | 0 | 0 |  |\n`)
-                }
-            }
-            output.write(`| ${row.config.label} | total | ${row.total} | ${row.files} |  |\n`)
-        }
-        output.write("\n")
-    }
+    if (output) writeFunctionSpacingMarkdown(report, rows, output)
     return report
 }
 
