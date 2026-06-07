@@ -14,9 +14,9 @@ export function writeFunctionSpacingMarkdown(report: TSR.FunctionSpacingReport, 
         for (const style of row.config.order) {
             const b = row.buckets.get(style)
             if (b) {
-                output.write(`| ${row.config.label} | ${row.config.example[style]} | ${b.lines} | ${b.files} | ${b.topPath} |\n`)
+                output.write(`| ${row.config.label} | ${row.config.sample[style]} | ${b.lines} | ${b.files} | ${b.topPath} |\n`)
             } else {
-                output.write(`| ${row.config.label} | ${row.config.example[style]} | 0 | 0 |  |\n`)
+                output.write(`| ${row.config.label} | ${row.config.sample[style]} | 0 | 0 |  |\n`)
             }
         }
         output.write(`| ${row.config.label} | total | ${row.total} | ${row.files} |  |\n`)

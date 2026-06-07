@@ -8,13 +8,16 @@ import type {ReportRunOpts} from "./report-run-opts.ts"
 export type FunctionSpacingStyle = "on" | "off"
 export type FunctionSpacingAxis = keyof TSR.FunctionSpacingReport
 export type FunctionSpacingBucket = {lines: number; files: number; topPath: string; topLines: number}
-export type FunctionSpacingAxisConfig = {axis: FunctionSpacingAxis; label: string; order: readonly FunctionSpacingStyle[]; example: Record<FunctionSpacingStyle, string>}
+export type FunctionSpacingStyleCounts = Partial<Record<FunctionSpacingStyle, number>>
+export type FunctionSpacingAxisConfig = {axis: FunctionSpacingAxis; label: string; order: readonly FunctionSpacingStyle[]; sample: Record<FunctionSpacingStyle, string>}
 export type FunctionSpacingRow = {config: FunctionSpacingAxisConfig; buckets: Map<FunctionSpacingStyle, FunctionSpacingBucket>; files: number; total: number}
 type Style = FunctionSpacingStyle
 type Axis = FunctionSpacingAxis
 type Bucket = FunctionSpacingBucket
 type AxisConfig = FunctionSpacingAxisConfig
-type PerFile = {path: string; counts: Map<Style, number>; primary: Style}
+type StyleCounts = FunctionSpacingStyleCounts
+type FileCounts = Record<Axis, StyleCounts>
+type PerFile = {path: string; counts: StyleCounts; primary: Style}
 
 // Keep the three TS LS spacing knobs together: anonymous `function ()`,
 // named `function foo()`, and control-flow `if (x)` are reviewed as one choice.
@@ -23,7 +26,7 @@ const AXES: readonly AxisConfig[] = [
         axis: "anonymousFunctionSpacing",
         label: "anonymous function",
         order: ["on", "off"],
-        example: {
+        sample: {
             on: "`function ()`",
             off: "`function()`",
         },
@@ -32,7 +35,7 @@ const AXES: readonly AxisConfig[] = [
         axis: "namedFunctionSpacing",
         label: "named function",
         order: ["off", "on"],
-        example: {
+        sample: {
             on: "`function foo ()`",
             off: "`function foo()`",
         },
@@ -41,7 +44,7 @@ const AXES: readonly AxisConfig[] = [
         axis: "controlKeywordSpacing",
         label: "control keyword",
         order: ["on", "off"],
-        example: {
+        sample: {
             on: "`if (x)`",
             off: "`if(x)`",
         },
@@ -61,8 +64,8 @@ export async function runReportFunctionSpacing({sourceFiles, output, importsOnly
         const path = displayPath(sf.getFilePath())
         const countsByAxis = collectFileCounts(sf)
         for (const config of AXES) {
-            const counts = countsByAxis.get(config.axis)
-            if (!counts || counts.size === 0) continue
+            const counts = countsByAxis[config.axis]
+            if (!hasCounts(counts)) continue
             perAxis.get(config.axis)!.push({path, counts, primary: pickPrimary(config.order, counts)})
         }
     }
@@ -90,28 +93,25 @@ export async function runReportFunctionSpacing({sourceFiles, output, importsOnly
 // Walk one file and count the AST shapes that TS LS can actually reformat:
 // anonymous functions, named functions/methods, and parenthesized controls.
 // Constructors and async arrows are absent; these fields do not control them.
-function collectFileCounts(sf: SourceFile): Map<Axis, Map<Style, number>> {
+function collectFileCounts(sf: SourceFile): FileCounts {
     const text = sf.getFullText()
-    const countsByAxis = new Map<Axis, Map<Style, number>>()
-    const add = (axis: Axis, style: Style | null): void => {
-        if (!style) return
-        let counts = countsByAxis.get(axis)
-        if (!counts) {
-            counts = new Map()
-            countsByAxis.set(axis, counts)
-        }
-        counts.set(style, (counts.get(style) ?? 0) + 1)
-    }
+    const anonymousFunctionSpacing: StyleCounts = {}
+    const namedFunctionSpacing: StyleCounts = {}
+    const controlKeywordSpacing: StyleCounts = {}
+    const countsByAxis = {anonymousFunctionSpacing, namedFunctionSpacing, controlKeywordSpacing}
 
     sf.forEachDescendant((node) => {
         if ((Node.isFunctionExpression(node) || Node.isFunctionDeclaration(node)) && !node.getName()) {
-            add("anonymousFunctionSpacing", classifyAnonymousFunction(text, node))
+            const style = classifyAnonymousFunction(text, node)
+            if (style) anonymousFunctionSpacing[style] = (anonymousFunctionSpacing[style] ?? 0) + 1
         }
         if (Node.isFunctionDeclaration(node) || Node.isFunctionExpression(node) || Node.isMethodDeclaration(node)) {
-            add("namedFunctionSpacing", classifyNamedFunction(text, node))
+            const style = classifyNamedFunction(text, node)
+            if (style) namedFunctionSpacing[style] = (namedFunctionSpacing[style] ?? 0) + 1
         }
         if (isControlKeywordNode(node)) {
-            add("controlKeywordSpacing", classifyControlKeyword(text, node))
+            const style = classifyControlKeyword(text, node)
+            if (style) controlKeywordSpacing[style] = (controlKeywordSpacing[style] ?? 0) + 1
         }
     })
 
@@ -195,7 +195,7 @@ function hasFunctionTypeParameters(node: Node): boolean {
 function buildBuckets(files: PerFile[]): Map<Style, Bucket> {
     const buckets = new Map<Style, Bucket>()
     for (const f of files) {
-        const linesAtPrimary = f.counts.get(f.primary) ?? 0
+        const linesAtPrimary = f.counts[f.primary] ?? 0
         let b = buckets.get(f.primary)
         if (!b) {
             b = {lines: 0, files: 0, topPath: f.path, topLines: 0}
@@ -213,11 +213,15 @@ function buildBuckets(files: PerFile[]): Map<Style, Bucket> {
 
 // Pick the dominant style inside one file, using the axis order as the tie-breaker:
 // anonymous/control prefer spaced examples, named functions prefer no gap.
-function pickPrimary(order: readonly Style[], counts: Map<Style, number>): Style {
+function hasCounts(counts: StyleCounts): boolean {
+    return counts.on != null || counts.off != null
+}
+
+function pickPrimary(order: readonly Style[], counts: StyleCounts): Style {
     let best = order[0]
     let bestCount = -1
     for (const style of order) {
-        const c = counts.get(style) ?? 0
+        const c = counts[style] ?? 0
         if (c > bestCount) {
             bestCount = c
             best = style
