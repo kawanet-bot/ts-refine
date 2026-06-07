@@ -104,6 +104,7 @@ export async function runReportFunctionSpacing({sourceFiles, output, importsOnly
 // anonymous functions, named functions/methods, and parenthesized controls.
 // Constructors and async arrows are absent; these fields do not control them.
 function collectFileCounts(sf: SourceFile): Map<Axis, Map<Style, number>> {
+    const text = sf.getFullText()
     const countsByAxis = new Map<Axis, Map<Style, number>>()
     const add = (axis: Axis, style: Style | null): void => {
         if (!style) return
@@ -117,13 +118,13 @@ function collectFileCounts(sf: SourceFile): Map<Axis, Map<Style, number>> {
 
     sf.forEachDescendant((node) => {
         if ((Node.isFunctionExpression(node) || Node.isFunctionDeclaration(node)) && !node.getName()) {
-            add("anonymousFunctionSpacing", classifyAnonymousFunction(node))
+            add("anonymousFunctionSpacing", classifyAnonymousFunction(text, node))
         }
         if (Node.isFunctionDeclaration(node) || Node.isFunctionExpression(node) || Node.isMethodDeclaration(node)) {
-            add("namedFunctionSpacing", classifyNamedFunction(node))
+            add("namedFunctionSpacing", classifyNamedFunction(text, node))
         }
         if (isControlKeywordNode(node)) {
-            add("controlKeywordSpacing", classifyControlKeyword(node))
+            add("controlKeywordSpacing", classifyControlKeyword(text, node))
         }
     })
 
@@ -133,8 +134,7 @@ function collectFileCounts(sf: SourceFile): Map<Axis, Map<Style, number>> {
 // Detect spacing after `function` in anonymous forms such as
 // `const f = function () {}` and `export default function () {}`.
 // Generic anonymous `function<T>()` is skipped because TS formats it as `function <T>()`.
-function classifyAnonymousFunction(node: Node): Style | null {
-    const text = node.getSourceFile().getFullText()
+function classifyAnonymousFunction(text: string, node: Node): Style | null {
     const keyword = node.getFirstChildByKind(SyntaxKind.FunctionKeyword)
     const open = node.getFirstChildByKind(SyntaxKind.OpenParenToken)
     if (!keyword || !open) return null
@@ -150,13 +150,12 @@ function classifyAnonymousFunction(node: Node): Style | null {
 // Detect spacing before the parameter paren in named forms:
 // `function foo()` / `function foo ()` and `class C { method() {} }`.
 // For `function foo<T> ()`, the vote is the gap after `>`, not after `foo`.
-function classifyNamedFunction(node: Node): Style | null {
+function classifyNamedFunction(text: string, node: Node): Style | null {
     if (Node.isFunctionExpression(node) && !node.getName()) return null
     const open = node.getFirstChildByKind(SyntaxKind.OpenParenToken)
     if (!open) return null
     const name = Node.isFunctionDeclaration(node) || Node.isFunctionExpression(node) || Node.isMethodDeclaration(node) ? node.getNameNode() : undefined
     if (!name) return null
-    const text = node.getSourceFile().getFullText()
     const from = name.getEnd()
     const to = open.getStart()
     if (to < from + 2) return classifyGap(text, from, to)
@@ -166,23 +165,20 @@ function classifyNamedFunction(node: Node): Style | null {
 
 // Detect parenthesized control keyword spacing, e.g. `if (x)`, `for(x)`,
 // `switch (x)`, and `catch(e)`. `do ... while` is delegated to the `while` side.
-function classifyControlKeyword(node: Node): Style | null {
-    if (Node.isDoStatement(node)) return classifyDoWhile(node)
+function classifyControlKeyword(text: string, node: Node): Style | null {
+    if (Node.isDoStatement(node)) return classifyDoWhile(text, node)
     const open = node.getFirstChildByKind(SyntaxKind.OpenParenToken)
     if (!open) return null
-    return classifyGap(node.getSourceFile().getFullText(), controlKeywordEnd(node), open.getStart())
+    return classifyGap(text, controlKeywordEnd(node), open.getStart())
 }
 
 // Detect only the `while (...)` spacing in `do { ... } while (x)`;
 // the leading `do {` gap is not part of TS LS control-parenthesis spacing.
-function classifyDoWhile(node: Node): Style | null {
-    const nodeText = node.getText()
-    const whileAt = nodeText.lastIndexOf("while")
-    if (whileAt < 0) return null
-    const openAt = nodeText.indexOf("(", whileAt)
-    if (openAt < 0) return null
-    const base = node.getStart()
-    return classifyGap(node.getSourceFile().getFullText(), base + whileAt + 5, base + openAt)
+function classifyDoWhile(text: string, node: Node): Style | null {
+    const keyword = node.getFirstChildByKind(SyntaxKind.WhileKeyword)
+    const open = node.getFirstChildByKind(SyntaxKind.OpenParenToken)
+    if (!keyword || !open) return null
+    return classifyGap(text, keyword.getEnd(), open.getStart())
 }
 
 // Turn a token-adjacent gap into `off` for `foo()` or `on` for `foo ()`.

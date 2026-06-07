@@ -78,6 +78,19 @@ describe("runReportFunctionSpacing", () => {
         assert.match(lines.join(""), /\| anonymous function \| total \| 1 \| 1 \| *\|/)
     })
 
+    it("uses the do-while keyword token, not while substrings in the body or condition", async () => {
+        const project = initInMemoryProject()
+        project.createSourceFile("spaced.ts", 'do { const word = "while" } while (meanwhile)\n')
+        project.createSourceFile("compact.ts", 'do { const word = "while" } while(meanwhile)\n')
+        const lines: string[] = []
+        const ret = await runReportFunctionSpacing({sourceFiles: selectSourceFiles(project, {paths: []}), log, output: {write: (l) => lines.push(l)}})
+        const out = lines.join("")
+
+        assert.deepEqual(ret, {})
+        assert.match(out, /\| control keyword \| `if \(x\)` \| 1 \| 1 \| spaced\.ts \|/)
+        assert.match(out, /\| control keyword \| `if\(x\)` \| 1 \| 1 \| compact\.ts \|/)
+    })
+
     it("returns no recommendation when files and nodes tie on an axis", async () => {
         const project = initInMemoryProject()
         project.createSourceFile("tight.ts", "const a = function() { return 1 }\n")
