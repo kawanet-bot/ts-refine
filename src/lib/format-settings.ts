@@ -59,15 +59,15 @@ export function formatStyleToSettings(options: TSR.FormatStyle): FormatCodeSetti
         settings.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces = false
     }
 
-    if (options.anonymousFunctionSpacing === "on") {
+    if (options.functionKeywordSpacing === "on") {
         settings.insertSpaceAfterFunctionKeywordForAnonymousFunctions = true
-    } else if (options.anonymousFunctionSpacing === "off") {
+    } else if (options.functionKeywordSpacing === "off") {
         settings.insertSpaceAfterFunctionKeywordForAnonymousFunctions = false
     }
 
-    if (options.namedFunctionSpacing === "on") {
+    if (options.functionParenSpacing === "on") {
         settings.insertSpaceBeforeFunctionParenthesis = true
-    } else if (options.namedFunctionSpacing === "off") {
+    } else if (options.functionParenSpacing === "off") {
         settings.insertSpaceBeforeFunctionParenthesis = false
     }
 

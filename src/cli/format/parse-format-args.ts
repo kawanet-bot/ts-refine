@@ -83,19 +83,19 @@ export function parseFormatArgs(sub: string[], common: CommonArgs): FormatArgs |
             }
             overrides.trailingComma = v
             i += 2
-        } else if (a === "--anonymous-function-spacing") {
+        } else if (a === "--function-keyword-spacing") {
             const v = sub[i + 1]
             if (v !== "on" && v !== "off") {
-                throw new Error(`--anonymous-function-spacing expects 'on' or 'off'; got: ${v ?? "(missing)"}`)
+                throw new Error(`--function-keyword-spacing expects 'on' or 'off'; got: ${v ?? "(missing)"}`)
             }
-            overrides.anonymousFunctionSpacing = v
+            overrides.functionKeywordSpacing = v
             i += 2
-        } else if (a === "--named-function-spacing") {
+        } else if (a === "--function-paren-spacing") {
             const v = sub[i + 1]
             if (v !== "on" && v !== "off") {
-                throw new Error(`--named-function-spacing expects 'on' or 'off'; got: ${v ?? "(missing)"}`)
+                throw new Error(`--function-paren-spacing expects 'on' or 'off'; got: ${v ?? "(missing)"}`)
             }
-            overrides.namedFunctionSpacing = v
+            overrides.functionParenSpacing = v
             i += 2
         } else if (a === "--control-keyword-spacing") {
             const v = sub[i + 1]

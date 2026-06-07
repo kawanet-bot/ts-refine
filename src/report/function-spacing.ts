@@ -19,12 +19,12 @@ type StyleCounts = FunctionSpacingStyleCounts
 type FileCounts = Record<Axis, StyleCounts>
 type PerFile = {path: string; counts: StyleCounts; primary: Style}
 
-// Keep the three TS LS spacing knobs together: anonymous `function ()`,
-// named `function foo()`, and control-flow `if (x)` are reviewed as one choice.
+// Keep the three TS LS spacing knobs together. The report names mirror the
+// settings they feed: `function ()`, `function foo()`, and `if (x)`.
 const AXES: readonly AxisConfig[] = [
     {
-        axis: "anonymousFunctionSpacing",
-        label: "anonymous function",
+        axis: "functionKeywordSpacing",
+        label: "function keyword",
         order: ["on", "off"],
         sample: {
             on: "`function ()`",
@@ -32,8 +32,8 @@ const AXES: readonly AxisConfig[] = [
         },
     },
     {
-        axis: "namedFunctionSpacing",
-        label: "named function",
+        axis: "functionParenSpacing",
+        label: "function paren",
         order: ["off", "on"],
         sample: {
             on: "`function foo ()`",
@@ -51,9 +51,9 @@ const AXES: readonly AxisConfig[] = [
     },
 ]
 
-// Survey project files for the three spacing axes and render one table:
-// `function ()` vs `function()`, `function foo()` vs `function foo ()`,
-// and `if (x)`/`catch (e)` vs `if(x)`/`catch(e)`.
+// Survey project files for the three spacing axes and render one table.
+// Generic anonymous functions are reported on the paren axis because TS LS
+// formats `function <T>()` with insertSpaceBeforeFunctionParenthesis.
 export async function runReportFunctionSpacing({sourceFiles, output, importsOnly}: ReportRunOpts): Promise<Partial<TSR.FunctionSpacingReport>> {
     if (importsOnly) return {}
 
@@ -90,23 +90,23 @@ export async function runReportFunctionSpacing({sourceFiles, output, importsOnly
     return report
 }
 
-// Walk one file and count the AST shapes that TS LS can actually reformat:
-// anonymous functions, named functions/methods, and parenthesized controls.
-// Constructors and async arrows are absent; these fields do not control them.
+// Walk one file and count only AST shapes controlled by these TS LS settings.
+// Constructors and async arrows are intentionally absent; these fields do not
+// control `constructor ()` or `async () =>`.
 function collectFileCounts(sf: SourceFile): FileCounts {
-    const anonymousFunctionSpacing: StyleCounts = {}
-    const namedFunctionSpacing: StyleCounts = {}
+    const functionKeywordSpacing: StyleCounts = {}
+    const functionParenSpacing: StyleCounts = {}
     const controlKeywordSpacing: StyleCounts = {}
-    const countsByAxis = {anonymousFunctionSpacing, namedFunctionSpacing, controlKeywordSpacing}
+    const countsByAxis = {functionKeywordSpacing, functionParenSpacing, controlKeywordSpacing}
 
     sf.forEachDescendant((node) => {
         if ((Node.isFunctionExpression(node) || Node.isFunctionDeclaration(node)) && !node.getName()) {
-            const style = classifyAnonymousFunction(node)
-            if (style) anonymousFunctionSpacing[style] = (anonymousFunctionSpacing[style] ?? 0) + 1
+            const style = classifyFunctionKeyword(node)
+            if (style) functionKeywordSpacing[style] = (functionKeywordSpacing[style] ?? 0) + 1
         }
         if (Node.isFunctionDeclaration(node) || Node.isFunctionExpression(node) || Node.isMethodDeclaration(node)) {
-            const style = classifyNamedFunction(node)
-            if (style) namedFunctionSpacing[style] = (namedFunctionSpacing[style] ?? 0) + 1
+            const style = classifyFunctionParen(node)
+            if (style) functionParenSpacing[style] = (functionParenSpacing[style] ?? 0) + 1
         }
         if (isControlKeywordNode(node)) {
             const style = classifyControlKeyword(node)
@@ -117,10 +117,10 @@ function collectFileCounts(sf: SourceFile): FileCounts {
     return countsByAxis
 }
 
-// Detect spacing after `function` in anonymous forms such as
-// `const f = function () {}` and generator `const f = function* () {}`.
-// Generic anonymous `function<T>()` is skipped because TS formats it as `function <T>()`.
-function classifyAnonymousFunction(node: Node): Style | null {
+// Detect spacing controlled by insertSpaceAfterFunctionKeywordForAnonymousFunctions:
+// `const f = function () {}` / `function()`, plus generator `function* ()`.
+// Generic anonymous `function <T>()` belongs to functionParenSpacing instead.
+function classifyFunctionKeyword(node: Node): Style | null {
     const keyword = node.getFirstChildByKind(SyntaxKind.FunctionKeyword)
     const open = node.getFirstChildByKind(SyntaxKind.OpenParenToken)
     if (!keyword || !open) return null
@@ -129,17 +129,17 @@ function classifyAnonymousFunction(node: Node): Style | null {
     return classifyParenGap(star ? star.getEnd() : keyword.getEnd(), open)
 }
 
-// Detect spacing before the parameter paren in named forms:
-// `function foo()` / `function foo ()` and `class C { method() {} }`.
-// For `function foo<T> ()`, the vote is the gap after `>`, not after `foo`.
-function classifyNamedFunction(node: Node): Style | null {
-    if (Node.isFunctionExpression(node) && !node.getName()) return null
+// Detect spacing controlled by insertSpaceBeforeFunctionParenthesis:
+// `function foo()` / `foo ()`, methods, and generic anonymous `function <T>()`.
+// The `(` previous sibling is used so `function <T extends U<V>> ()` votes
+// from the outer `>` without scanning or slicing through type text.
+function classifyFunctionParen(node: Node): Style | null {
+    if (!hasFunctionName(node) && !hasFunctionTypeParameters(node)) return null
     const open = node.getFirstChildByKind(SyntaxKind.OpenParenToken)
     if (!open) return null
-    const name = Node.isFunctionDeclaration(node) || Node.isFunctionExpression(node) || Node.isMethodDeclaration(node) ? node.getNameNode() : undefined
-    if (!name) return null
-    const greater = hasFunctionTypeParameters(node) ? node.getFirstChildByKind(SyntaxKind.GreaterThanToken) : undefined
-    return classifyParenGap(greater ? greater.getEnd() : name.getEnd(), open)
+    const prev = open.getPreviousSibling()
+    if (!prev) return null
+    return classifyParenGap(prev.getEnd(), open)
 }
 
 // Detect parenthesized control keyword spacing, e.g. `if (x)`, `for(x)`,
@@ -191,6 +191,11 @@ function hasFunctionTypeParameters(node: Node): boolean {
     return false
 }
 
+function hasFunctionName(node: Node): boolean {
+    if (Node.isFunctionDeclaration(node) || Node.isFunctionExpression(node) || Node.isMethodDeclaration(node)) return !!node.getNameNode()
+    return false
+}
+
 // Group files by their primary style on one axis. For example, a file with
 // mostly `function foo()` lands in the `off` bucket even if it has one `foo ()`.
 function buildBuckets(files: PerFile[]): Map<Style, Bucket> {
@@ -213,7 +218,7 @@ function buildBuckets(files: PerFile[]): Map<Style, Bucket> {
 }
 
 // Pick the dominant style inside one file, using the axis order as the tie-breaker:
-// anonymous/control prefer spaced examples, named functions prefer no gap.
+// function keyword/control prefer spaced examples, function paren prefers no gap.
 function hasCounts(counts: StyleCounts): boolean {
     return counts.on != null || counts.off != null
 }

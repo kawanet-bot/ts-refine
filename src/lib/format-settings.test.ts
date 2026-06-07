@@ -51,7 +51,7 @@ describe("formatStyleToSettings", () => {
     })
 
     it("maps function spacing axes to TS LS settings", () => {
-        const r = formatStyleToSettings({anonymousFunctionSpacing: "on", namedFunctionSpacing: "off", controlKeywordSpacing: "on"})
+        const r = formatStyleToSettings({functionKeywordSpacing: "on", functionParenSpacing: "off", controlKeywordSpacing: "on"})
         assert.equal(r.insertSpaceAfterFunctionKeywordForAnonymousFunctions, true)
         assert.equal(r.insertSpaceBeforeFunctionParenthesis, false)
         assert.equal(r.insertSpaceAfterKeywordsInControlFlowStatements, true)

@@ -22,7 +22,7 @@ const reportByOverride: ReportOverrideMap[] = [
     {field: "newLine", report: "new-line"},
     {field: "bracketSpacing", report: "bracket-spacing"},
     {field: "trailingComma", report: "trailing-comma"},
-    {fields: ["anonymousFunctionSpacing", "namedFunctionSpacing", "controlKeywordSpacing"], report: "function-spacing"},
+    {fields: ["functionKeywordSpacing", "functionParenSpacing", "controlKeywordSpacing"], report: "function-spacing"},
 ]
 
 export function reportNamesForFormat(overrides: TSR.FormatStyle): TSR.ReportName[] {
@@ -46,8 +46,8 @@ export function mergeFormatStyles(base: TSR.FormatStyle, override: TSR.FormatSty
         bracketSpacing: override.bracketSpacing ?? base.bracketSpacing,
         memberDelimiter: override.memberDelimiter ?? base.memberDelimiter,
         trailingComma: override.trailingComma ?? base.trailingComma,
-        anonymousFunctionSpacing: override.anonymousFunctionSpacing ?? base.anonymousFunctionSpacing,
-        namedFunctionSpacing: override.namedFunctionSpacing ?? base.namedFunctionSpacing,
+        functionKeywordSpacing: override.functionKeywordSpacing ?? base.functionKeywordSpacing,
+        functionParenSpacing: override.functionParenSpacing ?? base.functionParenSpacing,
         controlKeywordSpacing: override.controlKeywordSpacing ?? base.controlKeywordSpacing,
     }
 }

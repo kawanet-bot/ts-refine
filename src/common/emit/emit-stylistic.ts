@@ -28,14 +28,18 @@ function memberDelimiterConfig(delimiter: TSR.MemberDelimiterReport["delimiter"]
 }
 
 function functionSpacingConfig(report: TSR.ReportResult): Linter.RuleEntry<RuleOptions["@stylistic/space-before-function-paren"]> | undefined {
-    const anonymous = report.functionSpacing?.anonymousFunctionSpacing
-    const named = report.functionSpacing?.namedFunctionSpacing
-    if (!anonymous && !named) return undefined
+    const functionKeyword = report.functionSpacing?.functionKeywordSpacing
+    const functionParen = report.functionSpacing?.functionParenSpacing
+    if (!functionKeyword && !functionParen) return undefined
+    // Stylistic's `anonymous` bucket covers both keyword-spacing and generic paren-spacing
+    // samples. Use a concrete value when the two inferred axes agree (or when only
+    // one axis is known); otherwise emit `anonymous: "ignore"` to avoid enforcing a mixed bucket.
+    const functionKeywordRule = functionKeyword && functionParen && functionKeyword !== functionParen ? undefined : (functionKeyword ?? functionParen)
     return [
         "error",
         {
-            anonymous: anonymous === "on" ? "always" : anonymous === "off" ? "never" : "ignore",
-            named: named === "on" ? "always" : named === "off" ? "never" : "ignore",
+            anonymous: functionKeywordRule === "on" ? "always" : functionKeywordRule === "off" ? "never" : "ignore",
+            named: functionParen === "on" ? "always" : functionParen === "off" ? "never" : "ignore",
             asyncArrow: "ignore",
         },
     ]

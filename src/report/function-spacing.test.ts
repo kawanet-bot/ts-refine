@@ -47,10 +47,10 @@ describe("runReportFunctionSpacing", () => {
         const ret = await runReportFunctionSpacing({sourceFiles: selectSourceFiles(project, {paths: []}), log, output: {write: (l) => lines.push(l)}})
         const out = lines.join("")
 
-        assert.deepEqual(ret, {anonymousFunctionSpacing: "on", namedFunctionSpacing: "off", controlKeywordSpacing: "on"})
-        assert.match(out, /^### --anonymous-function-spacing on --named-function-spacing off --control-keyword-spacing on/m)
-        assert.match(out, /anonymous function.*compact\.ts/)
-        assert.match(out, /named function.*3 \| 2/)
+        assert.deepEqual(ret, {functionKeywordSpacing: "on", functionParenSpacing: "off", controlKeywordSpacing: "on"})
+        assert.match(out, /^### --function-keyword-spacing on --function-paren-spacing off --control-keyword-spacing on/m)
+        assert.match(out, /function keyword.*compact\.ts/)
+        assert.match(out, /function paren.*3 \| 2/)
         assert.match(out, /control keyword.*4 \| 2/)
     })
 
@@ -61,21 +61,25 @@ describe("runReportFunctionSpacing", () => {
         const ret = await runReportFunctionSpacing({sourceFiles: selectSourceFiles(project, {paths: []}), log, output: {write: (l) => lines.push(l)}})
 
         assert.deepEqual(ret, {})
-        assert.match(lines.join(""), /\| anonymous function \| total \| 0 \| 0 \| *\|/)
-        assert.match(lines.join(""), /\| named function \| total \| 0 \| 0 \| *\|/)
+        assert.match(lines.join(""), /\| function keyword \| total \| 0 \| 0 \| *\|/)
+        assert.match(lines.join(""), /\| function paren \| total \| 0 \| 0 \| *\|/)
         assert.match(lines.join(""), /\| control keyword \| total \| 0 \| 0 \| *\|/)
     })
 
-    it("counts anonymous declarations but skips generic anonymous functions", async () => {
+    it("counts anonymous declarations on keyword spacing and generic anonymous functions on paren spacing", async () => {
         const project = initInMemoryProject()
         project.createSourceFile("default.ts", ["export default function () { return 1 }", ""].join("\n"))
         project.createSourceFile("generic.ts", ["const f = function<T>() { return 1 }", ""].join("\n"))
+        project.createSourceFile("generic-spaced.ts", ["const g = function <T extends Array<string>> () { return 1 }", ""].join("\n"))
         const lines: string[] = []
         const ret = await runReportFunctionSpacing({sourceFiles: selectSourceFiles(project, {paths: []}), log, output: {write: (l) => lines.push(l)}})
+        const out = lines.join("")
 
-        assert.deepEqual(ret, {anonymousFunctionSpacing: "on"})
-        assert.match(lines.join(""), /\| anonymous function \| `function\(\)` \| 0 \| 0 \| *\|/)
-        assert.match(lines.join(""), /\| anonymous function \| total \| 1 \| 1 \| *\|/)
+        assert.deepEqual(ret, {functionKeywordSpacing: "on"})
+        assert.match(out, /\| function keyword \| `function\(\)` \| 0 \| 0 \| *\|/)
+        assert.match(out, /\| function keyword \| total \| 1 \| 1 \| *\|/)
+        assert.match(out, /\| function paren \| `function foo\(\)` \| 1 \| 1 \| generic\.ts \|/)
+        assert.match(out, /\| function paren \| `function foo \(\)` \| 1 \| 1 \| generic-spaced\.ts \|/)
     })
 
     it("counts anonymous generator spacing after the asterisk", async () => {
@@ -87,8 +91,8 @@ describe("runReportFunctionSpacing", () => {
         const out = lines.join("")
 
         assert.deepEqual(ret, {})
-        assert.match(out, /\| anonymous function \| `function \(\)` \| 1 \| 1 \| spaced-generator\.ts \|/)
-        assert.match(out, /\| anonymous function \| `function\(\)` \| 1 \| 1 \| compact-generator\.ts \|/)
+        assert.match(out, /\| function keyword \| `function \(\)` \| 1 \| 1 \| spaced-generator\.ts \|/)
+        assert.match(out, /\| function keyword \| `function\(\)` \| 1 \| 1 \| compact-generator\.ts \|/)
     })
 
     it("uses the do-while keyword token, not while substrings in the body or condition", async () => {
@@ -120,8 +124,8 @@ describe("runReportFunctionSpacing", () => {
         const ret = await runReportFunctionSpacing({sourceFiles: selectSourceFiles(project, {paths: []}), log, output: {write: (l) => lines.push(l)}})
 
         assert.deepEqual(ret, {})
-        assert.match(lines.join(""), /\| anonymous function \| total \| 0 \| 0 \| *\|/)
-        assert.match(lines.join(""), /\| named function \| total \| 0 \| 0 \| *\|/)
+        assert.match(lines.join(""), /\| function keyword \| total \| 0 \| 0 \| *\|/)
+        assert.match(lines.join(""), /\| function paren \| total \| 0 \| 0 \| *\|/)
         assert.match(lines.join(""), /\| control keyword \| total \| 0 \| 0 \| *\|/)
     })
 

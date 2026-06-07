@@ -75,7 +75,7 @@ describe("getPrettierConfig", () => {
     })
 
     it("ignores functionSpacing because Prettier has no matching option", () => {
-        const json = JSON.parse(getPrettierConfig({functionSpacing: {anonymousFunctionSpacing: "on", namedFunctionSpacing: "off", controlKeywordSpacing: "on"}}))
+        const json = JSON.parse(getPrettierConfig({functionSpacing: {functionKeywordSpacing: "on", functionParenSpacing: "off", controlKeywordSpacing: "on"}}))
         assert.deepEqual(json, {})
     })
 })

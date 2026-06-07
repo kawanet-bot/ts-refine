@@ -209,7 +209,7 @@ re-exports only. Projects with neither flag see no type-only change.
 
 `report` surveys the code style and prints a recommendation per dimension —
 semi, indent, member-delimiter, new-line, bracket-spacing,
-trailing-comma.
+trailing-comma, function-spacing.
 
 ```sh
 # survey every dimension and print the recommendation tables
@@ -261,6 +261,15 @@ npx ts-refine format --member-delimiter semi
 
 # pin trailing commas in multi-line lists (added when `on`, stripped when `off`)
 npx ts-refine format --trailing-comma on
+
+# anonymous functions: export default function () {}
+npx ts-refine format --function-keyword-spacing on
+
+# named/generic bare functions: function f() {}, function <T>() {}
+npx ts-refine format --function-paren-spacing off
+
+# control flow keywords: if (ok) {}, while (ok) {}, catch (err) {}
+npx ts-refine format --control-keyword-spacing on
 ```
 
 ## FAQ

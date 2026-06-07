@@ -28,7 +28,7 @@ describe("reportToFormatStyle", () => {
     })
 
     it("maps function-spacing through to the three format style fields", () => {
-        const o = reportToFormatStyle({functionSpacing: {anonymousFunctionSpacing: "on", namedFunctionSpacing: "off", controlKeywordSpacing: "on"}})
-        assert.deepEqual(o, {anonymousFunctionSpacing: "on", namedFunctionSpacing: "off", controlKeywordSpacing: "on"})
+        const o = reportToFormatStyle({functionSpacing: {functionKeywordSpacing: "on", functionParenSpacing: "off", controlKeywordSpacing: "on"}})
+        assert.deepEqual(o, {functionKeywordSpacing: "on", functionParenSpacing: "off", controlKeywordSpacing: "on"})
     })
 })
