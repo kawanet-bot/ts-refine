@@ -132,12 +132,13 @@ export class Project {
         const p = normalizePath(filePath)
         const cached = this.files.get(p)
         if (cached != null) return cached
+        if (this.inMemory) return ""
         return fs.existsSync(p) ? fs.readFileSync(p, "utf8") : ""
     }
 
     fileExists(filePath: string): boolean {
         const p = normalizePath(filePath)
-        return this.files.has(p) || fs.existsSync(p)
+        return this.files.has(p) || (!this.inMemory && fs.existsSync(p))
     }
 
     resolveModuleSpecifier(from: SourceFile, specifier: string): SourceFile | undefined {
@@ -202,7 +203,7 @@ function readTsConfig(tsConfigFilePath: string, skipLoadingLibFiles: boolean): t
         ? {
             ...ts.sys,
             readDirectory: (rootDir: string, extensions: readonly string[], excludes: readonly string[] | undefined, includes: readonly string[] | undefined, depth?: number) =>
-                ts.sys.readDirectory(rootDir, extensions, excludes, includes, depth).filter((file) => !file.includes("/node_modules/typescript/lib/")),
+                ts.sys.readDirectory(rootDir, extensions, excludes, includes, depth).filter((file) => !normalizePath(file).includes("/node_modules/typescript/lib/")),
         }
         : ts.sys
     return ts.parseJsonConfigFileContent(read.config, host, path.dirname(configPath), undefined, configPath)

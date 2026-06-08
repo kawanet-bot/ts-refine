@@ -1,6 +1,7 @@
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
 import {initBridgeTestProject} from "../test-utils/init-test-project.ts"
+import {Project} from "./project.ts"
 
 describe("Project", () => {
     it("creates, finds, globs, resolves, and versions in-memory source files", () => {
@@ -21,5 +22,12 @@ describe("Project", () => {
         )
         assert.equal(project.resolveModuleSpecifier(main, "./dep.ts"), dep)
         assert.notEqual(project.getScriptVersion("/src/main.ts"), beforeVersion)
+    })
+
+    it("keeps in-memory projects hermetic from host filesystem reads", () => {
+        const project = new Project({useInMemoryFileSystem: true})
+
+        assert.equal(project.fileExists("package.json"), false)
+        assert.equal(project.readFileText("package.json"), "")
     })
 })
