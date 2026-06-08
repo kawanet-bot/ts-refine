@@ -10,6 +10,7 @@ import {logging} from "../common/logging.ts"
 import {assertNoLoneCr} from "../lib/assert-no-lone-cr.ts"
 import {formatStyleToSettings, normalizeNewLines} from "../lib/format-settings.ts"
 import {selectSourceFiles} from "../lib/source-files.ts"
+import {applyAsiGuard} from "./apply-asi-guard.ts"
 import {applyMemberDelimiter} from "./apply-member-delimiter.ts"
 import {applySingleLineTypeLiteralTail} from "./apply-single-line-type-literal.ts"
 import {applyTrailingComma} from "./apply-trailing-comma.ts"
@@ -42,15 +43,18 @@ export const refineFormat: typeof declared.refineFormat = async (opts) => {
         sf.forgetDescendants()
         sf.formatText(settings)
 
-        // The LS formatter can't set interface/class member delimiter (and
-        // can't emit commas); apply the surveyed style on the formatted AST.
-        if (style.memberDelimiter != null) applyMemberDelimiter(sf, style.memberDelimiter)
-
-        // Prettier keeps the last member of a single-line type literal bare
-        // even when the surrounding type alias receives a statement `;`.
+        // formatText's semicolons diverge from Prettier on two narrow points,
+        // mutually exclusive by semi value; correct whichever applies first.
+        // `off`: restore the `;(` ASI guard the LS re-spaced to `; (`.
+        if (style.semi === "off") applyAsiGuard(sf)
+        // `on`: the LS appends a `;` to a single-line type literal's last
+        // member that Prettier keeps bare; trim only that tail.
         if (style.semi === "on") applySingleLineTypeLiteralTail(sf)
 
-        // The LS formatter has no trailing-comma control either; apply it too.
+        // member-delimiter and trailing-comma are axes the LS can't express
+        // (it can't emit a comma delimiter at all); reassert each afterward.
+        // All four passes edit disjoint regions, so this order is for reading.
+        if (style.memberDelimiter != null) applyMemberDelimiter(sf, style.memberDelimiter)
         if (style.trailingComma != null) applyTrailingComma(sf, style.trailingComma)
 
         // LS `newLineCharacter` only governs inserted text; existing
