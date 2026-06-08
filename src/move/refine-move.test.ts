@@ -113,6 +113,14 @@ describe("refineMove (in-memory, dry-run)", () => {
         assert.equal(a.getFullText(), 'import {y} from "../sibling.ts"\nexport const x = y\n')
     })
 
+    it("rewrites the moved file's own outgoing import-type specifiers", async () => {
+        const project = newProject()
+        project.createSourceFile("/src/sibling.ts", "export interface S { value: string }\n")
+        const a = project.createSourceFile("/src/a.ts", 'export type A = import("./sibling.ts").S\n')
+        await refineMove({project, log, sources: ["/src/a.ts"], dest: "/src/sub/", dryRun: true})
+        assert.equal(a.getFullText(), 'export type A = import("../sibling.ts").S\n')
+    })
+
     it("treats a trailing-slash dest as a directory move when multiple sources are given", async () => {
         const project = newProject()
         project.createSourceFile("/src/a.ts", "export const x = 1\n")

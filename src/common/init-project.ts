@@ -26,7 +26,7 @@ export function resolveProject(opts: Pick<TSR.CommonOpts, "project" | "tsConfigF
     if (opts.project && opts.tsConfigFilePath) {
         throw new Error("refine: specify either `project` or `tsConfigFilePath`, not both")
     }
-    if (opts.project) return opts.project
+    if (opts.project) return opts.project as Project
     if (opts.tsConfigFilePath) return initProject({tsConfigFilePath: opts.tsConfigFilePath})
     throw new Error("refine: specify either `project` or `tsConfigFilePath`")
 }
