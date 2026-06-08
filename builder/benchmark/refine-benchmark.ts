@@ -5,7 +5,7 @@
 // per-pass progress lines go to `log`.
 
 import {performance} from "node:perf_hooks"
-import type {TSR} from "ts-refine"
+import type {CLI} from "../../src/cli/cli-io.ts"
 import {resolveProject} from "../../src/common/init-project.ts"
 import {selectSourceFiles} from "../../src/lib/source-files.ts"
 import {runFormatBench} from "./format-bench.ts"
@@ -13,14 +13,10 @@ import {benchmarkUsage, parseBenchmarkArgs} from "./parse-benchmark-args.ts"
 import {runReportBench} from "./report-bench.ts"
 import {formatMs} from "./stats.ts"
 
-export interface BenchmarkContext {
-    args: object
-    tokens: string[]
-    output: TSR.Writer
-    log: TSR.Writer
-}
-
-export async function refineBenchmark(ctx: BenchmarkContext): Promise<number> {
+// Reuse the CLI command shape: refineBenchmark is invoked just like the real
+// subcommands ({args, tokens, output, log}). The benchmark ignores `args`; it
+// reads its own flags from `tokens`.
+export const refineBenchmark: CLI = async (ctx) => {
     const {tokens, output, log} = ctx
     const args = parseBenchmarkArgs(tokens)
     if (args.help) {
