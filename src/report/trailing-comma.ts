@@ -5,7 +5,6 @@
 // Single-line lists never vote — a trailing comma there is not a layout choice
 // the convention speaks to — so only the author's multi-line lists are counted.
 
-import type {Node} from "ts-morph"
 import type {TSR} from "ts-refine"
 import type {Node as TsNode} from "typescript"
 import {getTsRefineFormat} from "../common/emit/emit-ts-refine.ts"
@@ -47,22 +46,21 @@ export async function runReportTrailingComma({sourceFiles, output, log, importsO
     for (const sf of sourceFiles) {
         const text = sf.getFullText()
         const counts = new Map<Style, number>()
-        // The walk stays on ts-morph for parity with how other report passes
-        // navigate, but the classifier runs on the underlying compiler node
-        // so it shares the helpers with the format pass.
-        const visit = (node: Node) => {
-            const style = classify(text, node.compilerNode)
-            if (style == null) return
-            counts.set(style, (counts.get(style) ?? 0) + 1)
+        // Walk the compiler AST directly: the classifier already works on raw
+        // compiler nodes, so the per-visit ts-morph wrapper is pure overhead.
+        const visit = (node: TsNode): void => {
+            const style = classify(text, node)
+            if (style != null) counts.set(style, (counts.get(style) ?? 0) + 1)
+            node.forEachChild(visit)
         }
         // importsOnly: organizeImports only rewrites the import/export
         // statements, so the named-binding lists inside them are the only
         // trailing commas it can touch.
         if (importsOnly) {
-            sf.getImportDeclarations().forEach((d) => d.forEachDescendant(visit))
-            sf.getExportDeclarations().forEach((d) => d.forEachDescendant(visit))
+            for (const d of sf.getImportDeclarations()) visit(d.compilerNode)
+            for (const d of sf.getExportDeclarations()) visit(d.compilerNode)
         } else {
-            sf.forEachDescendant(visit)
+            visit(sf.compilerNode)
         }
         if (counts.size === 0) continue
         perFile.push({path: displayPath(sf.getFilePath()), counts, primary: pickPrimary(counts)})
