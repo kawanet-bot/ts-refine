@@ -325,7 +325,7 @@ export class SourceFile implements TSR.SourceFile {
         let hit = false
         const visit = (node: ts.Node): void => {
             if (hit) return
-            const specifier = staticModuleSpecifier(node) ?? dynamicModuleSpecifier(node)
+            const specifier = staticModuleSpecifier(node) ?? dynamicModuleSpecifier(node) ?? importEqualsSpecifier(node) ?? importTypeSpecifier(node)
             if (specifier != null) {
                 const resolved = this.project.resolveModuleSpecifier(this.filePath, specifier)
                 if (resolved?.getFilePath() === targetPath) {
@@ -359,6 +359,23 @@ function dynamicModuleSpecifier(node: ts.Node): string | undefined {
     if (ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword) {
         const arg = node.arguments[0]
         if (arg != null && ts.isStringLiteral(arg)) return arg.text
+    }
+    return undefined
+}
+
+// The module of an `import x = require("...")`, or undefined.
+function importEqualsSpecifier(node: ts.Node): string | undefined {
+    if (ts.isImportEqualsDeclaration(node) && ts.isExternalModuleReference(node.moduleReference) && ts.isStringLiteral(node.moduleReference.expression)) {
+        return node.moduleReference.expression.text
+    }
+    return undefined
+}
+
+// The module of an `import("...")` type node (`type T = import("...").X`), or
+// undefined.
+function importTypeSpecifier(node: ts.Node): string | undefined {
+    if (ts.isImportTypeNode(node) && ts.isLiteralTypeNode(node.argument) && ts.isStringLiteral(node.argument.literal)) {
+        return node.argument.literal.text
     }
     return undefined
 }

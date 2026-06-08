@@ -29,9 +29,11 @@ test("getReferencingSourceFiles finds importers across specifier forms", () => {
     project.createSourceFile("/p/b.ts", `import {x} from "./a.ts"\n`)
     project.createSourceFile("/p/c.ts", `export {x} from "./a.ts"\n`)
     project.createSourceFile("/p/d.ts", `const p = import("./a.ts")\n`)
+    project.createSourceFile("/p/e.ts", `import e = require("./a.ts")\n`)
+    project.createSourceFile("/p/f.ts", `export type F = import("./a.ts").X\n`)
 
     const refs = a.getReferencingSourceFiles().map((s) => s.getBaseName()).sort()
-    assert.deepEqual(refs, ["b.ts", "c.ts", "d.ts"])
+    assert.deepEqual(refs, ["b.ts", "c.ts", "d.ts", "e.ts", "f.ts"])
 })
 
 test("getDescendantsOfKind returns typed CallExpression wrappers", () => {
