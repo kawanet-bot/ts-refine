@@ -55,13 +55,13 @@ describe("refineInspect", () => {
     it("classifies each importer form (value / type / namespace / side-effect / re-export / dynamic / mixed)", async () => {
         const project = initInMemoryProject({allowImportingTsExtensions: true})
         project.createSourceFile("/target.ts", "export const x = 1\nexport type T = number\n")
-        project.createSourceFile("/value.ts", 'import {x} from "./target.ts"\nconst _ = x\n')
-        project.createSourceFile("/type.ts", 'import type {T} from "./target.ts"\nconst _: T = 1\n')
+        project.createSourceFile("/value.ts", 'import {x as localX} from "./target.ts"\nconst _ = localX\n')
+        project.createSourceFile("/type.ts", 'import type {T as LocalT} from "./target.ts"\nconst _: LocalT = 1\n')
         project.createSourceFile("/ns.ts", 'import * as A from "./target.ts"\nconst _ = A.x\n')
         project.createSourceFile("/side.ts", 'import "./target.ts"\n')
-        project.createSourceFile("/reexp.ts", 'export {x} from "./target.ts"\nexport * from "./target.ts"\n')
+        project.createSourceFile("/reexp.ts", 'export {x as localX} from "./target.ts"\nexport * from "./target.ts"\n')
         project.createSourceFile("/dyn.ts", 'export const load = () => import("./target.ts")\n')
-        project.createSourceFile("/mixed.ts", 'import {x, type T} from "./target.ts"\nconst _: T = x\n')
+        project.createSourceFile("/mixed.ts", 'import {x as localX, type T as LocalT} from "./target.ts"\nconst _: LocalT = localX\n')
 
         const files = await refineInspect({project, log, paths: ["/target.ts"], inspectors: ["importers"]})
         assert.equal(files.length, 1)

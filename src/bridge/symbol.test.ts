@@ -12,7 +12,7 @@ describe("Symbol", () => {
         const main = project.createSourceFile("/main.ts", 'import {value as alias} from "./dep.ts"\nconst used = alias\n')
         const namespaceSymbol = dep.getModules()[0]?.getSymbol()
         const shapeSymbol = dep.getInterfaces()[0]?.getSymbol()
-        const aliasSymbol = main.getImportDeclarations()[0]?.getNamedImports()[0]?.getNameNodeOrThrow().getSymbol()
+        const aliasSymbol = main.getImportDeclarations()[0]?.getNamedImports()[0]?.getAliasNode()?.getSymbol()
 
         assert.equal(namespaceSymbol?.getExport("Box")?.getDeclarations()[0]?.getName(), "Box")
         assert.equal(shapeSymbol?.getMember("width")?.getDeclarations()[0]?.getName(), "width")

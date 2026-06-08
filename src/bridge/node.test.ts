@@ -15,12 +15,24 @@ describe("Node", () => {
         assert.equal(importDecl.getModuleSpecifierValue(), "./dep.ts")
         assert.equal(importDecl.getModuleSpecifierSourceFile()?.getFilePath(), "/dep.ts")
         assert.equal(importDecl.getDefaultImport()?.getText(), "def")
-        assert.equal(named?.getName(), "local")
+        assert.equal(named?.getName(), "value")
+        assert.equal(named?.getNameNode()?.getText(), "value")
         assert.equal(named?.getAliasNode()?.getText(), "local")
 
         importDecl.setModuleSpecifier("./other.ts")
 
         assert.equal(main.getFullText(), 'import def, {value as local} from "./other.ts"\nconst used = def + local\n')
+    })
+
+    it("separates imported names from local aliases on export specifiers", () => {
+        const project = initBridgeTestProject()
+        project.createSourceFile("/dep.ts", "export const value = 2\n")
+        const main = project.createSourceFile("/main.ts", 'export {value as local} from "./dep.ts"\n')
+        const named = main.getExportDeclarations()[0]?.getNamedExports()[0]
+
+        assert.equal(named?.getName(), "value")
+        assert.equal(named?.getNameNode()?.getText(), "value")
+        assert.equal(named?.getAliasNode()?.getText(), "local")
     })
 
     it("renames a reference-findable declaration across project files", () => {

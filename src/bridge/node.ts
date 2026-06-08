@@ -140,12 +140,12 @@ export class Node<T extends ts.Node = ts.Node> {
     }
 
     getName(): string {
-        const name = (this.compilerNode as {name?: ts.PropertyName | ts.BindingName | ts.ModuleName}).name
+        const name = this.nameNode()
         return name ? name.getText(this.sourceFile.compilerNode).replace(/^["']|["']$/g, "") : ""
     }
 
     getNameNode(): Node | undefined {
-        const name = (this.compilerNode as {name?: ts.Node}).name
+        const name = this.nameNode()
         return name ? this.sourceFile.wrap(name) : undefined
     }
 
@@ -315,6 +315,12 @@ export class Node<T extends ts.Node = ts.Node> {
         if (name) return name.getStart()
         if (ts.isIdentifier(this.compilerNode) || ts.isStringLiteral(this.compilerNode) || ts.isPrivateIdentifier(this.compilerNode)) return this.getStart()
         return undefined
+    }
+
+    private nameNode(): ts.Node | undefined {
+        const node = this.compilerNode
+        if ((ts.isImportSpecifier(node) || ts.isExportSpecifier(node)) && node.propertyName) return node.propertyName
+        return (node as {name?: ts.Node}).name
     }
 }
 
