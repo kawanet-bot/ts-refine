@@ -29,9 +29,26 @@ export function formatMs(value: number): string {
     return `${value.toFixed(2)}ms`
 }
 
+export interface StatRow extends Summary {
+    name: string
+    calls: number
+}
+
+// Single renderer for both the report and format sections so their columns
+// never drift apart. Only the first column's header differs; rows are sorted
+// slowest-first by mean.
+export function printStatsTable(output: TSR.Writer, nameHeader: string, rows: StatRow[]): void {
+    const sorted = [...rows].sort((a, b) => b.mean - a.mean)
+    printTable(
+        output,
+        [nameHeader, "calls", "mean", "median", "min", "max"],
+        sorted.map((row) => [row.name, String(row.calls), formatMs(row.mean), formatMs(row.median), formatMs(row.min), formatMs(row.max)]),
+    )
+}
+
 // Render a left-aligned column table to the writer, sizing each column to its
 // widest cell so the report and format tables line up the same way.
-export function printTable(output: TSR.Writer, headers: string[], rows: string[][]): void {
+function printTable(output: TSR.Writer, headers: string[], rows: string[][]): void {
     const widths = headers.map((header, i) => Math.max(header.length, ...rows.map((row) => row[i].length)))
 
     output.write(headers.map((header, i) => header.padEnd(widths[i])).join("  ") + "\n")

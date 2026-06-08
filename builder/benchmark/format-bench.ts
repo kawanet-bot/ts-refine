@@ -15,7 +15,7 @@ import {applyTrailingComma} from "../../src/format/apply-trailing-comma.ts"
 import {applyTypeBracketSpacing} from "../../src/format/apply-type-bracket-spacing.ts"
 import {formatStyleToSettings} from "../../src/lib/format-settings.ts"
 import type {BenchmarkArgs} from "./parse-benchmark-args.ts"
-import {formatMs, printTable, summarize, type Summary} from "./stats.ts"
+import {printStatsTable, type StatRow, summarize} from "./stats.ts"
 
 export interface Fixture {
     path: string
@@ -79,7 +79,7 @@ function runOnce(benchCase: FormatCase, fixtures: ReadonlyArray<Fixture>, styleI
 }
 
 export function runFormatBench(args: BenchmarkArgs, fixtures: ReadonlyArray<Fixture>, output: TSR.Writer, log: TSR.Writer): void {
-    const rows: ({name: string; calls: number} & Summary)[] = []
+    const rows: StatRow[] = []
 
     for (const benchCase of getFormatCases()) {
         log.write(`format: ${benchCase.name}\n`)
@@ -93,10 +93,5 @@ export function runFormatBench(args: BenchmarkArgs, fixtures: ReadonlyArray<Fixt
         rows.push({name: benchCase.name, calls: samples.length, ...summarize(samples)})
     }
 
-    rows.sort((a, b) => b.mean - a.mean)
-    printTable(
-        output,
-        ["pass", "calls", "mean", "median", "min", "max"],
-        rows.map((row) => [row.name, String(row.calls), formatMs(row.mean), formatMs(row.median), formatMs(row.min), formatMs(row.max)]),
-    )
+    printStatsTable(output, "pass", rows)
 }

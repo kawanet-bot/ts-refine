@@ -14,7 +14,7 @@ import type {ReportRunOpts} from "../../src/report/report-run-opts.ts"
 import {runReportSemi} from "../../src/report/semi.ts"
 import {runReportTrailingComma} from "../../src/report/trailing-comma.ts"
 import type {BenchmarkArgs} from "./parse-benchmark-args.ts"
-import {formatMs, printTable, summarize, type Summary} from "./stats.ts"
+import {printStatsTable, type StatRow, summarize} from "./stats.ts"
 
 const REPORTS: ReadonlyArray<readonly [string, (opts: ReportRunOpts) => Promise<unknown>]> = [
     ["semi", runReportSemi],
@@ -29,7 +29,7 @@ const REPORTS: ReadonlyArray<readonly [string, (opts: ReportRunOpts) => Promise<
 const quiet: TSR.Writer = {write: (): void => undefined}
 
 export async function runReportBench(args: BenchmarkArgs, sourceFiles: SourceFile[], output: TSR.Writer, log: TSR.Writer): Promise<void> {
-    const rows: ({name: string} & Summary)[] = []
+    const rows: StatRow[] = []
 
     for (const [name, run] of REPORTS) {
         log.write(`report: ${name}\n`)
@@ -46,13 +46,8 @@ export async function runReportBench(args: BenchmarkArgs, sourceFiles: SourceFil
             samples.push(performance.now() - start)
         }
 
-        rows.push({name, ...summarize(samples)})
+        rows.push({name, calls: samples.length, ...summarize(samples)})
     }
 
-    rows.sort((a, b) => b.mean - a.mean)
-    printTable(
-        output,
-        ["report", "mean", "median", "min", "max"],
-        rows.map((row) => [row.name, formatMs(row.mean), formatMs(row.median), formatMs(row.min), formatMs(row.max)]),
-    )
+    printStatsTable(output, "report", rows)
 }
