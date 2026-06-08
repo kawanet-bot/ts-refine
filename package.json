@@ -47,9 +47,9 @@
     "organize-imports",
     "prettier",
     "refactor",
+    "stylistic",
     "ts-morph",
-    "typescript",
-    "unused"
+    "typescript"
   ],
   "license": "MIT",
   "main": "./dist/ts-refine.mjs",
