@@ -20,12 +20,17 @@ export class Symbol {
         return this.symbol.getName()
     }
 
+    // Concise inspector so util.inspect does not expand the checker graph.
+    [globalThis.Symbol.for("nodejs.util.inspect.custom")](): string {
+        return `Symbol<${this.symbol.getName()}>`
+    }
+
     // The symbol an import/alias points at, or undefined when this is not an
     // alias — callers fall back to the symbol itself.
     getAliasedSymbol(): Symbol | undefined {
         if ((this.symbol.flags & ts.SymbolFlags.Alias) === 0) return undefined
         const aliased = this.project.getTypeChecker().getAliasedSymbol(this.symbol)
-        return aliased != null ? new Symbol(this.project, aliased) : undefined
+        return aliased != null ? this.project.wrapSymbol(aliased) : undefined
     }
 
     // A named module/namespace export of this symbol.
@@ -45,6 +50,6 @@ export class Symbol {
 
     private lookup(table: ts.SymbolTable | undefined, name: string): Symbol | undefined {
         const found = table?.get(ts.escapeLeadingUnderscores(name))
-        return found != null ? new Symbol(this.project, found) : undefined
+        return found != null ? this.project.wrapSymbol(found) : undefined
     }
 }

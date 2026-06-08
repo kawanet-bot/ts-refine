@@ -3,10 +3,7 @@
 // ScriptKind, SemicolonPreference, …) are imported straight from "typescript"
 // at their use sites instead. Names match ts-morph so call sites are unchanged.
 
-export {Project} from "./project.ts"
-export type {ProjectOptions} from "./project.ts"
-export {SourceFile} from "./source-file.ts"
-export {Symbol} from "./symbol.ts"
+export type {FormatCodeSettings} from "typescript"
 export {
     CallExpression,
     ClassDeclaration,
@@ -30,4 +27,7 @@ export {
     VariableStatement,
 } from "./node.ts"
 export type {ClassMemberTypes, TypeElementTypes} from "./node.ts"
-export type {FormatCodeSettings} from "typescript"
+export {Project} from "./project.ts"
+export type {ProjectOptions} from "./project.ts"
+export {SourceFile} from "./source-file.ts"
+export {Symbol} from "./symbol.ts"

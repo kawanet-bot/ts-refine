@@ -12,8 +12,8 @@
 // wrapper allocation dominated these hot walks, so callers hand off
 // `node.compilerNode` and read positions / `hasTrailingComma` directly.
 
-import {SyntaxKind} from "ts-morph"
 import type {NodeArray, Node as TsNode} from "typescript"
+import {SyntaxKind} from "typescript"
 
 // Function-like nodes whose parameter list carries a trailing comma. Their
 // element array always lives on `parameters`, so elementsOf maps them together

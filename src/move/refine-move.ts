@@ -16,8 +16,9 @@
 
 import fs from "node:fs"
 import path from "node:path"
-import {type ExportDeclaration, type ImportDeclaration, Node, type Project, type SourceFile, type StringLiteral, ts} from "ts-morph"
 import type * as declared from "ts-refine"
+import {SyntaxKind} from "typescript"
+import {type ExportDeclaration, type ImportDeclaration, Node, type Project, type SourceFile, type StringLiteral} from "../bridge/bridge.ts"
 import {resolveProject} from "../common/init-project.ts"
 import {logging} from "../common/logging.ts"
 import {surveyImportStyles} from "../lib/organize-changed.ts"
@@ -237,7 +238,7 @@ function snapshotSpecifiers(project: Project, movingPaths: Set<string>): SpecRec
             if (!isMoving && !movingPaths.has(target.getFilePath())) continue
             records.push({kind: "export", node: decl, originalExt: extensionOf(specifier)})
         }
-        for (const call of sf.getDescendantsOfKind(ts.SyntaxKind.CallExpression)) {
+        for (const call of sf.getDescendantsOfKind(SyntaxKind.CallExpression)) {
             if (call.getExpression().getKindName() !== "ImportKeyword") continue
             const arg = call.getArguments()[0]
             if (!arg || !Node.isStringLiteral(arg)) continue

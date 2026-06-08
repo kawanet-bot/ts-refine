@@ -6,6 +6,7 @@
 
 import fs from "node:fs"
 import fsp from "node:fs/promises"
+import path from "node:path"
 import {normalizePath} from "./paths.ts"
 
 export interface FileSystemHost {
@@ -15,6 +16,7 @@ export interface FileSystemHost {
     readonly isInMemory: boolean
     readFileSync(filePath: string): string
     writeFile(filePath: string, content: string): Promise<void>
+    writeFileSync(filePath: string, content: string): void
     delete(filePath: string): Promise<void>
     fileExistsSync(filePath: string): boolean
     directoryExistsSync(dirPath: string): boolean
@@ -29,8 +31,16 @@ export class RealFileSystemHost implements FileSystemHost {
         return fs.readFileSync(filePath, "utf8")
     }
 
+    // A move can target a directory that does not exist yet, so the parent is
+    // created before writing — matching the manipulation library's save.
     async writeFile(filePath: string, content: string): Promise<void> {
+        await fsp.mkdir(path.dirname(filePath), {recursive: true})
         await fsp.writeFile(filePath, content)
+    }
+
+    writeFileSync(filePath: string, content: string): void {
+        fs.mkdirSync(path.dirname(filePath), {recursive: true})
+        fs.writeFileSync(filePath, content)
     }
 
     async delete(filePath: string): Promise<void> {
@@ -68,6 +78,10 @@ export class InMemoryFileSystemHost implements FileSystemHost {
     }
 
     async writeFile(filePath: string, content: string): Promise<void> {
+        this.files.set(normalizePath(filePath), content)
+    }
+
+    writeFileSync(filePath: string, content: string): void {
         this.files.set(normalizePath(filePath), content)
     }
 

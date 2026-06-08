@@ -1,5 +1,6 @@
-import {SyntaxKind, type SourceFile} from "ts-morph"
 import type {Node as TsNode, TypeLiteralNode} from "typescript"
+import {SyntaxKind} from "typescript"
+import type {SourceFile} from "../bridge/bridge.ts"
 
 // TS LS SemicolonPreference.Insert adds `;` to the last type member too, while
 // Prettier keeps single-line type literals bare at the tail. This narrow pass

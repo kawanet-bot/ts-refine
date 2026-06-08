@@ -5,9 +5,9 @@
 // delegated to the project's language service and mapped back onto this tree.
 
 import ts from "typescript"
-import {createWrapper, locateByPos} from "./node.ts"
-import type {ClassDeclaration, EnumDeclaration, ExportDeclaration, FunctionDeclaration, ImportDeclaration, InterfaceDeclaration, ModuleDeclaration, Node, TypeAliasDeclaration, VariableStatement} from "./node.ts"
-import {dirOf, normalizePath} from "./paths.ts"
+import type {CallExpression, ClassDeclaration, EnumDeclaration, ExportDeclaration, FunctionDeclaration, ImportDeclaration, InterfaceDeclaration, ModuleDeclaration, Node, TypeAliasDeclaration, VariableStatement} from "./node.ts"
+import {createWrapper, locateByPos, resolvePath} from "./node.ts"
+import {baseNameOf, dirOf, normalizePath} from "./paths.ts"
 import type {Project} from "./project.ts"
 
 // ScriptKind decides the grammar (notably TSX vs TS), so it is derived from the
@@ -63,6 +63,16 @@ export class SourceFile {
         return dirOf(this.filePath)
     }
 
+    getBaseName(): string {
+        return baseNameOf(this.filePath)
+    }
+
+    // Concise inspector: a SourceFile reaches the whole project, so let
+    // util.inspect print just the path rather than the entire graph.
+    [globalThis.Symbol.for("nodejs.util.inspect.custom")](): string {
+        return `SourceFile<${this.filePath}>`
+    }
+
     getFullText(): string {
         return this.text
     }
@@ -76,6 +86,10 @@ export class SourceFile {
     }
 
     isFromExternalLibrary(): boolean {
+        // A node_modules path is external even when added explicitly as a root
+        // (the program only flags files it pulled in via resolution). The
+        // program check then catches anything resolved as an external library.
+        if (/[/\\]node_modules[/\\]/.test(this.filePath)) return true
         const program = this.project.getTsProgram()
         const node = program.getSourceFile(this.filePath)
         return node != null && program.isSourceFileFromExternalLibrary(node)
@@ -113,12 +127,14 @@ export class SourceFile {
     // --- language-service backed edits ----------------------------------------
 
     formatText(settings: ts.FormatCodeSettings): void {
-        const edits = this.project.getTsLanguageService().getFormattingEditsForDocument(this.filePath, settings)
+        const merged = this.project.mergeFormatSettings(settings)
+        const edits = this.project.getTsLanguageService().getFormattingEditsForDocument(this.filePath, merged)
         this.applyTextChanges(edits)
     }
 
     organizeImports(settings: ts.FormatCodeSettings): void {
-        const changes = this.project.getTsLanguageService().organizeImports({type: "file", fileName: this.filePath}, settings, {})
+        const merged = this.project.mergeFormatSettings(settings)
+        const changes = this.project.getTsLanguageService().organizeImports({type: "file", fileName: this.filePath}, merged, {})
         this.project.applyFileTextChanges(changes)
     }
 
@@ -135,8 +151,20 @@ export class SourceFile {
 
     // --- navigation ------------------------------------------------------------
 
+    // Cache keyed by the standalone node so repeated wraps of the same node —
+    // including a program node mapped back through locateByPos — return one
+    // wrapper. The library compares wrappers by identity (`includes(node)`), so
+    // this dedup is load-bearing. Entries fall away as the tree is reparsed.
+    private wrapperCache = new WeakMap<ts.Node, Node>()
+
     wrap(tsNode: ts.Node): Node {
-        return createWrapper(this, locateByPos(this.tsSourceFile, tsNode), tsNode)
+        const path = locateByPos(this.tsSourceFile, tsNode)
+        const standalone = resolvePath(this.tsSourceFile, path)
+        const cached = this.wrapperCache.get(standalone)
+        if (cached != null) return cached
+        const wrapper = createWrapper(this, path, standalone)
+        this.wrapperCache.set(standalone, wrapper)
+        return wrapper
     }
 
     private statementsOfKind(kind: ts.SyntaxKind): Node[] {
@@ -187,6 +215,10 @@ export class SourceFile {
         return this.statementsOfKind(ts.SyntaxKind.VariableStatement) as VariableStatement[]
     }
 
+    // CallExpression is the only kind the library walks; the typed overload
+    // keeps its `getExpression()` / `getArguments()` call sites well-typed.
+    getDescendantsOfKind(kind: ts.SyntaxKind.CallExpression): CallExpression[]
+    getDescendantsOfKind(kind: ts.SyntaxKind): Node[]
     getDescendantsOfKind(kind: ts.SyntaxKind): Node[] {
         const out: Node[] = []
         const walk = (node: ts.Node, path: number[]): void => {

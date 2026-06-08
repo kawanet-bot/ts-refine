@@ -2,7 +2,7 @@
  * https://github.com/kawanet/ts-refine
  */
 
-import type {Project} from "ts-morph"
+import type {Project} from "../src/bridge/bridge.ts"
 
 export {} // external module indicator
 

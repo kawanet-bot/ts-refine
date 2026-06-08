@@ -13,10 +13,11 @@
 // or dropping a separator that two same-line members still need are all
 // rejected the same way.
 
-import type {ClassDeclaration, ClassMemberTypes, InterfaceDeclaration, Project, SourceFile, TypeElementTypes} from "ts-morph"
-import {Node, SyntaxKind} from "ts-morph"
 import type {TSR} from "ts-refine"
 import type {Node as TsNode} from "typescript"
+import {SyntaxKind} from "typescript"
+import type {ClassDeclaration, ClassMemberTypes, InterfaceDeclaration, Project, SourceFile, TypeElementTypes} from "../bridge/bridge.ts"
+import {Node} from "../bridge/bridge.ts"
 import {initInMemoryProject} from "../common/init-project.ts"
 import {isSeparableMember} from "../report/member-delimiter.ts"
 

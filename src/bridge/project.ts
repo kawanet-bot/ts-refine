@@ -15,6 +15,7 @@ import {createLanguageServiceHost} from "./language-service-host.ts"
 import type {Node} from "./node.ts"
 import {dirOf, normalizePath} from "./paths.ts"
 import {SourceFile} from "./source-file.ts"
+import {Symbol as TsSymbol} from "./symbol.ts"
 
 export interface ProjectOptions {
     tsConfigFilePath?: string
@@ -121,6 +122,18 @@ export class Project {
         return this.getTsProgram().getTypeChecker()
     }
 
+    // Stable wrappers per checker symbol, so the identity-based dedup the target
+    // walk relies on (`includes(symbol)`) works across separate lookups.
+    private readonly symbolCache = new WeakMap<ts.Symbol, TsSymbol>()
+    wrapSymbol(symbol: ts.Symbol): TsSymbol {
+        let wrapper = this.symbolCache.get(symbol)
+        if (wrapper == null) {
+            wrapper = new TsSymbol(this, symbol)
+            this.symbolCache.set(symbol, wrapper)
+        }
+        return wrapper
+    }
+
     // Bumped on every tracked-file edit / structural change so the language
     // service rebuilds its program against the live text.
     bumpVersion(): void {
@@ -131,8 +144,20 @@ export class Project {
         return this.compilerOptions
     }
 
+    // Fill a partial FormatCodeSettings with the editor defaults (space after a
+    // comma, etc.) the language service otherwise leaves off, so formatting and
+    // organize-imports match the conventional output. Caller fields win.
+    mergeFormatSettings(settings: ts.FormatCodeSettings): ts.FormatCodeSettings {
+        return {...ts.getDefaultFormatCodeSettings(settings.newLineCharacter), ...settings}
+    }
+
     getFileSystem(): FileSystemHost {
         return this.fileSystem
+    }
+
+    // Concise inspector so util.inspect does not serialize the language service.
+    [globalThis.Symbol.for("nodejs.util.inspect.custom")](): string {
+        return `Project<${this.sourceFiles.size} files>`
     }
 
     // Wrap a program/checker node onto its owning file's tracked tree (or a
@@ -222,7 +247,7 @@ export class Project {
     getLanguageService(): LanguageServiceWrapper {
         return {
             getCombinedCodeFix: (sourceFile, fixId, formatSettings) => {
-                const action = this.tsLanguageService.getCombinedCodeFix({type: "file", fileName: sourceFile.getFilePath()}, fixId, formatSettings, {})
+                const action = this.tsLanguageService.getCombinedCodeFix({type: "file", fileName: sourceFile.getFilePath()}, fixId, this.mergeFormatSettings(formatSettings), {})
                 return {applyChanges: () => this.applyFileTextChanges(action.changes)}
             },
         }
@@ -235,6 +260,14 @@ export class Project {
         if (this.sourceFiles.has(norm)) return
         const text = this.fileSystem.readFileSync(norm)
         this.sourceFiles.set(norm, new SourceFile(this, norm, text))
+    }
+
+    // Add an existing on-disk file to the project (e.g. a declaration file the
+    // tsconfig did not include) and return its wrapper.
+    addSourceFileAtPath(filePath: string): SourceFile {
+        this.addSourceFileFromDisk(filePath)
+        this.bumpVersion()
+        return this.getSourceFileOrThrow(filePath)
     }
 
     // Apply language-service text changes onto the wrapped source files. A change

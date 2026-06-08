@@ -1,6 +1,6 @@
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
-import {ts} from "ts-morph"
+import ts from "typescript"
 import {initInMemoryProject} from "../common/init-project.ts"
 import {refineReport} from "../report/refine-report.ts"
 import {refineFormat} from "./refine-format.ts"

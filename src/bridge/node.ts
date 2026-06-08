@@ -11,7 +11,11 @@
 
 import ts from "typescript"
 import type {SourceFile} from "./source-file.ts"
-import {Symbol as TsSymbol} from "./symbol.ts"
+import type {Symbol as TsSymbol} from "./symbol.ts"
+
+// util.inspect hook key, resolved via globalThis so files that shadow the
+// global Symbol (symbol.ts) can share the same approach.
+const INSPECT = globalThis.Symbol.for("nodejs.util.inspect.custom")
 
 // Walk forEachChild children by index to resolve a stored path back to a node.
 function childAt(node: ts.Node, index: number): ts.Node | undefined {
@@ -27,7 +31,7 @@ function childAt(node: ts.Node, index: number): ts.Node | undefined {
     return result
 }
 
-function resolvePath(root: ts.Node, path: number[]): ts.Node {
+export function resolvePath(root: ts.Node, path: number[]): ts.Node {
     let node = root
     for (const index of path) {
         const child = childAt(node, index)
@@ -126,12 +130,44 @@ export class Node {
         return this.sourceFile
     }
 
+    // A wrapper transitively references the whole project; without a concise
+    // inspector, util.inspect (e.g. an assertion-failure diff) would walk the
+    // entire type graph and exhaust memory.
+    [INSPECT](): string {
+        let snippet = ""
+        try {
+            const text = this.getText()
+            snippet = text.length > 40 ? text.slice(0, 40) + "…" : text
+        } catch {
+            snippet = "<detached>"
+        }
+        return `${this.constructor.name}<${this.getKindName()}> ${JSON.stringify(snippet)}`
+    }
+
+    // The declaration name node, when this node carries an identifier-like
+    // `name`. Present on every node (returning undefined when absent) so the
+    // `"getNameNode" in decl` probes resolve uniformly; callers narrow with
+    // Node.isIdentifier.
+    getNameNode(): Node | undefined {
+        const name = (this.compilerNode as {name?: ts.Node}).name
+        return name != null ? this.wrapChild(name) : undefined
+    }
+
     // Last child including tokens (forEachChild skips tokens, getChildren does
     // not). Pinned to the current version since the result is used at once.
     getLastChild(): Node | undefined {
         const children = this.compilerNode.getChildren(this.root)
         const last = children[children.length - 1]
         return last != null ? new Node(this.sourceFile, null, last) : undefined
+    }
+
+    // The executable body of a body-bearing node, or undefined. Every node
+    // answers it (returning undefined when absent) so the member-delimiter
+    // pass's `"getBody" in member` probe behaves like ts-morph's: a member with
+    // a body is not separator-bearing, one without still is.
+    getBody(): Node | undefined {
+        const body = (this.compilerNode as {body?: ts.Node}).body
+        return body != null ? this.wrapChild(body) : undefined
     }
 
     // Trailing comments after this node, exposed only for their kind.
@@ -149,8 +185,10 @@ export class Node {
         const project = this.sourceFile.getProject()
         const programNode = project.toProgramNode(this.sourceFile, this.compilerNode)
         if (programNode == null) return undefined
-        const symbol = project.getTypeChecker().getSymbolAtLocation(programNode)
-        return symbol != null ? new TsSymbol(project, symbol) : undefined
+        // Declarations carry the binder's symbol directly; references resolve
+        // through the checker. getSymbolAtLocation alone misses the former.
+        const symbol = (programNode as {symbol?: ts.Symbol}).symbol ?? project.getTypeChecker().getSymbolAtLocation(programNode)
+        return symbol != null ? project.wrapSymbol(symbol) : undefined
     }
 
     // Reference locations for this node (declaration, importer bindings, usages)
@@ -384,15 +422,12 @@ export class CallExpression extends Node {
     }
 }
 
-// Declarations that expose a name (and a name node for symbol anchoring).
+// Declarations that expose a name. The name node accessor is inherited from
+// Node; this adds the string form callers compare against.
 class NamedDeclaration extends Node {
     getName(): string | undefined {
         const name = (this.compilerNode as {name?: ts.Node}).name
         return name != null ? name.getText(this.root) : undefined
-    }
-    getNameNode(): Node | undefined {
-        const name = (this.compilerNode as {name?: ts.Node}).name
-        return name != null ? this.wrapChild(name) : undefined
     }
 }
 
@@ -400,16 +435,6 @@ export class FunctionDeclaration extends NamedDeclaration {}
 export class TypeAliasDeclaration extends NamedDeclaration {}
 export class EnumDeclaration extends NamedDeclaration {}
 export class ModuleDeclaration extends NamedDeclaration {}
-
-// Body-bearing members (methods, accessors, constructor, static block). The
-// member-delimiter pass probes `"getBody" in member` to skip these — they end
-// in their own `}`, not a separator — so the method must exist on the wrapper.
-export class BodyableNode extends Node {
-    getBody(): Node | undefined {
-        const body = (this.compilerNode as {body?: ts.Node}).body
-        return body != null ? this.wrapChild(body) : undefined
-    }
-}
 
 class MemberedDeclaration extends NamedDeclaration {
     getMembers(): Node[] {
@@ -477,11 +502,6 @@ const WRAPPERS = new Map<ts.SyntaxKind, new (sf: SourceFile, path: number[] | nu
     [ts.SyntaxKind.ModuleDeclaration, ModuleDeclaration],
     [ts.SyntaxKind.VariableStatement, VariableStatement],
     [ts.SyntaxKind.VariableDeclaration, VariableDeclaration],
-    [ts.SyntaxKind.MethodDeclaration, BodyableNode],
-    [ts.SyntaxKind.GetAccessor, BodyableNode],
-    [ts.SyntaxKind.SetAccessor, BodyableNode],
-    [ts.SyntaxKind.Constructor, BodyableNode],
-    [ts.SyntaxKind.ClassStaticBlockDeclaration, BodyableNode],
 ])
 
 export function createWrapper(sourceFile: SourceFile, path: number[], tsNode: ts.Node): Node {

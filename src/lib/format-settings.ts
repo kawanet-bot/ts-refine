@@ -1,6 +1,6 @@
-import type {FormatCodeSettings, SourceFile} from "ts-morph"
-import {ts} from "ts-morph"
 import type {TSR} from "ts-refine"
+import {SemicolonPreference} from "typescript"
+import type {FormatCodeSettings, SourceFile} from "../bridge/bridge.ts"
 import {reportToFormatStyle} from "../common/format-style.ts"
 import {importReportNames} from "../common/report-names.ts"
 import {runReports} from "../report/refine-report.ts"
@@ -42,9 +42,9 @@ export function formatStyleToSettings(options: TSR.FormatStyle): FormatCodeSetti
     }
 
     if (options.semi === "on") {
-        settings.semicolons = ts.SemicolonPreference.Insert
+        settings.semicolons = SemicolonPreference.Insert
     } else if (options.semi === "off") {
-        settings.semicolons = ts.SemicolonPreference.Remove
+        settings.semicolons = SemicolonPreference.Remove
     }
 
     // Empty braces stay tight (`{}`) regardless of bracketSpacing, matching

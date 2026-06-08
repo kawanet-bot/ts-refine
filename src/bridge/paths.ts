@@ -16,3 +16,8 @@ export function normalizePath(p: string): string {
 export function dirOf(p: string): string {
     return normalizePath(path.dirname(p))
 }
+
+// Final path segment (file name with extension).
+export function baseNameOf(p: string): string {
+    return path.basename(p)
+}
