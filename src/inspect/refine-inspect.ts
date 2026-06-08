@@ -12,8 +12,9 @@
 import path from "node:path"
 import type * as declared from "ts-refine"
 import type {TSR} from "ts-refine"
+import type {ImportDeclaration as TsImportDeclaration} from "typescript"
 import {SyntaxKind} from "typescript"
-import {type ImportDeclaration, Node, type SourceFile} from "../bridge/bridge.ts"
+import {Node, type SourceFile} from "../bridge/bridge.ts"
 import {resolveProject} from "../common/init-project.ts"
 import {inspectorNames} from "../common/inspector-names.ts"
 import {logging} from "../common/logging.ts"
@@ -100,7 +101,7 @@ function gatherImporters(target: SourceFile, allFiles: SourceFile[]): TSR.Inspec
 // Classifies an import declaration into one or more kinds and collects
 // the names it brings in. `value` is the catch-all for "at least one
 // value name imported" (matching the TS value/type terminology pair).
-function recordImport(decl: ImportDeclaration, kinds: Set<string>, names: Set<string>): void {
+function recordImport(decl: Node<TsImportDeclaration>, kinds: Set<string>, names: Set<string>): void {
     if (decl.isTypeOnly()) {
         kinds.add("type")
         for (const n of decl.getNamedImports()) names.add(n.getName())

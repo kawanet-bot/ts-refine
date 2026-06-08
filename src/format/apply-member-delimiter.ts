@@ -14,14 +14,15 @@
 // rejected the same way.
 
 import type {TSR} from "ts-refine"
-import type {Node as TsNode} from "typescript"
+import type {ClassElement, ClassDeclaration as TsClassDeclaration, InterfaceDeclaration as TsInterfaceDeclaration, Node as TsNode, TypeElement} from "typescript"
 import {SyntaxKind} from "typescript"
-import type {ClassDeclaration, ClassMemberTypes, InterfaceDeclaration, Project, SourceFile, TypeElementTypes} from "../bridge/bridge.ts"
-import {Node} from "../bridge/bridge.ts"
+import {Node, type Project, type SourceFile} from "../bridge/bridge.ts"
 import {initInMemoryProject} from "../common/init-project.ts"
 import {isSeparableMember} from "../report/member-delimiter.ts"
 
-type Member = ClassMemberTypes | TypeElementTypes
+type ClassDeclaration = Node<TsClassDeclaration>
+type InterfaceDeclaration = Node<TsInterfaceDeclaration>
+type Member = Node<ClassElement> | Node<TypeElement>
 
 // Target trailing separator for each style ("" = none).
 const SEPARATOR = {semi: ";", comma: ",", none: ""} as const

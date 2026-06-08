@@ -6,10 +6,13 @@
 // (one name node per distinct symbol) and never throws on "not found": the
 // caller decides — rename requires a single in-project match, list unions them.
 
-import {type Identifier, Node, type Project, type Symbol as TsSymbol} from "../bridge/bridge.ts"
+import type {Identifier as TsIdentifier} from "typescript"
+import {Node, type Project, type Symbol as TsSymbol} from "../bridge/bridge.ts"
 import {inProjectSourceFileOrThrow, inProjectSourceFiles} from "./source-files.ts"
 
 export const IDENT = /^[A-Za-z_$][A-Za-z0-9_$]*$/
+
+type Identifier = Node<TsIdentifier>
 
 // Split a dotted spec into its container path and leaf name, validating each
 // segment. No depth cap — the symbol walk handles arbitrarily nested members.
@@ -101,7 +104,7 @@ function importBindingsNamed(project: Project, name: string): Identifier[] {
             if (!named) continue
             if (Node.isNamespaceImport(named)) {
                 const nn = named.getNameNode()
-                if (nn && nn.getText() === name) found.push(nn)
+                if (nn && nn.getText() === name && Node.isIdentifier(nn)) found.push(nn)
             } else if (Node.isNamedImports(named)) {
                 for (const el of named.getElements()) {
                     const local = el.getAliasNode() ?? el.getNameNode()

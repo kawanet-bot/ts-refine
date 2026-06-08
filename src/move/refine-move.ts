@@ -17,9 +17,9 @@
 import fs from "node:fs"
 import path from "node:path"
 import type * as declared from "ts-refine"
-import type {Node as TsNode, StringLiteral as TsStringLiteral} from "typescript"
+import type {ExportDeclaration as TsExportDeclaration, ImportDeclaration as TsImportDeclaration, Node as TsNode, StringLiteral as TsStringLiteral} from "typescript"
 import {isImportTypeNode, isLiteralTypeNode, isStringLiteral, SyntaxKind} from "typescript"
-import {type ExportDeclaration, type ImportDeclaration, Node, type Project, type SourceFile, type StringLiteral} from "../bridge/bridge.ts"
+import {Node, type Project, type SourceFile} from "../bridge/bridge.ts"
 import {resolveProject} from "../common/init-project.ts"
 import {logging} from "../common/logging.ts"
 import {surveyImportStyles} from "../lib/organize-changed.ts"
@@ -32,7 +32,10 @@ import {displayPath, inProjectSourceFiles} from "../lib/source-files.ts"
 // (".ts", ".js", ".mjs", ...) or "" for no extension — whatever the user
 // wrote stays. TypeScript drops the extension during move and we put back
 // exactly what was there originally.
-type SpecRecord = {kind: "import"; node: ImportDeclaration; originalExt: string} | {kind: "export"; node: ExportDeclaration; originalExt: string} | {kind: "literal"; node: StringLiteral; originalExt: string}
+type SpecRecord =
+    | {kind: "import"; node: Node<TsImportDeclaration>; originalExt: string}
+    | {kind: "export"; node: Node<TsExportDeclaration>; originalExt: string}
+    | {kind: "literal"; node: Node<TsStringLiteral>; originalExt: string}
 
 // Extensions a module specifier may carry that the move must preserve. The
 // TS-resolvable family (`.js` etc. count under NodeNext / bundler) plus `.json`

@@ -5,9 +5,8 @@
 // theirs to make.
 
 import type {TSR} from "ts-refine"
-import type {Node as TsNode} from "typescript"
+import type {ClassElement, Node as TsNode, TypeElement} from "typescript"
 import {SyntaxKind} from "typescript"
-import type {ClassDeclaration, ClassMemberTypes, InterfaceDeclaration, TypeElementTypes} from "../bridge/bridge.ts"
 import {Node} from "../bridge/bridge.ts"
 import {getTsRefineFormat} from "../common/emit/emit-ts-refine.ts"
 import {logging} from "../common/logging.ts"
@@ -36,6 +35,7 @@ const SEP_FLAG_VALUE: Record<Separator, TSR.MemberDelimiterReport["delimiter"]> 
 }
 
 type Bucket = {lines: number; files: number; topPath: string; topLines: number}
+type Member = Node<ClassElement> | Node<TypeElement>
 
 export async function runReportMemberDelimiter({sourceFiles, output, log, importsOnly}: ReportRunOpts): Promise<Partial<TSR.MemberDelimiterReport>> {
     // import/export statements carry no interface/class members, so an
@@ -54,9 +54,9 @@ export async function runReportMemberDelimiter({sourceFiles, output, log, import
         const tsSf = sf.compilerNode
         const collect = (node: TsNode): void => {
             if (node.kind === SyntaxKind.InterfaceDeclaration || node.kind === SyntaxKind.ClassDeclaration) {
-                const wrapped = sf.getDescendantAtStartWithWidth(node.getStart(tsSf), node.getWidth(tsSf)) as InterfaceDeclaration | ClassDeclaration | undefined
+                const wrapped = sf.getDescendantAtStartWithWidth(node.getStart(tsSf), node.getWidth(tsSf))
                 if (wrapped) {
-                    for (const member of wrapped.getMembers()) {
+                    for (const member of wrapped.getMembers() as Member[]) {
                         const kind = classify(member)
                         if (kind == null) continue
                         counts.set(kind, (counts.get(kind) ?? 0) + 1)
@@ -124,7 +124,7 @@ export async function runReportMemberDelimiter({sourceFiles, output, log, import
 // method / accessor / constructor / static block ends in its own `}`, not a
 // separator. Property / index / call / construct signatures and class fields
 // do. Shared with the apply pass so report and format agree on the scope.
-export function isSeparableMember(member: ClassMemberTypes | TypeElementTypes): boolean {
+export function isSeparableMember(member: Member): boolean {
     if (Node.isClassStaticBlockDeclaration(member)) return false
     return memberBody(member) == null
 }
@@ -132,7 +132,7 @@ export function isSeparableMember(member: ClassMemberTypes | TypeElementTypes): 
 // Reads the member AST and returns the trailing separator. Only members with
 // their own executable body are skipped; properties whose initializer ends in
 // `}` still have a trailing punctuation style to count.
-function classify(member: ClassMemberTypes | TypeElementTypes): Separator | null {
+function classify(member: Member): Separator | null {
     if (!isSeparableMember(member)) return null
     const last = member.getText().trimEnd().slice(-1)
     if (last === ";") return ";"
@@ -140,7 +140,7 @@ function classify(member: ClassMemberTypes | TypeElementTypes): Separator | null
     return "none"
 }
 
-function memberBody(member: ClassMemberTypes | TypeElementTypes): unknown {
+function memberBody(member: Member): unknown {
     return "getBody" in member ? member.getBody() : undefined
 }
 

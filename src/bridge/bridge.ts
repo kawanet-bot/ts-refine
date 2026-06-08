@@ -5,16 +5,5 @@
 export {Node} from "./node.ts"
 export {Project} from "./project.ts"
 export type {ProjectOptions} from "./project.ts"
+export type {SourceFile} from "./source-file.ts"
 export type {Symbol} from "./symbol.ts"
-export type {
-    AnyNode,
-    ClassDeclaration,
-    ClassMemberTypes,
-    ExportDeclaration,
-    Identifier,
-    ImportDeclaration,
-    InterfaceDeclaration,
-    SourceFile,
-    StringLiteral,
-    TypeElementTypes,
-} from "./types.ts"
