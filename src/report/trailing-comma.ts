@@ -1,7 +1,8 @@
 // report trailing-comma: classify multi-line comma-separated lists by whether
-// they carry a trailing comma. Scope mirrors the apply pass (listOf): array /
-// object / call / param / enum / tuple / named-import lists, excluding the
-// angle-bracket and interface/type/class member lists it leaves untouched.
+// they carry a trailing comma. Scope is shared with the apply pass via
+// lib/comma-lists (listOf): array / object / call / param / enum / tuple /
+// named-import lists, excluding angle-bracket and interface/type/class member
+// lists it leaves untouched.
 // Single-line lists never vote — a trailing comma there is not a layout choice
 // the convention speaks to — so only the author's multi-line lists are counted.
 
@@ -9,7 +10,7 @@ import type {TSR} from "ts-refine"
 import type {Node as TsNode} from "typescript"
 import {getTsRefineFormat} from "../common/emit/emit-ts-refine.ts"
 import {logging} from "../common/logging.ts"
-import {isSpreadOrRest, listOf} from "../format/apply-trailing-comma.ts"
+import {isSpreadOrRest, listOf} from "../lib/comma-lists.ts"
 import {displayPath} from "../lib/source-files.ts"
 import {hasLineBreakBetween} from "../lib/text-ranges.ts"
 import {pickRecommendByFiles} from "./pick-recommend.ts"
