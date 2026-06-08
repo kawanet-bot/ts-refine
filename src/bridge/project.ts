@@ -172,7 +172,9 @@ export class Project {
         if (tracked != null) return tracked
         let foreign = this.foreignWrappers.get(norm)
         if (foreign == null) {
-            foreign = new SourceFile(this, norm, tsSourceFile.getFullText())
+            // Reuse the program's parsed tree — foreign files are read-only, so
+            // re-parsing a large external .d.ts here would be pure waste.
+            foreign = new SourceFile(this, norm, tsSourceFile.text, tsSourceFile)
             this.foreignWrappers.set(norm, foreign)
         }
         return foreign

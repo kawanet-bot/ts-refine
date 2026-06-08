@@ -29,12 +29,15 @@ export class SourceFile {
     // Bumped on each edit; wrappers compare against it to revalidate lazily.
     scriptVersion = 0
 
-    constructor(project: Project, filePath: string, text: string) {
+    // `preParsed` lets a read-only foreign file (an external declaration reached
+    // via a re-export) reuse the program's already-parsed tree instead of
+    // re-parsing megabytes of .d.ts that the caller will then discard.
+    constructor(project: Project, filePath: string, text: string, preParsed?: ts.SourceFile) {
         this.project = project
         this.filePath = filePath
-        this.text = text
+        this.text = preParsed != null ? preParsed.text : text
         this.scriptKind = scriptKindForPath(filePath)
-        this.tsSourceFile = this.parse()
+        this.tsSourceFile = preParsed ?? this.parse()
     }
 
     private parse(): ts.SourceFile {
@@ -151,10 +154,13 @@ export class SourceFile {
 
     // --- navigation ------------------------------------------------------------
 
-    // Cache keyed by the standalone node so repeated wraps of the same node —
-    // including a program node mapped back through locateByPos — return one
-    // wrapper. The library compares wrappers by identity (`includes(node)`), so
-    // this dedup is load-bearing. Entries fall away as the tree is reparsed.
+    // Within one edit-free pass, repeated wraps of the same node — including a
+    // program node mapped back through locateByPos — return one wrapper, so the
+    // identity dedup the target walk relies on (`includes(node)`) holds. The
+    // cache is keyed on the reparsed node, so an edit starts a fresh generation;
+    // that is fine because callers re-fetch wrappers after editing rather than
+    // comparing a pre-edit wrapper against a post-edit one. A wrapper captured
+    // across an edit stays usable via its own path-based revalidation.
     private wrapperCache = new WeakMap<ts.Node, Node>()
 
     wrap(tsNode: ts.Node): Node {
