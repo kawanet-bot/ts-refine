@@ -1,7 +1,10 @@
 // report trailing-comma: classify multi-line comma-separated lists by whether
-// they carry a trailing comma. Scope mirrors the apply pass (listOf): array /
-// object / call / param / enum / tuple / named-import lists, excluding the
-// angle-bracket and interface/type/class member lists it leaves untouched.
+// they carry a trailing comma. Scope is shared with the apply pass via
+// lib/comma-lists (listOf): array / object / call / param / enum / tuple /
+// named-import lists, excluding angle-bracket and interface/type/class member
+// lists. A dynamic `import()` resolves like any call, so listOf still returns
+// its argument list; the vote below skips it via isDynamicImport, matching the
+// apply pass which keeps it comma-free.
 // Single-line lists never vote — a trailing comma there is not a layout choice
 // the convention speaks to — so only the author's multi-line lists are counted.
 
@@ -9,7 +12,7 @@ import type {TSR} from "ts-refine"
 import type {Node as TsNode} from "typescript"
 import {getTsRefineFormat} from "../common/emit/emit-ts-refine.ts"
 import {logging} from "../common/logging.ts"
-import {isSpreadOrRest, listOf} from "../format/apply-trailing-comma.ts"
+import {isDynamicImport, isSpreadOrRest, listOf} from "../lib/comma-lists.ts"
 import {displayPath} from "../lib/source-files.ts"
 import {hasLineBreakBetween} from "../lib/text-ranges.ts"
 import {pickRecommendByFiles} from "./pick-recommend.ts"
@@ -32,6 +35,9 @@ type Bucket = {lines: number; files: number; topPath: string; topLines: number}
 function classify(text: string, node: TsNode): Style | null {
     const list = listOf(node, text)
     if (list == null) return null
+    // The apply pass forces a dynamic import to "no comma" regardless of the
+    // chosen style, so it speaks to neither side — exclude it from the vote.
+    if (isDynamicImport(node)) return null
     const last = list.elements[list.elements.length - 1]
     if (isSpreadOrRest(last)) return null
     const multiline = hasLineBreakBetween(text, last.end, list.closeStart)
