@@ -50,6 +50,16 @@ describe("runReportTrailingComma", () => {
         assert.deepEqual(ret, {})
     })
 
+    it("never counts a dynamic import (the apply pass keeps it comma-free)", async () => {
+        // A Prettier-style multi-line dynamic import has no trailing comma, so
+        // without this exclusion the two imports would outvote the one real
+        // call and flip the recommendation to `off`. They must not vote at all.
+        const {ret} = await run({
+            "x.ts": "const a = await import(\n    `./a.json`\n)\nconst b = await import(\n    `./b.json`\n)\nfn(\n    p,\n    q,\n)\n",
+        })
+        assert.deepEqual(ret, {trailingComma: "on"})
+    })
+
     it("with importsOnly, counts only import/export named bindings", async () => {
         const {ret, out} = await run(
             {
