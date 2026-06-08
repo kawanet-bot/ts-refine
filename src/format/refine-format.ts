@@ -10,6 +10,7 @@ import {logging} from "../common/logging.ts"
 import {assertNoLoneCr} from "../lib/assert-no-lone-cr.ts"
 import {formatStyleToSettings, normalizeNewLines} from "../lib/format-settings.ts"
 import {selectSourceFiles} from "../lib/source-files.ts"
+import {applyAsiGuard} from "./apply-asi-guard.ts"
 import {applyMemberDelimiter} from "./apply-member-delimiter.ts"
 import {applySingleLineTypeLiteralTail} from "./apply-single-line-type-literal.ts"
 import {applyTrailingComma} from "./apply-trailing-comma.ts"
@@ -41,6 +42,10 @@ export const refineFormat: typeof declared.refineFormat = async (opts) => {
         // `;`) changes a child count, so drop them and reparse from clean text.
         sf.forgetDescendants()
         sf.formatText(settings)
+
+        // Prettier's `semi: false` ASI guard `;(` is re-spaced to `; (` by the
+        // LS formatter; reassert the tight form so format doesn't garble it.
+        if (style.semi === "off") applyAsiGuard(sf)
 
         // The LS formatter can't set interface/class member delimiter (and
         // can't emit commas); apply the surveyed style on the formatted AST.
