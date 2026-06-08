@@ -276,7 +276,7 @@ export class SourceFile implements TSR.SourceFile {
         const end = start + width
         let node: ts.Node = this.tsSourceFile
         let found: ts.Node | undefined
-        for (; ;) {
+        for (;;) {
             if (node.getStart(this.tsSourceFile) === start && node.end === end) found = node
             let next: ts.Node | undefined
             ts.forEachChild(node, (child) => {
