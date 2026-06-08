@@ -76,6 +76,17 @@ test("rename rewrites a shorthand destructuring with an explicit alias", () => {
     assert.match(b.getFullText(), /const \{ height: width \} = box/)
 })
 
+test("setModuleSpecifier escapes the quote character in the new path", () => {
+    const project = new Project({useInMemoryFileSystem: true})
+    // Single-quoted specifier; the new path contains a single quote (a dir
+    // named bob's). Without escaping this would emit invalid source.
+    const a = project.createSourceFile("/p/a.ts", "import {x} from './old.ts'\n")
+    a.getImportDeclarations()[0].setModuleSpecifier("./bob's/a.ts")
+    assert.match(a.getFullText(), /from '\.\/bob\\'s\/a\.ts'/)
+    // It must re-parse back to the decoded path.
+    assert.equal(a.getImportDeclarations()[0].getModuleSpecifierValue(), "./bob's/a.ts")
+})
+
 test("a wrapper captured before an edit revalidates against the reparsed tree", () => {
     const project = new Project({useInMemoryFileSystem: true})
     const a = project.createSourceFile("/p/a.ts", "export const a = 1\n")

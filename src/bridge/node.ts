@@ -496,7 +496,16 @@ function replaceStringLiteral(owner: Node, literal: ts.StringLiteral, newInner: 
     const start = literal.getStart(sf.compilerNode)
     const end = literal.end
     const quote = full[start] === "'" ? "'" : full[start] === "`" ? "`" : '"'
-    sf.replaceWithText(full.slice(0, start) + quote + newInner + quote + full.slice(end))
+    sf.replaceWithText(full.slice(0, start) + quote + escapeForQuote(newInner, quote) + quote + full.slice(end))
+}
+
+// Escape a literal's decoded content for the chosen delimiter. `newInner` comes
+// from `literal.text` (already decoded), so a path containing the quote (a dir
+// named `bob's`) or a backslash would otherwise produce invalid source.
+function escapeForQuote(text: string, quote: string): string {
+    let out = text.replace(/\\/g, "\\\\").replaceAll(quote, "\\" + quote).replace(/\r/g, "\\r").replace(/\n/g, "\\n")
+    if (quote === "`") out = out.replace(/\$\{/g, "\\${")
+    return out
 }
 
 // Map a syntax kind to its wrapper constructor; unmapped kinds fall back to the
