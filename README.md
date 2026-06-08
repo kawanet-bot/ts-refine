@@ -92,6 +92,7 @@ Global options may appear on either side of the command:
 - `--dry-run` — for `format` / `imports` / `move` / `rename`, print what would
   change instead of writing.
 - `-h, --help` — show usage.
+- `-v, --version` — show the ts-refine and TypeScript versions.
 
 ## List
 

@@ -43,6 +43,15 @@ describe("refineCLI", () => {
         }
     })
 
+    it("prints the ts-refine and typescript versions for -v and --version", async () => {
+        for (const args of [["-v"], ["--version"]]) {
+            const r = await run(args)
+            assert.equal(r.status, 0, `args: ${args.join(" ")}`)
+            assert.match(r.stdout, /^ts-refine \d+\.\d+\.\d+/m)
+            assert.match(r.stdout, /^typescript \d+\.\d+\.\d+/m)
+        }
+    })
+
     it("runs the report subcommand and prints Markdown", async () => {
         const r = await run(["report", "--semi", "-p", SAMPLE])
         assert.equal(r.status, 0)

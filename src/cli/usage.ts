@@ -88,6 +88,7 @@ export function usage(): string {
         "                              that contains one. Defaults to `-p .`.",
         "  --dry-run                   format/imports/move/rename only: print instead of writing",
         "  -h, --help                  Show this help",
+        "  -v, --version               Show the ts-refine and TypeScript versions",
         "",
         "See also: https://github.com/kawanet/ts-refine/blob/main/README.md",
     ].join("\n")

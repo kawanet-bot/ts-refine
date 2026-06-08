@@ -19,6 +19,7 @@ import {parseCommonArgs} from "./parse-common-args.ts"
 import {renameCLI} from "./rename/rename-cli.ts"
 import {reportCLI} from "./report/report-cli.ts"
 import {usage} from "./usage.ts"
+import {versionText} from "./version.ts"
 
 // The command table is the single source of truth for the set of subcommands:
 // membership here is what makes a name valid. Insertion order also drives the
@@ -61,6 +62,14 @@ export const refineCLI: CLI = async (ctx) => {
     // handler, which currently throws to reject it.
     if (command === "help" || tokens.length === 0 || (command == null && common.help)) {
         output.write(usage() + "\n")
+        return 0
+    }
+
+    // `-v` / `--version` print the version banner and exit. Unlike --help this is
+    // never a per-command option, so it is matched here rather than in CommonArgs
+    // (which every command parser shares) — a subcommand never needs it.
+    if (command === "-v" || command === "--version") {
+        output.write(versionText() + "\n")
         return 0
     }
 

@@ -11,7 +11,7 @@
     "allowImportingTsExtensions": true,
     "allowSyntheticDefaultImports": true,
     "isolatedModules": true,
-    "module": "ES2022",
+    "module": "esnext",
     "moduleResolution": "bundler",
     "noEmit": true,
     "noImplicitAny": true,
