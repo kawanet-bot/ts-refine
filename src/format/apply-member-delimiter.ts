@@ -13,9 +13,10 @@
 // or dropping a separator that two same-line members still need are all
 // rejected the same way.
 
-import type {ClassMemberTypes, Project, SourceFile, TypeElementTypes} from "ts-morph"
-import {Node} from "ts-morph"
+import type {ClassDeclaration, ClassMemberTypes, InterfaceDeclaration, Project, SourceFile, TypeElementTypes} from "ts-morph"
+import {Node, SyntaxKind} from "ts-morph"
 import type {TSR} from "ts-refine"
+import type {Node as TsNode} from "typescript"
 import {initInMemoryProject} from "../common/init-project.ts"
 import {isSeparableMember} from "../report/member-delimiter.ts"
 
@@ -63,13 +64,27 @@ export function applyMemberDelimiter(sf: SourceFile, style: TSR.MemberDelimiterR
     // would skip or corrupt later interfaces/classes in the same file.
     const edits: {start: number; end: number; text: string}[] = []
 
-    sf.forEachDescendant((node) => {
-        if (!Node.isInterfaceDeclaration(node) && !Node.isClassDeclaration(node)) return
+    // Find the interface / class declarations on the compiler AST, then wrap
+    // only those few back into ts-morph for the member-level work below. The
+    // previous sf.forEachDescendant allocated a wrapper for every node in the
+    // file just to reach the handful of containers.
+    const tsSf = sf.compilerNode
+    const containers: (InterfaceDeclaration | ClassDeclaration)[] = []
+    const collect = (node: TsNode): void => {
+        if (node.kind === SyntaxKind.InterfaceDeclaration || node.kind === SyntaxKind.ClassDeclaration) {
+            const wrapped = sf.getDescendantAtStartWithWidth(node.getStart(tsSf), node.getWidth(tsSf))
+            if (wrapped) containers.push(wrapped as InterfaceDeclaration | ClassDeclaration)
+        }
+        node.forEachChild(collect)
+    }
+    collect(tsSf)
+
+    for (const node of containers) {
         const isClass = Node.isClassDeclaration(node)
         // Fast path: a class member can't legally end with a comma, so in comma
         // mode every candidate would fail the re-parse — skip the class outright
         // rather than building and verifying edits the parser would reject.
-        if (style === "comma" && isClass) return
+        if (style === "comma" && isClass) continue
         const text = node.getText()
         const base = node.getStart()
         const open = isClass ? "class _ {" : "interface _ {"
@@ -101,7 +116,7 @@ export function applyMemberDelimiter(sf: SourceFile, style: TSR.MemberDelimiterR
                 edits.push({start: member.getStart(), end: member.getEnd(), text: replacement})
             }
         })
-    })
+    }
 
     if (edits.length === 0) return
 
