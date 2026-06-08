@@ -9,7 +9,7 @@ const externals = new Set<string>([
     ...builtinModules,
     ...builtinModules.map((m) => `node:${m}`),
     "ts-refine",
-    "ts-morph",
+    "typescript",
 ])
 
 export const isExternal = (id: string): boolean => {

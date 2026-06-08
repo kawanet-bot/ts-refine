@@ -13,10 +13,10 @@
 // or dropping a separator that two same-line members still need are all
 // rejected the same way.
 
-import type {ClassDeclaration, ClassMemberTypes, InterfaceDeclaration, Project, SourceFile, TypeElementTypes} from "ts-morph"
-import {Node, SyntaxKind} from "ts-morph"
 import type {TSR} from "ts-refine"
 import type {Node as TsNode} from "typescript"
+import type {ClassDeclaration, ClassMemberTypes, InterfaceDeclaration, Project, SourceFile, TypeElementTypes} from "../bridge/bridge.ts"
+import {Node, SyntaxKind} from "../bridge/bridge.ts"
 import {initInMemoryProject} from "../common/init-project.ts"
 import {isSeparableMember} from "../report/member-delimiter.ts"
 
@@ -65,7 +65,7 @@ export function applyMemberDelimiter(sf: SourceFile, style: TSR.MemberDelimiterR
     const edits: {start: number; end: number; text: string}[] = []
 
     // Find the interface / class declarations on the compiler AST, then wrap
-    // only those few back into ts-morph for the member-level work below. The
+    // only those few through the bridge for the member-level work below. The
     // previous sf.forEachDescendant allocated a wrapper for every node in the
     // file just to reach the handful of containers.
     const tsSf = sf.compilerNode

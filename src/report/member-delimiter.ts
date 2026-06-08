@@ -4,10 +4,10 @@
 // accessors, constructors) are skipped because the separator choice isn't
 // theirs to make.
 
-import type {ClassDeclaration, ClassMemberTypes, InterfaceDeclaration, TypeElementTypes} from "ts-morph"
-import {Node, SyntaxKind} from "ts-morph"
 import type {TSR} from "ts-refine"
 import type {Node as TsNode} from "typescript"
+import type {ClassDeclaration, ClassMemberTypes, InterfaceDeclaration, TypeElementTypes} from "../bridge/bridge.ts"
+import {Node, SyntaxKind} from "../bridge/bridge.ts"
 import {getTsRefineFormat} from "../common/emit/emit-ts-refine.ts"
 import {logging} from "../common/logging.ts"
 import {displayPath} from "../lib/source-files.ts"
@@ -47,7 +47,7 @@ export async function runReportMemberDelimiter({sourceFiles, output, log, import
     for (const sf of sourceFiles) {
         const counts = new Map<Separator, number>()
         // Find interface / class declarations on the compiler AST, then wrap
-        // only those few back into ts-morph for the member-level classify. The
+        // only those few through the bridge for the member-level classify. The
         // previous sf.forEachDescendant allocated a wrapper for every node in
         // the file just to reach the handful of containers.
         const tsSf = sf.compilerNode
