@@ -2,8 +2,8 @@
 // settling, organizeImports, and the semicolon cleanup below always run as a
 // set, so callers invoke this instead of organizeImports directly.
 
-import type {FormatCodeSettings, SourceFile} from "ts-morph"
-import {Node, ts} from "ts-morph"
+import type {FormatCodeSettings, SourceFile} from "../bridge/bridge.ts"
+import {Node, ts} from "../bridge/bridge.ts"
 import {applyTrailingComma} from "../format/apply-trailing-comma.ts"
 import type {ImportsStyle} from "./format-settings.ts"
 import {applyTypeOnlyFixes} from "./type-only-fixes.ts"

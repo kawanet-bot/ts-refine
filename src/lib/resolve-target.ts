@@ -6,7 +6,7 @@
 // (one name node per distinct symbol) and never throws on "not found": the
 // caller decides — rename requires a single in-project match, list unions them.
 
-import {type Identifier, Node, type Project, type Symbol as TsSymbol} from "ts-morph"
+import {type Identifier, Node, type Project, type Symbol as TsSymbol} from "../bridge/bridge.ts"
 import {inProjectSourceFileOrThrow, inProjectSourceFiles} from "./source-files.ts"
 
 export const IDENT = /^[A-Za-z_$][A-Za-z0-9_$]*$/
@@ -60,13 +60,20 @@ export function resolveImportedAnchors(project: Project, spec: string): Identifi
 // per distinct anchor.
 function walkAnchors(roots: TsSymbol[], segments: string[]): Identifier[] {
     const anchors: Identifier[] = []
+    const seen = new Set<string>()
     for (const root of roots) {
         let sym: TsSymbol | undefined = root
         for (let i = 1; i < segments.length && sym; i++) {
             sym = sym.getExport(segments[i]) ?? sym.getMember(segments[i])
         }
         const node = sym && symbolNameNode(sym)
-        if (node && !anchors.includes(node)) anchors.push(node)
+        if (node) {
+            const key = nodeKey(node)
+            if (!seen.has(key)) {
+                seen.add(key)
+                anchors.push(node)
+            }
+        }
     }
     return anchors
 }
@@ -94,11 +101,11 @@ function importBindingsNamed(project: Project, name: string): Identifier[] {
             if (!named) continue
             if (Node.isNamespaceImport(named)) {
                 const nn = named.getNameNode()
-                if (nn.getText() === name) found.push(nn)
+                if (nn && nn.getText() === name) found.push(nn)
             } else if (Node.isNamedImports(named)) {
                 for (const el of named.getElements()) {
                     const local = el.getAliasNode() ?? el.getNameNode()
-                    if (local.getText() === name && Node.isIdentifier(local)) found.push(local)
+                    if (local && local.getText() === name && Node.isIdentifier(local)) found.push(local)
                 }
             }
         }
@@ -112,6 +119,16 @@ function pushSymbol(into: TsSymbol[], sym: TsSymbol | undefined): void {
 
 function dedupe(nodes: Identifier[]): Identifier[] {
     const out: Identifier[] = []
-    for (const node of nodes) if (!out.includes(node)) out.push(node)
+    const seen = new Set<string>()
+    for (const node of nodes) {
+        const key = nodeKey(node)
+        if (seen.has(key)) continue
+        seen.add(key)
+        out.push(node)
+    }
     return out
+}
+
+function nodeKey(node: Identifier): string {
+    return `${node.getSourceFile().getFilePath()}:${node.getStart()}:${node.getText()}`
 }

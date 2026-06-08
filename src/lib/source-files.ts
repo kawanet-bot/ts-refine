@@ -1,9 +1,9 @@
 // Source file selection shared between action and report. The positional
-// file arguments (absolute) are forwarded to ts-morph; an empty list means
+// file arguments (absolute) are forwarded to the project; an empty list means
 // the whole project.
 
 import path from "node:path"
-import {type Project, ScriptKind, type SourceFile} from "ts-morph"
+import {type Project, ScriptKind, type SourceFile} from "../bridge/bridge.ts"
 
 // In-project command/refactor targets only. External declarations (TS lib,
 // @types/*, node_modules) are load-only; JSON modules aren't TypeScript and the

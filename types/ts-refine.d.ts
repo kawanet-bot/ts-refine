@@ -2,7 +2,7 @@
  * https://github.com/kawanet/ts-refine
  */
 
-import type {Project} from "ts-morph"
+import type {Project} from "../src/bridge/bridge.ts"
 
 export {} // external module indicator
 
@@ -10,7 +10,7 @@ export declare namespace TSR {
     // output stream
     type Writer = {write: (line: string) => void}
 
-    // Common base for every entry. Supply the ts-morph project one of two ways:
+    // Common base for every entry. Supply the TypeScript bridge project one of two ways:
     // your own `project` (bring-your-own — in-memory, custom options, and reuse
     // across calls), or a `tsConfigFilePath` to build a fresh one (best for
     // one-shot use). Exactly one is required — supplying both throws.

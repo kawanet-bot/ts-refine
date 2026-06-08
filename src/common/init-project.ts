@@ -3,8 +3,8 @@
 // call should use from CommonOpts: a caller-supplied `project`, or one built
 // from `tsConfigFilePath`.
 
-import {Project, type ProjectOptions} from "ts-morph"
 import type {TSR} from "ts-refine"
+import {Project, type ProjectOptions} from "../bridge/bridge.ts"
 
 export function initProject(opts: {tsConfigFilePath: string}): Project {
     return new Project(opts)

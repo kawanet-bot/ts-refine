@@ -10,9 +10,9 @@
 // suggestion column.
 
 import path from "node:path"
-import {type ImportDeclaration, Node, type SourceFile, ts} from "ts-morph"
 import type * as declared from "ts-refine"
 import type {TSR} from "ts-refine"
+import {type ImportDeclaration, Node, type SourceFile, ts} from "../bridge/bridge.ts"
 import {resolveProject} from "../common/init-project.ts"
 import {inspectorNames} from "../common/inspector-names.ts"
 import {logging} from "../common/logging.ts"
@@ -176,7 +176,7 @@ function gatherExports(sf: SourceFile): TSR.InspectExport[] {
 }
 
 // Map a declaration node to a human-friendly kind label
-// (function/class/const/...) instead of ts-morph's raw kind name.
+// (function/class/const/...) instead of raw compiler kind names.
 function kindLabel(decl: Node): string {
     if (Node.isFunctionDeclaration(decl)) return "function"
     if (Node.isClassDeclaration(decl)) return "class"

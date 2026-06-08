@@ -18,13 +18,12 @@ CLI_CONFIG := ./rollup-cli.config.ts
 # update here.
 NAMED_EXPORTS := $(shell sed -nE 's/^export declare function ([a-zA-Z_$$]+).*/\1/p' $(TYPES))
 
-# Bundle should contain only this package's own src/ — ts-morph is
+# Bundle should contain only this package's own src/ — TypeScript is
 # externalized. A noticeably larger output means an accidental bundling
-# of a transitive dep (which would be hundreds of KB); fail the build so it
-# cannot slip in. This cap is not a minifier target: raise it for real feature
-# growth, and keep source code readable.
-MJS_MAX_BYTES := 150000
-CLI_MAX_BYTES := 50000
+# of a runtime dependency; fail the build so it cannot slip in. This cap is not
+# a minifier target: raise it for real feature growth, and keep source readable.
+MJS_MAX_BYTES := 220000
+CLI_MAX_BYTES := 120000
 
 ALL := $(MJS_DST) $(CLI_DST)
 
