@@ -4,7 +4,6 @@
 import type {TSR} from "ts-refine"
 
 export interface Summary {
-    total: number
     min: number
     median: number
     mean: number
@@ -23,7 +22,7 @@ export function summarize(samples: number[]): Summary {
     const middle = Math.floor(sorted.length / 2)
     const median = sorted.length % 2 === 0 ? (sorted[middle - 1] + sorted[middle]) / 2 : sorted[middle]
 
-    return {total, min: sorted[0], median, mean: total / samples.length, max: sorted[sorted.length - 1]}
+    return {min: sorted[0], median, mean: total / samples.length, max: sorted[sorted.length - 1]}
 }
 
 export function formatMs(value: number): string {

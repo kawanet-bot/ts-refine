@@ -96,7 +96,7 @@ export function runFormatBench(args: BenchmarkArgs, fixtures: ReadonlyArray<Fixt
     rows.sort((a, b) => b.mean - a.mean)
     printTable(
         output,
-        ["pass", "calls", "total", "mean", "median", "min", "max"],
-        rows.map((row) => [row.name, String(row.calls), formatMs(row.total), formatMs(row.mean), formatMs(row.median), formatMs(row.min), formatMs(row.max)]),
+        ["pass", "calls", "mean", "median", "min", "max"],
+        rows.map((row) => [row.name, String(row.calls), formatMs(row.mean), formatMs(row.median), formatMs(row.min), formatMs(row.max)]),
     )
 }
