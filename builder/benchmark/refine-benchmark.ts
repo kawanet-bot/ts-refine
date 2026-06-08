@@ -32,19 +32,21 @@ export const refineBenchmark: CLI = async (ctx) => {
     const sourceFiles = selectSourceFiles(project, {paths: args.paths})
     const selectMs = performance.now() - selectStart
 
+    // Capture the loaded text once. Both sections rebuild their own cold scratch
+    // copies from these fixtures for every run, so the initial load above is only
+    // to read the sources, not part of any measurement.
+    const fixtures = sourceFiles.map((sf) => ({path: sf.getFilePath(), text: sf.getFullText()}))
+
     output.write(`project: ${args.project}\n`)
-    output.write(`files: ${sourceFiles.length}\n`)
+    output.write(`files: ${fixtures.length}\n`)
     output.write(`setup: project=${formatMs(projectMs)} select=${formatMs(selectMs)}\n`)
-    output.write(`runs: warmup=${args.warmup} iterations=${args.iterations} importsOnly=${args.importsOnly}\n`)
+    output.write(`runs: iterations=${args.iterations} (after 1 warmup) importsOnly=${args.importsOnly}\n`)
     output.write("\n")
 
     output.write("## report\n")
-    await runReportBench(args, sourceFiles, output, log)
+    await runReportBench(args, fixtures, output, log)
     output.write("\n")
 
-    // Capture the post-load text once; the format passes mutate in-memory copies,
-    // so each pass rebuilds its own scratch project from these fixtures.
-    const fixtures = sourceFiles.map((sf) => ({path: sf.getFilePath(), text: sf.getFullText()}))
     output.write("## format\n")
     runFormatBench(args, fixtures, output, log)
 

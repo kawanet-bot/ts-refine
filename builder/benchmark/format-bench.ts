@@ -6,7 +6,6 @@
 import {performance} from "node:perf_hooks"
 import type {TSR} from "ts-refine"
 import type {SourceFile} from "../../src/bridge/bridge.ts"
-import {initInMemoryProject} from "../../src/common/init-project.ts"
 import {applyAsiGuard} from "../../src/format/apply-asi-guard.ts"
 import {applyForHeaderSemicolons} from "../../src/format/apply-for-header-semicolons.ts"
 import {applyMemberDelimiter} from "../../src/format/apply-member-delimiter.ts"
@@ -15,22 +14,8 @@ import {applyTrailingComma} from "../../src/format/apply-trailing-comma.ts"
 import {applyTypeBracketSpacing} from "../../src/format/apply-type-bracket-spacing.ts"
 import {formatStyleToSettings} from "../../src/lib/format-settings.ts"
 import type {BenchmarkArgs} from "./parse-benchmark-args.ts"
+import {createScratchFiles, type Fixture} from "./scratch.ts"
 import {printStatsTable, type StatRow, summarize} from "./stats.ts"
-
-export interface Fixture {
-    path: string
-    text: string
-}
-
-// One untimed formatText to mimic the language-service pass refineFormat runs
-// before its self-passes. Only single-line-type-literal needs it (it trims a
-// tail the formatter inserts); the others act on the parsed tree regardless.
-const PREP_SETTINGS = formatStyleToSettings({semi: "on", indent: 4, newLine: "lf"})
-
-function formatPrep(sf: SourceFile): void {
-    sf.forgetDescendants()
-    sf.formatText(PREP_SETTINGS)
-}
 
 // Style type erased behind defineCase so the heterogeneous passes share one
 // array. Each pass keeps its own FormatStyle union at the call site (no casts);
@@ -49,25 +34,36 @@ function defineCase<TStyle>(name: string, styles: readonly TStyle[], run: (sf: S
 // Built on demand rather than at module load: defineCase runs once per call,
 // only when a benchmark actually runs, not for every importer of this module.
 function getFormatCases(): ReadonlyArray<FormatCase> {
+    // refineFormat runs asi-guard / single-line-tail / for-header *after*
+    // formatText, so without a matching prep they only time a near-noop
+    // early-return. Prep each at the semi the language service diverges on:
+    // asi-guard on `off` (restores `;(`), single-line-tail on `on` (trims the
+    // appended `;`); for-header is semi-independent. The member/trailing/bracket
+    // passes act on the parsed tree regardless, so they need no prep.
+    const prepAt = (semi: TSR.FormatStyle["semi"]): ((sf: SourceFile) => void) => {
+        const settings = formatStyleToSettings({semi, indent: 4, newLine: "lf"})
+        return (sf) => {
+            sf.forgetDescendants()
+            sf.formatText(settings)
+        }
+    }
+    const prepSemiOn = prepAt("on")
+
     return [
-        defineCase("applyAsiGuard", ["off", "on"] as const, applyAsiGuard),
-        defineCase("applySingleLineTypeLiteralTail", ["on", "off"] as const, applySingleLineTypeLiteralTail, formatPrep),
-        defineCase("applyForHeaderSemicolons", [null] as const, (sf) => applyForHeaderSemicolons(sf)),
+        defineCase("applyAsiGuard", ["off", "on"] as const, applyAsiGuard, prepAt("off")),
+        defineCase("applySingleLineTypeLiteralTail", ["on", "off"] as const, applySingleLineTypeLiteralTail, prepSemiOn),
+        defineCase("applyForHeaderSemicolons", [null] as const, (sf) => applyForHeaderSemicolons(sf), prepSemiOn),
         defineCase("applyMemberDelimiter", ["semi", "none"] as const, applyMemberDelimiter),
         defineCase("applyTrailingComma", ["on", "off"] as const, applyTrailingComma),
         defineCase("applyTypeBracketSpacing", ["on", "off"] as const, applyTypeBracketSpacing),
     ]
 }
 
-function createScratchFiles(fixtures: ReadonlyArray<Fixture>): SourceFile[] {
-    const project = initInMemoryProject()
-    return fixtures.map(({path, text}) => project.createSourceFile(path, text, {overwrite: true}))
-}
-
-// One timed pass over a freshly built copy of the fixtures. The passes mutate
-// the SourceFiles, so each run rebuilds from the original text — otherwise a
-// second run would measure an already-fixed no-op state. prepare (when present)
-// runs untimed so the timed call always starts from formatted text.
+// One timed pass over a freshly built (cold) copy of the fixtures. The passes
+// mutate the SourceFiles, so each run rebuilds from the original text — both to
+// avoid timing an already-fixed no-op and to measure the cold path the tool
+// actually runs. prepare (when present) runs untimed so the timed call starts
+// from the post-formatter state refineFormat's self-passes see.
 function runOnce(benchCase: FormatCase, fixtures: ReadonlyArray<Fixture>, styleIndex: number): number {
     const files = createScratchFiles(fixtures)
     if (benchCase.prepare) {
@@ -86,7 +82,8 @@ export function runFormatBench(args: BenchmarkArgs, fixtures: ReadonlyArray<Fixt
 
         const samples: number[] = []
         for (let s = 0; s < benchCase.styleCount; s++) {
-            for (let i = 0; i < args.warmup; i++) runOnce(benchCase, fixtures, s)
+            // One fixed warmup run (the 0th), discarded; then the measured runs.
+            runOnce(benchCase, fixtures, s)
             for (let i = 0; i < args.iterations; i++) samples.push(runOnce(benchCase, fixtures, s))
         }
 

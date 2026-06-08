@@ -5,7 +5,6 @@
 export interface BenchmarkArgs {
     project: string
     paths: string[]
-    warmup: number
     iterations: number
     importsOnly: boolean
     help: boolean
@@ -15,7 +14,6 @@ export function parseBenchmarkArgs(tokens: string[]): BenchmarkArgs {
     const parsed: BenchmarkArgs = {
         project: "tsconfig.json",
         paths: [],
-        warmup: 1,
         iterations: 5,
         importsOnly: false,
         help: false,
@@ -27,8 +25,6 @@ export function parseBenchmarkArgs(tokens: string[]): BenchmarkArgs {
             parsed.project = requireValue(tokens, ++i, arg)
         } else if (arg === "--path") {
             parsed.paths.push(requireValue(tokens, ++i, arg))
-        } else if (arg === "--warmup") {
-            parsed.warmup = parseNonNegativeInt(requireValue(tokens, ++i, arg), arg)
         } else if (arg === "--iterations") {
             parsed.iterations = parsePositiveInt(requireValue(tokens, ++i, arg), arg)
         } else if (arg === "--imports-only") {
@@ -55,22 +51,17 @@ function parsePositiveInt(value: string, flag: string): number {
     return n
 }
 
-function parseNonNegativeInt(value: string, flag: string): number {
-    const n = Number(value)
-    if (!Number.isInteger(n) || n < 0) throw new Error(`${flag} must be a non-negative integer`)
-    return n
-}
-
 export function benchmarkUsage(): string {
     return `Usage: node builder/benchmark.cli.ts [options]
 
 Times every report pass and every format pass against a tsconfig project.
+Each run rebuilds the source files from scratch (cold), since that is how the
+tool runs in practice; one fixed warmup run is discarded before measuring.
 There is no case selection: all passes run on every invocation.
 
 Options:
   --project <path>      tsconfig path to benchmark (default: tsconfig.json)
   --path <glob>         source-file selector passed to the project; repeatable
-  --warmup <n>          warmup runs per pass (default: 1)
   --iterations <n>      measured runs per pass (default: 5)
   --imports-only        pass importsOnly=true to the report passes
   -h, --help            print this help`
