@@ -32,22 +32,27 @@ function formatPrep(sf: SourceFile): void {
     sf.formatText(PREP_SETTINGS)
 }
 
+// Style type erased behind defineCase so the heterogeneous passes share one
+// array. Each pass keeps its own FormatStyle union at the call site (no casts);
+// the swept styles are addressed by index, and a no-style pass uses `[null]`.
 interface FormatCase {
     name: string
-    // Style values swept within one cycle; null marks a pass that takes no style.
-    // Each run casts back to the pass's own FormatStyle union from these literals.
-    styles: ReadonlyArray<string | null>
+    styleCount: number
     prepare?: (sf: SourceFile) => void
-    run: (sf: SourceFile, style: string | null) => void
+    runStyle: (sf: SourceFile, styleIndex: number) => void
+}
+
+function defineCase<TStyle>(name: string, styles: readonly TStyle[], run: (sf: SourceFile, style: TStyle) => void, prepare?: (sf: SourceFile) => void): FormatCase {
+    return {name, styleCount: styles.length, prepare, runStyle: (sf, i) => run(sf, styles[i])}
 }
 
 const FORMAT_CASES: ReadonlyArray<FormatCase> = [
-    {name: "applyAsiGuard", styles: ["off", "on"], run: (sf, style) => applyAsiGuard(sf, style as TSR.FormatStyle["semi"])},
-    {name: "applySingleLineTypeLiteralTail", styles: ["on", "off"], prepare: formatPrep, run: (sf, style) => applySingleLineTypeLiteralTail(sf, style as TSR.FormatStyle["semi"])},
-    {name: "applyForHeaderSemicolons", styles: [null], run: (sf) => applyForHeaderSemicolons(sf)},
-    {name: "applyMemberDelimiter", styles: ["semi", "none"], run: (sf, style) => applyMemberDelimiter(sf, style as TSR.FormatStyle["memberDelimiter"])},
-    {name: "applyTrailingComma", styles: ["on", "off"], run: (sf, style) => applyTrailingComma(sf, style as TSR.FormatStyle["trailingComma"])},
-    {name: "applyTypeBracketSpacing", styles: ["on", "off"], run: (sf, style) => applyTypeBracketSpacing(sf, style as TSR.FormatStyle["bracketSpacing"])},
+    defineCase("applyAsiGuard", ["off", "on"] as const, applyAsiGuard),
+    defineCase("applySingleLineTypeLiteralTail", ["on", "off"] as const, applySingleLineTypeLiteralTail, formatPrep),
+    defineCase("applyForHeaderSemicolons", [null] as const, (sf) => applyForHeaderSemicolons(sf)),
+    defineCase("applyMemberDelimiter", ["semi", "none"] as const, applyMemberDelimiter),
+    defineCase("applyTrailingComma", ["on", "off"] as const, applyTrailingComma),
+    defineCase("applyTypeBracketSpacing", ["on", "off"] as const, applyTypeBracketSpacing),
 ]
 
 function createScratchFiles(fixtures: ReadonlyArray<Fixture>): SourceFile[] {
@@ -59,13 +64,13 @@ function createScratchFiles(fixtures: ReadonlyArray<Fixture>): SourceFile[] {
 // the SourceFiles, so each run rebuilds from the original text — otherwise a
 // second run would measure an already-fixed no-op state. prepare (when present)
 // runs untimed so the timed call always starts from formatted text.
-function runOnce(benchCase: FormatCase, fixtures: ReadonlyArray<Fixture>, style: string | null): number {
+function runOnce(benchCase: FormatCase, fixtures: ReadonlyArray<Fixture>, styleIndex: number): number {
     const files = createScratchFiles(fixtures)
     if (benchCase.prepare) {
         for (const sf of files) benchCase.prepare(sf)
     }
     const start = performance.now()
-    for (const sf of files) benchCase.run(sf, style)
+    for (const sf of files) benchCase.runStyle(sf, styleIndex)
     return performance.now() - start
 }
 
@@ -76,9 +81,9 @@ export function runFormatBench(args: BenchmarkArgs, fixtures: ReadonlyArray<Fixt
         log.write(`format: ${benchCase.name}\n`)
 
         const samples: number[] = []
-        for (const style of benchCase.styles) {
-            for (let i = 0; i < args.warmup; i++) runOnce(benchCase, fixtures, style)
-            for (let i = 0; i < args.iterations; i++) samples.push(runOnce(benchCase, fixtures, style))
+        for (let s = 0; s < benchCase.styleCount; s++) {
+            for (let i = 0; i < args.warmup; i++) runOnce(benchCase, fixtures, s)
+            for (let i = 0; i < args.iterations; i++) samples.push(runOnce(benchCase, fixtures, s))
         }
 
         rows.push({name: benchCase.name, calls: samples.length, ...summarize(samples)})

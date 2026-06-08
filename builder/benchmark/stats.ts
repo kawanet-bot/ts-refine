@@ -14,6 +14,10 @@ export interface Summary {
 // Median uses the average of the two central samples for an even count so a
 // single slow run does not dominate the headline figure.
 export function summarize(samples: number[]): Summary {
+    // An empty set has no median/mean to report; fail loudly rather than
+    // returning NaN that would surface as a confusing "NaNms" table cell.
+    if (samples.length === 0) throw new Error("summarize: needs at least one sample")
+
     const sorted = [...samples].sort((a, b) => a - b)
     const total = samples.reduce((sum, n) => sum + n, 0)
     const middle = Math.floor(sorted.length / 2)
