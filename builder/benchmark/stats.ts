@@ -1,0 +1,39 @@
+// Shared statistics and table rendering for the benchmark. Kept separate so the
+// report and format sections format their results identically.
+
+import type {TSR} from "ts-refine"
+
+export interface Summary {
+    total: number
+    min: number
+    median: number
+    mean: number
+    max: number
+}
+
+// Median uses the average of the two central samples for an even count so a
+// single slow run does not dominate the headline figure.
+export function summarize(samples: number[]): Summary {
+    const sorted = [...samples].sort((a, b) => a - b)
+    const total = samples.reduce((sum, n) => sum + n, 0)
+    const middle = Math.floor(sorted.length / 2)
+    const median = sorted.length % 2 === 0 ? (sorted[middle - 1] + sorted[middle]) / 2 : sorted[middle]
+
+    return {total, min: sorted[0], median, mean: total / samples.length, max: sorted[sorted.length - 1]}
+}
+
+export function formatMs(value: number): string {
+    return `${value.toFixed(2)}ms`
+}
+
+// Render a left-aligned column table to the writer, sizing each column to its
+// widest cell so the report and format tables line up the same way.
+export function printTable(output: TSR.Writer, headers: string[], rows: string[][]): void {
+    const widths = headers.map((header, i) => Math.max(header.length, ...rows.map((row) => row[i].length)))
+
+    output.write(headers.map((header, i) => header.padEnd(widths[i])).join("  ") + "\n")
+    output.write(widths.map((width) => "-".repeat(width)).join("  ") + "\n")
+    for (const row of rows) {
+        output.write(row.map((cell, i) => cell.padEnd(widths[i])).join("  ") + "\n")
+    }
+}
