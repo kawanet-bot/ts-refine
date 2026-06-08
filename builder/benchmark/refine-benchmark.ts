@@ -9,7 +9,7 @@ import type {TSR} from "ts-refine"
 import {resolveProject} from "../../src/common/init-project.ts"
 import {selectSourceFiles} from "../../src/lib/source-files.ts"
 import {runFormatBench} from "./format-bench.ts"
-import {benchmarkUsage, parseBenchmarkArgs} from "./parse-args.ts"
+import {benchmarkUsage, parseBenchmarkArgs} from "./parse-benchmark-args.ts"
 import {runReportBench} from "./report-bench.ts"
 import {formatMs} from "./stats.ts"
 

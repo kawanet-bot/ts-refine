@@ -13,7 +13,7 @@ import {runReportNewLine} from "../../src/report/new-line.ts"
 import type {ReportRunOpts} from "../../src/report/report-run-opts.ts"
 import {runReportSemi} from "../../src/report/semi.ts"
 import {runReportTrailingComma} from "../../src/report/trailing-comma.ts"
-import type {BenchmarkArgs} from "./parse-args.ts"
+import type {BenchmarkArgs} from "./parse-benchmark-args.ts"
 import {formatMs, printTable, summarize} from "./stats.ts"
 
 const REPORTS: ReadonlyArray<readonly [string, (opts: ReportRunOpts) => Promise<unknown>]> = [

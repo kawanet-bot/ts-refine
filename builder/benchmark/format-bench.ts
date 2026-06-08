@@ -14,7 +14,7 @@ import {applySingleLineTypeLiteralTail} from "../../src/format/apply-single-line
 import {applyTrailingComma} from "../../src/format/apply-trailing-comma.ts"
 import {applyTypeBracketSpacing} from "../../src/format/apply-type-bracket-spacing.ts"
 import {formatStyleToSettings} from "../../src/lib/format-settings.ts"
-import type {BenchmarkArgs} from "./parse-args.ts"
+import type {BenchmarkArgs} from "./parse-benchmark-args.ts"
 import {formatMs, printTable, summarize} from "./stats.ts"
 
 export interface Fixture {
