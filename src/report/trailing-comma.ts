@@ -7,9 +7,10 @@
 
 import type {Node} from "ts-morph"
 import type {TSR} from "ts-refine"
+import type {Node as TsNode} from "typescript"
 import {getTsRefineFormat} from "../common/emit/emit-ts-refine.ts"
 import {logging} from "../common/logging.ts"
-import {isSpreadOrRestElement, listOf, trailingCommaToken} from "../format/apply-trailing-comma.ts"
+import {isSpreadOrRest, listOf} from "../format/apply-trailing-comma.ts"
 import {displayPath} from "../lib/source-files.ts"
 import {hasLineBreakBetween} from "../lib/text-ranges.ts"
 import {pickRecommendByFiles} from "./pick-recommend.ts"
@@ -29,14 +30,14 @@ type Bucket = {lines: number; files: number; topPath: string; topLines: number}
 // The trailing-comma vote of one list, or null when it can't speak to the
 // convention: empty, single-line, or a spread/rest last element (where adding
 // a comma would be a syntax error — see the apply pass).
-function classify(text: string, node: Node): Style | null {
-    const list = listOf(node)
-    if (list == null || list.elements.length === 0) return null
+function classify(text: string, node: TsNode): Style | null {
+    const list = listOf(node, text)
+    if (list == null) return null
     const last = list.elements[list.elements.length - 1]
-    if (isSpreadOrRestElement(last)) return null
-    const multiline = hasLineBreakBetween(text, last.getEnd(), list.close.getStart())
+    if (isSpreadOrRest(last)) return null
+    const multiline = hasLineBreakBetween(text, last.end, list.closeStart)
     if (!multiline) return null
-    return trailingCommaToken(last) != null ? "on" : "off"
+    return list.hasTrailingComma ? "on" : "off"
 }
 
 export async function runReportTrailingComma({sourceFiles, output, log, importsOnly}: ReportRunOpts): Promise<Partial<TSR.TrailingCommaReport>> {
@@ -46,8 +47,11 @@ export async function runReportTrailingComma({sourceFiles, output, log, importsO
     for (const sf of sourceFiles) {
         const text = sf.getFullText()
         const counts = new Map<Style, number>()
+        // The walk stays on ts-morph for parity with how other report passes
+        // navigate, but the classifier runs on the underlying compiler node
+        // so it shares the helpers with the format pass.
         const visit = (node: Node) => {
-            const style = classify(text, node)
+            const style = classify(text, node.compilerNode)
             if (style == null) return
             counts.set(style, (counts.get(style) ?? 0) + 1)
         }

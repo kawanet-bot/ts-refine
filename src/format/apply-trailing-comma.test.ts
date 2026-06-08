@@ -115,4 +115,33 @@ describe("applyTrailingComma", () => {
         applyTrailingComma(sf, "on", {importsOnly: true})
         assert.equal(sf.getFullText(), "const a = 1\nconst b = 2\nexport {\n    a,\n    b,\n}\n")
     })
+
+    // Arrow-function parameter lists go through findListCloseParen — the only
+    // listOf branch that locates its close token by source-text scan rather
+    // than by `node.end - 1`. The cases below pin how hand-written arrow
+    // parameter lists are rewritten, exercising that scan.
+
+    it("bare arrow (`x => x`) is left untouched in either mode", () => {
+        // No parens means nothing to enforce a comma on; arrow-parens is out
+        // of scope for ts-refine, so the paren-less arrow is left as written.
+        const src = "const f = x => x\n"
+        assert.equal(run(src, "on"), src)
+        assert.equal(run(src, "off"), src)
+    })
+
+    it("on adds a comma to a multi-line paren arrow, before a line comment", () => {
+        // Exercises findListCloseParen skipping `// last` to reach `)`, then
+        // inserting the comma after the last parameter (before the comment).
+        const src = "const f = (\n    a,\n    b // last\n) => a + b\n"
+        const expected = "const f = (\n    a,\n    b, // last\n) => a + b\n"
+        assert.equal(run(src, "on"), expected)
+    })
+
+    it("off drops a multi-line paren arrow's trailing comma, keeping the layout", () => {
+        // ts-refine has no printWidth and never reflows: the author's
+        // multi-line layout is preserved, only the trailing comma is removed.
+        const src = "const f = (\n    a,\n    b,\n) => a + b\n"
+        const expected = "const f = (\n    a,\n    b\n) => a + b\n"
+        assert.equal(run(src, "off"), expected)
+    })
 })

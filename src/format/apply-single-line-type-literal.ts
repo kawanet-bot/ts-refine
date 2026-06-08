@@ -1,4 +1,5 @@
 import {SyntaxKind, type SourceFile} from "ts-morph"
+import type {Node as TsNode, TypeLiteralNode} from "typescript"
 
 // TS LS SemicolonPreference.Insert adds `;` to the last type member too, while
 // Prettier keeps single-line type literals bare at the tail. This narrow pass
@@ -13,11 +14,11 @@ export function applySingleLineTypeLiteralTail(sf: SourceFile): void {
     const fullText = sf.getFullText()
     const tsSf = sf.compilerNode
 
-    const visit = (node: import("typescript").Node): void => {
+    const visit = (node: TsNode): void => {
         if (node.kind === SyntaxKind.TypeLiteral) {
             // Reject in O(1) when there is no trailing `;` to remove — the common
             // case for most type literals — before any text scan or wrapping.
-            const members = (node as import("typescript").TypeLiteralNode).members
+            const members = (node as TypeLiteralNode).members
             const last = members[members.length - 1]
             if (last != null) {
                 const semi = last.end - 1
