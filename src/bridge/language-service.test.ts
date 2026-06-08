@@ -1,22 +1,10 @@
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
-import {ModuleKind, ModuleResolutionKind} from "typescript"
-import {Project} from "./project.ts"
-
-function newProject(): Project {
-    return new Project({
-        compilerOptions: {
-            allowImportingTsExtensions: true,
-            module: ModuleKind.ESNext,
-            moduleResolution: ModuleResolutionKind.Bundler,
-        },
-        useInMemoryFileSystem: true,
-    })
-}
+import {initBridgeTestProject} from "../test-utils/init-test-project.ts"
 
 describe("LanguageService", () => {
     it("wraps rename locations and formatting edits from the TypeScript language service", () => {
-        const project = newProject()
+        const project = initBridgeTestProject()
         const dep = project.createSourceFile("/dep.ts", "export const value = 1\n")
         project.createSourceFile("/main.ts", 'import {value} from "./dep.ts"\nconst used = value\n')
         const nameNode = dep.getVariableStatements()[0]?.getDeclarations()[0]?.getNameNodeOrThrow()
@@ -35,7 +23,7 @@ describe("LanguageService", () => {
     })
 
     it("returns applicable organize-imports changes as bridge file changes", () => {
-        const project = newProject()
+        const project = initBridgeTestProject()
         project.createSourceFile("/dep.ts", "export const a = 1\nexport const b = 2\n")
         const main = project.createSourceFile("/main.ts", 'import {b, a} from "./dep.ts"\nconst used = a + b\n')
 

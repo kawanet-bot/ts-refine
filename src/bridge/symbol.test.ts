@@ -1,22 +1,10 @@
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
-import {ModuleKind, ModuleResolutionKind} from "typescript"
-import {Project} from "./project.ts"
-
-function newProject(): Project {
-    return new Project({
-        compilerOptions: {
-            allowImportingTsExtensions: true,
-            module: ModuleKind.ESNext,
-            moduleResolution: ModuleResolutionKind.Bundler,
-        },
-        useInMemoryFileSystem: true,
-    })
-}
+import {initBridgeTestProject} from "../test-utils/init-test-project.ts"
 
 describe("Symbol", () => {
     it("resolves declarations, namespace exports, interface members, and import aliases", () => {
-        const project = newProject()
+        const project = initBridgeTestProject()
         const dep = project.createSourceFile(
             "/dep.ts",
             ["export const value = 1", "export interface Shape { width: number }", "export namespace NS { export interface Box { height: number } }", ""].join("\n"),

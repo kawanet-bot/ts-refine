@@ -1,23 +1,11 @@
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
-import {ModuleKind, ModuleResolutionKind} from "typescript"
+import {initBridgeTestProject} from "../test-utils/init-test-project.ts"
 import {Node} from "./node.ts"
-import {Project} from "./project.ts"
-
-function newProject(): Project {
-    return new Project({
-        compilerOptions: {
-            allowImportingTsExtensions: true,
-            module: ModuleKind.ESNext,
-            moduleResolution: ModuleResolutionKind.Bundler,
-        },
-        useInMemoryFileSystem: true,
-    })
-}
 
 describe("Node", () => {
     it("exposes the import helpers used by import rewriting", () => {
-        const project = newProject()
+        const project = initBridgeTestProject()
         project.createSourceFile("/dep.ts", "export default 1\nexport const value = 2\n")
         const main = project.createSourceFile("/main.ts", 'import def, {value as local} from "./dep.ts"\nconst used = def + local\n')
         const importDecl = main.getImportDeclarations()[0]
@@ -36,7 +24,7 @@ describe("Node", () => {
     })
 
     it("renames a reference-findable declaration across project files", () => {
-        const project = newProject()
+        const project = initBridgeTestProject()
         const dep = project.createSourceFile("/dep.ts", "export function oldName() { return 1 }\n")
         const main = project.createSourceFile("/main.ts", 'import {oldName} from "./dep.ts"\nconst used = oldName()\n')
         const functionName = dep.getFunctions()[0]?.getNameNodeOrThrow()

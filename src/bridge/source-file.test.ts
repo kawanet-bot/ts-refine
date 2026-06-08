@@ -1,22 +1,11 @@
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
-import {ModuleKind, ModuleResolutionKind, ScriptKind, SyntaxKind} from "typescript"
-import {Project} from "./project.ts"
-
-function newProject(): Project {
-    return new Project({
-        compilerOptions: {
-            allowImportingTsExtensions: true,
-            module: ModuleKind.ESNext,
-            moduleResolution: ModuleResolutionKind.Bundler,
-        },
-        useInMemoryFileSystem: true,
-    })
-}
+import {ScriptKind, SyntaxKind} from "typescript"
+import {initBridgeTestProject} from "../test-utils/init-test-project.ts"
 
 describe("SourceFile", () => {
     it("parses and exposes the declaration families used by ts-refine", () => {
-        const project = newProject()
+        const project = initBridgeTestProject()
         const sourceFile = project.createSourceFile(
             "/src/sample.ts",
             [
@@ -50,7 +39,7 @@ describe("SourceFile", () => {
     })
 
     it("moves a file while rewriting incoming and outgoing module specifiers", () => {
-        const project = newProject()
+        const project = initBridgeTestProject()
         project.createSourceFile("/src/dep.ts", "export const value = 1\n")
         const moved = project.createSourceFile("/src/moved.ts", 'import {value} from "./dep.ts"\nexport const result = value\n')
         const main = project.createSourceFile("/src/main.ts", 'import {result} from "./moved.ts"\nconst used = result\n')
