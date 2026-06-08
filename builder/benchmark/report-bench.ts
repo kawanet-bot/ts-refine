@@ -14,7 +14,7 @@ import type {ReportRunOpts} from "../../src/report/report-run-opts.ts"
 import {runReportSemi} from "../../src/report/semi.ts"
 import {runReportTrailingComma} from "../../src/report/trailing-comma.ts"
 import type {BenchmarkArgs} from "./parse-benchmark-args.ts"
-import {formatMs, printTable, summarize} from "./stats.ts"
+import {formatMs, printTable, summarize, type Summary} from "./stats.ts"
 
 const REPORTS: ReadonlyArray<readonly [string, (opts: ReportRunOpts) => Promise<unknown>]> = [
     ["semi", runReportSemi],
@@ -29,7 +29,7 @@ const REPORTS: ReadonlyArray<readonly [string, (opts: ReportRunOpts) => Promise<
 const quiet: TSR.Writer = {write: (): void => undefined}
 
 export async function runReportBench(args: BenchmarkArgs, sourceFiles: SourceFile[], output: TSR.Writer, log: TSR.Writer): Promise<void> {
-    const rows: {name: string; mean: number; median: number; min: number; max: number}[] = []
+    const rows: ({name: string} & Summary)[] = []
 
     for (const [name, run] of REPORTS) {
         log.write(`report: ${name}\n`)

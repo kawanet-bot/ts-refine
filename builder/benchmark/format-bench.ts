@@ -15,7 +15,7 @@ import {applyTrailingComma} from "../../src/format/apply-trailing-comma.ts"
 import {applyTypeBracketSpacing} from "../../src/format/apply-type-bracket-spacing.ts"
 import {formatStyleToSettings} from "../../src/lib/format-settings.ts"
 import type {BenchmarkArgs} from "./parse-benchmark-args.ts"
-import {formatMs, printTable, summarize} from "./stats.ts"
+import {formatMs, printTable, summarize, type Summary} from "./stats.ts"
 
 export interface Fixture {
     path: string
@@ -55,33 +55,30 @@ function createScratchFiles(fixtures: ReadonlyArray<Fixture>): SourceFile[] {
     return fixtures.map(({path, text}) => project.createSourceFile(path, text, {overwrite: true}))
 }
 
-// One cycle sweeps every style once. prepare (when present) runs untimed before
-// each style so the timed call always starts from formatted text.
-function runCycle(benchCase: FormatCase, files: SourceFile[], measured: boolean, samples: number[]): void {
-    for (const style of benchCase.styles) {
-        if (benchCase.prepare) {
-            for (const sf of files) benchCase.prepare(sf)
-        }
-        const start = performance.now()
-        for (const sf of files) benchCase.run(sf, style)
-        if (measured) samples.push(performance.now() - start)
+// One timed pass over a freshly built copy of the fixtures. The passes mutate
+// the SourceFiles, so each run rebuilds from the original text — otherwise a
+// second run would measure an already-fixed no-op state. prepare (when present)
+// runs untimed so the timed call always starts from formatted text.
+function runOnce(benchCase: FormatCase, fixtures: ReadonlyArray<Fixture>, style: string | null): number {
+    const files = createScratchFiles(fixtures)
+    if (benchCase.prepare) {
+        for (const sf of files) benchCase.prepare(sf)
     }
+    const start = performance.now()
+    for (const sf of files) benchCase.run(sf, style)
+    return performance.now() - start
 }
 
 export function runFormatBench(args: BenchmarkArgs, fixtures: ReadonlyArray<Fixture>, output: TSR.Writer, log: TSR.Writer): void {
-    const rows: {name: string; calls: number; total: number; mean: number; median: number; min: number; max: number}[] = []
+    const rows: ({name: string; calls: number} & Summary)[] = []
 
     for (const benchCase of FORMAT_CASES) {
         log.write(`format: ${benchCase.name}\n`)
-        const files = createScratchFiles(fixtures)
-
-        for (let i = 0; i < args.warmup; i++) {
-            runCycle(benchCase, files, false, [])
-        }
 
         const samples: number[] = []
-        for (let i = 0; i < args.iterations; i++) {
-            runCycle(benchCase, files, true, samples)
+        for (const style of benchCase.styles) {
+            for (let i = 0; i < args.warmup; i++) runOnce(benchCase, fixtures, style)
+            for (let i = 0; i < args.iterations; i++) samples.push(runOnce(benchCase, fixtures, style))
         }
 
         rows.push({name: benchCase.name, calls: samples.length, ...summarize(samples)})
