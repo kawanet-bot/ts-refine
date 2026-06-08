@@ -166,11 +166,17 @@ export class SourceFile implements TSR.SourceFile {
 
     wrap(tsNode: ts.Node): Node {
         const path = locateByPos(this.tsSourceFile, tsNode)
-        const standalone = resolvePath(this.tsSourceFile, path)
-        const cached = this.wrapperCache.get(standalone)
+        return this.wrapByPath(path, resolvePath(this.tsSourceFile, path))
+    }
+
+    // Wrap a node whose forEachChild index path from the root is already known —
+    // navigation uses this to avoid re-locating from the root. `tsNode` must be
+    // the node `path` resolves to in the current tree.
+    wrapByPath(path: number[], tsNode: ts.Node): Node {
+        const cached = this.wrapperCache.get(tsNode)
         if (cached != null) return cached
-        const wrapper = createWrapper(this, path, standalone)
-        this.wrapperCache.set(standalone, wrapper)
+        const wrapper = createWrapper(this, path, tsNode)
+        this.wrapperCache.set(tsNode, wrapper)
         return wrapper
     }
 
@@ -243,20 +249,30 @@ export class SourceFile implements TSR.SourceFile {
 
     // The deepest node that begins exactly at `start` and spans `width`. The
     // member-delimiter pass re-wraps a compiler-AST container this way, and
-    // reference mapping resolves an identifier at a span; the deepest match is
-    // the most specific node at that range.
+    // reference mapping resolves an identifier at a span.
+    //
+    // Descend by position rather than walking the whole tree: at each level step
+    // into the single child whose full-width range contains the target span,
+    // recording every exact start/end match so the deepest one wins. This is
+    // O(depth) instead of O(nodes), which matters because callers invoke it once
+    // per container.
     getDescendantAtStartWithWidth(start: number, width: number): Node | undefined {
+        const end = start + width
+        let node: ts.Node = this.tsSourceFile
         let found: ts.Node | undefined
-        const walk = (node: ts.Node): void => {
+        for (; ;) {
+            if (node.getStart(this.tsSourceFile) === start && node.end === end) found = node
+            let next: ts.Node | undefined
             ts.forEachChild(node, (child) => {
-                if (child.getStart(this.tsSourceFile) === start && child.getWidth(this.tsSourceFile) === width) {
-                    found = child // deeper matches overwrite shallower ones
+                if (child.pos <= start && end <= child.end) {
+                    next = child
+                    return true
                 }
-                walk(child)
                 return undefined
             })
+            if (next == null) break
+            node = next
         }
-        walk(this.tsSourceFile)
         return found != null ? this.wrap(found) : undefined
     }
 

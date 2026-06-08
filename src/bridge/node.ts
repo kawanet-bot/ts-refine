@@ -94,7 +94,24 @@ export class Node {
         return this.sourceFile.compilerNode
     }
 
+    // Wrap a node reached from this one. A direct forEachChild child is wrapped
+    // from this node's path plus the child index — O(this node's children) — so
+    // navigation never re-locates from the root. Anything else (a deeper node,
+    // or a pinned wrapper) falls back to a root-relative locate.
     protected wrapChild(tsNode: ts.Node): Node {
+        if (this.path != null) {
+            let index = -1
+            let i = 0
+            ts.forEachChild(this.compilerNode, (child) => {
+                if (child === tsNode) {
+                    index = i
+                    return true
+                }
+                i++
+                return undefined
+            })
+            if (index >= 0) return this.sourceFile.wrapByPath([...this.path, index], tsNode)
+        }
         return this.sourceFile.wrap(tsNode)
     }
 
