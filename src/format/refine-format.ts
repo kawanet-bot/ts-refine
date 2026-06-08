@@ -11,6 +11,7 @@ import {assertNoLoneCr} from "../lib/assert-no-lone-cr.ts"
 import {formatStyleToSettings} from "../lib/format-settings.ts"
 import {selectSourceFiles} from "../lib/source-files.ts"
 import {applyAsiGuard} from "./apply-asi-guard.ts"
+import {applyForHeaderSemicolons} from "./apply-for-header-semicolons.ts"
 import {applyMemberDelimiter} from "./apply-member-delimiter.ts"
 import {applySingleLineTypeLiteralTail} from "./apply-single-line-type-literal.ts"
 import {applyTrailingComma} from "./apply-trailing-comma.ts"
@@ -53,6 +54,10 @@ export const refineFormat: typeof declared.refineFormat = async (opts) => {
         // `on`: the LS appends a `;` to a single-line type literal's last
         // member that Prettier keeps bare; trim only that tail.
         applySingleLineTypeLiteralTail(sf, style.semi)
+
+        // Empty for-header clauses: the LS spaces them as `for (; ;)` / `;)`,
+        // where Prettier writes `for (;;)` / `; )`. Independent of semi value.
+        applyForHeaderSemicolons(sf)
 
         // member-delimiter and trailing-comma are axes the LS can't express
         // (it can't emit a comma delimiter at all); reassert each afterward.
