@@ -9,8 +9,7 @@ how your project already writes code, then moves files, renames exports,
 rewrites imports, organizes imports, and formats small edits so they blend in.
 No config to maintain — the codebase itself is the style guide.
 
-- Built on the TypeScript Language Service (via
-  [ts-morph](https://github.com/dsherret/ts-morph)) — the same engine your
+- Built directly on the TypeScript Language Service — the same engine your
   editor uses for import rewriting and formatting.
 - Useful when AI coding agents would otherwise reach for grep/sed and miss a
   semantic import, move, or rename edge case.
