@@ -1,17 +1,12 @@
 // Project acquisition for the refine* entries. createRefineProject is the
-// public factory; initProject is the CLI/internal tsconfig-only builder;
-// resolveProject picks either a caller-supplied `project` or one built from
-// `tsConfigFilePath`.
+// public factory; resolveProject picks either a caller-supplied `project` or
+// one built from `tsConfigFilePath`.
 
 import type {TSR} from "ts-refine"
 import {Project, type ProjectOptions} from "../bridge/bridge.ts"
 
 export function createRefineProject(options: TSR.ProjectOptions = {}): Project {
     return new Project(options)
-}
-
-export function initProject(opts: {tsConfigFilePath: string}): Project {
-    return new Project(opts)
 }
 
 // A lib-less in-memory project: no lib.d.ts load, so it is cheap and meant for
@@ -31,6 +26,6 @@ export function resolveProject(opts: Pick<TSR.CommonOpts, "project" | "tsConfigF
         throw new Error("refine: specify either `project` or `tsConfigFilePath`, not both")
     }
     if (opts.project) return opts.project as Project
-    if (opts.tsConfigFilePath) return initProject({tsConfigFilePath: opts.tsConfigFilePath})
+    if (opts.tsConfigFilePath) return createRefineProject({tsConfigFilePath: opts.tsConfigFilePath})
     throw new Error("refine: specify either `project` or `tsConfigFilePath`")
 }
