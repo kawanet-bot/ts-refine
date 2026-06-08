@@ -49,6 +49,6 @@ describe("refineReport", () => {
         const table = report.semi?.sections?.[0]?.table
 
         assert.deepEqual(table?.[0], ["trailing `;`", "lines", "files", "example"])
-        assert.equal(table?.[table.length - 1]?.[0], "total")
+        assert.equal(table?.at(-1)?.[0], "total")
     })
 })
