@@ -4,15 +4,18 @@
 
 import type {TSR} from "ts-refine"
 
-// ReportResult slots in registry order (the kebab reportNames, camelCased), so
-// the survey prints sections in the same fixed order the reports run in.
-const SECTION_SLOTS = ["semi", "indent", "memberDelimiter", "newLine", "bracketSpacing", "trailingComma", "functionSpacing"] as const
-
+// Each report's sections, in registry order (see report-names.ts). Listed
+// explicitly rather than derived from reportNames so a renamed or added slot is
+// a type error here, not a silent miss from a camelCase string transform.
 export function writeReportSections(report: TSR.ReportResult, output: TSR.Writer): void {
-    for (const slot of SECTION_SLOTS) {
-        const sections = report[slot]?.sections
-        if (sections) output.write(renderSections(sections))
-    }
+    const o = ({sections}: TSR.ReportSections = {}) => sections && output.write(renderSections(sections))
+    o(report.semi)
+    o(report.indent)
+    o(report.memberDelimiter)
+    o(report.newLine)
+    o(report.bracketSpacing)
+    o(report.trailingComma)
+    o(report.functionSpacing)
 }
 
 // Pure Markdown for a list of sections, exported so report tests can assert on
