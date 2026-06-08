@@ -23,12 +23,15 @@ export class Project {
     private readonly languageService: LanguageService
     private readonly compilerOptions: ts.CompilerOptions
     private readonly inMemory: boolean
+    private readonly currentDirectory: string
 
     constructor(opts: ProjectOptions = {}) {
         this.inMemory = opts.useInMemoryFileSystem === true
         this.fileSystem = new BridgeFileSystem(this.inMemory ? this.files : undefined)
 
-        const config = opts.tsConfigFilePath ? readTsConfig(opts.tsConfigFilePath, opts.skipLoadingLibFiles === true) : undefined
+        const configPath = opts.tsConfigFilePath ? normalizePath(opts.tsConfigFilePath) : undefined
+        this.currentDirectory = configPath ? path.dirname(configPath) : normalizePath(process.cwd())
+        const config = configPath ? readTsConfig(configPath, opts.skipLoadingLibFiles === true) : undefined
         this.compilerOptions = {
             ...(config?.options ?? {}),
             ...(opts.compilerOptions ?? {}),
@@ -49,6 +52,10 @@ export class Project {
 
     getLanguageService(): LanguageService {
         return this.languageService
+    }
+
+    getCurrentDirectory(): string {
+        return this.currentDirectory
     }
 
     getSourceFile(filePath: string): SourceFile | undefined {

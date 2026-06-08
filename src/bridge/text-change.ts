@@ -6,7 +6,7 @@ import type {Project} from "./project.ts"
 // offset stable without needing a diff engine.
 export function applyTextChanges(text: string, changes: readonly ts.TextChange[]): string {
     let result = text
-    const sorted = [...changes].sort((a, b) => b.span.start - a.span.start)
+    const sorted = [...changes].sort((a, b) => b.span.start - a.span.start || b.span.length - a.span.length)
     for (const change of sorted) {
         const {start, length} = change.span
         result = result.slice(0, start) + change.newText + result.slice(start + length)

@@ -1,9 +1,19 @@
 import {strict as assert} from "node:assert"
-import {describe, it} from "node:test"
+import fs from "node:fs/promises"
+import os from "node:os"
+import path from "node:path"
+import {after, describe, it} from "node:test"
 import {initBridgeTestProject} from "../test-utils/init-test-project.ts"
+import {normalizePath} from "./file-system.ts"
 import {Project} from "./project.ts"
 
 describe("Project", () => {
+    const tempDirs: string[] = []
+
+    after(async () => {
+        await Promise.all(tempDirs.map((dir) => fs.rm(dir, {recursive: true, force: true})))
+    })
+
     it("creates, finds, globs, resolves, and versions in-memory source files", () => {
         const project = initBridgeTestProject()
         const dep = project.createSourceFile("/src/dep.ts", "export const value = 1\n")
@@ -29,5 +39,16 @@ describe("Project", () => {
 
         assert.equal(project.fileExists("package.json"), false)
         assert.equal(project.readFileText("package.json"), "")
+    })
+
+    it("uses the tsconfig directory as the language-service current directory", async () => {
+        const dir = await fs.mkdtemp(path.join(os.tmpdir(), "ts-refine-project-"))
+        tempDirs.push(dir)
+        await fs.writeFile(path.join(dir, "tsconfig.json"), JSON.stringify({files: ["main.ts"], compilerOptions: {strict: true}}))
+        await fs.writeFile(path.join(dir, "main.ts"), "export const value = 1\n")
+
+        const project = new Project({tsConfigFilePath: path.join(dir, "tsconfig.json"), skipLoadingLibFiles: true})
+
+        assert.equal(project.getCurrentDirectory(), normalizePath(dir))
     })
 })

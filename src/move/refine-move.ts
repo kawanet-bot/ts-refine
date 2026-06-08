@@ -18,7 +18,7 @@ import fs from "node:fs"
 import path from "node:path"
 import type * as declared from "ts-refine"
 import type {ExportDeclaration as TsExportDeclaration, ImportDeclaration as TsImportDeclaration, Node as TsNode, StringLiteral as TsStringLiteral} from "typescript"
-import {isImportTypeNode, isLiteralTypeNode, isStringLiteral, SyntaxKind} from "typescript"
+import {isExternalModuleReference, isImportEqualsDeclaration, isImportTypeNode, isLiteralTypeNode, isStringLiteral, SyntaxKind} from "typescript"
 import {Node, type Project, type SourceFile} from "../bridge/bridge.ts"
 import {resolveProject} from "../common/init-project.ts"
 import {logging} from "../common/logging.ts"
@@ -242,6 +242,15 @@ function snapshotSpecifiers(project: Project, movingPaths: Set<string>): SpecRec
             if (!isMoving && !movingPaths.has(target.getFilePath())) continue
             records.push({kind: "export", node: decl, originalExt: extensionOf(specifier)})
         }
+        for (const decl of sf.getDescendantsOfKind(SyntaxKind.ImportEqualsDeclaration)) {
+            const lit = importEqualsLiteral(decl.compilerNode)
+            if (!lit) continue
+            const specifier = lit.text
+            const target = resolveDynamicTarget(sf, specifier, project)
+            if (!target) continue
+            if (!isMoving && !movingPaths.has(target.getFilePath())) continue
+            records.push({kind: "literal", node: decl.getSourceFile().wrap(lit), originalExt: extensionOf(specifier)})
+        }
         for (const call of sf.getDescendantsOfKind(SyntaxKind.CallExpression)) {
             if (call.getExpression().getKindName() !== "ImportKeyword") continue
             const arg = call.getArguments()[0]
@@ -263,6 +272,10 @@ function snapshotSpecifiers(project: Project, movingPaths: Set<string>): SpecRec
     }
 
     return records
+}
+
+function importEqualsLiteral(node: TsNode): TsStringLiteral | undefined {
+    return isImportEqualsDeclaration(node) && isExternalModuleReference(node.moduleReference) && isStringLiteral(node.moduleReference.expression) ? node.moduleReference.expression : undefined
 }
 
 function importTypeLiteral(node: TsNode): TsStringLiteral | undefined {

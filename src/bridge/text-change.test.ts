@@ -14,6 +14,15 @@ describe("text-change wrappers", () => {
         assert.equal(text, "aBcDe")
     })
 
+    it("applies same-start replacements before insertions", () => {
+        const text = applyTextChanges("abcdef", [
+            {newText: "+", span: {length: 0, start: 1}},
+            {newText: "XY", span: {length: 2, start: 1}},
+        ])
+
+        assert.equal(text, "a+XYdef")
+    })
+
     it("applies file changes and combined code actions to bridge source files", () => {
         const project = new Project({useInMemoryFileSystem: true})
         const main = project.createSourceFile("/main.ts", "const value = 1\n")

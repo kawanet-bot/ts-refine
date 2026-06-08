@@ -48,7 +48,7 @@ export class LanguageService {
     private createHost(): ts.LanguageServiceHost {
         return {
             getCompilationSettings: () => this.project.getCompilerOptions(),
-            getCurrentDirectory: () => process.cwd(),
+            getCurrentDirectory: () => this.project.getCurrentDirectory(),
             getDefaultLibFileName: (options) => ts.getDefaultLibFilePath(options),
             getScriptFileNames: () => this.project.getScriptFileNames(),
             getScriptSnapshot: (fileName) => {

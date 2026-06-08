@@ -52,4 +52,16 @@ describe("SourceFile", () => {
         assert.equal(moved.getFullText(), 'import {value} from "../dep.ts"\nexport const result = value\n')
         assert.equal(main.getFullText(), 'import {result} from "./sub/moved.ts"\nconst used = result\n')
     })
+
+    it("moves a file while rewriting import-equals require specifiers", () => {
+        const project = initBridgeTestProject()
+        project.createSourceFile("/src/dep.ts", "export const value = 1\n")
+        const moved = project.createSourceFile("/src/moved.ts", 'import dep = require("./dep.ts")\nexport const result = dep.value\n')
+        const main = project.createSourceFile("/src/main.ts", 'import moved = require("./moved.ts")\nconst used = moved.result\n')
+
+        moved.move("/src/sub/moved.ts")
+
+        assert.equal(moved.getFullText(), 'import dep = require("../dep.ts")\nexport const result = dep.value\n')
+        assert.equal(main.getFullText(), 'import moved = require("./sub/moved.ts")\nconst used = moved.result\n')
+    })
 })

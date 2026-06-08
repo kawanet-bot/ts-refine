@@ -122,6 +122,18 @@ describe("refineMove (in-memory, dry-run)", () => {
         assert.equal(a.getFullText(), 'export type A = import("../sibling.ts").S\n')
     })
 
+    it("rewrites and reports import-equals require specifiers", async () => {
+        const project = newProject()
+        project.createSourceFile("/src/dep.ts", "export const y = 2\n")
+        project.createSourceFile("/src/a.ts", 'import dep = require("./dep.ts")\nexport const x = dep.y\n')
+        const b = project.createSourceFile("/src/b.ts", 'import a = require("./a.ts")\nconst _ = a.x\n')
+        const result = await refineMove({project, log, sources: ["/src/a.ts"], dest: "/src/sub/", dryRun: true})
+
+        assert.equal(project.getSourceFileOrThrow("/src/sub/a.ts").getFullText(), 'import dep = require("../dep.ts")\nexport const x = dep.y\n')
+        assert.equal(b.getFullText(), 'import a = require("./sub/a.ts")\nconst _ = a.x\n')
+        assert.ok(result.touched.includes(b.getFilePath()), `b.ts must be reported as touched; got: ${JSON.stringify(result.touched)}`)
+    })
+
     it("treats a trailing-slash dest as a directory move when multiple sources are given", async () => {
         const project = newProject()
         project.createSourceFile("/src/a.ts", "export const x = 1\n")
