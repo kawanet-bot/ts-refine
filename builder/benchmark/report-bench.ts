@@ -36,7 +36,7 @@ const quiet: TSR.Writer = {write: (): void => undefined}
 // format section rather than to avoid mutation.
 async function runOnce(run: ReportRun, fixtures: ReadonlyArray<Fixture>, importsOnly: boolean): Promise<number> {
     const sourceFiles = createScratchFiles(fixtures)
-    const opts: ReportRunOpts = {sourceFiles, output: quiet, log: quiet, importsOnly}
+    const opts: ReportRunOpts = {sourceFiles, log: quiet, importsOnly}
     const start = performance.now()
     await run(opts)
     return performance.now() - start
