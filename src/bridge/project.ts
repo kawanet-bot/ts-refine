@@ -74,18 +74,22 @@ export class Project {
         this.fileSystem = options.useInMemoryFileSystem ? new InMemoryFileSystemHost() : new RealFileSystemHost()
         this.currentDirectory = normalizePath(".")
 
+        // skipLoadingLibFiles keeps the default library out of the program, for
+        // syntactic-only scratch projects that never need it.
+        const libOptions: ts.CompilerOptions = options.skipLoadingLibFiles ? {noLib: true} : {}
+
         if (options.tsConfigFilePath != null) {
             // tsconfig drives both the compiler options and the initial file set.
             const configPath = normalizePath(options.tsConfigFilePath)
             const configFile = ts.readConfigFile(configPath, ts.sys.readFile)
             const parsed = ts.parseJsonConfigFileContent(configFile.config ?? {}, ts.sys, dirOf(configPath), undefined, configPath)
-            this.compilerOptions = {...parsed.options, ...options.compilerOptions}
+            this.compilerOptions = {...parsed.options, ...options.compilerOptions, ...libOptions}
             this.tsLanguageService = this.createLanguageService()
             for (const fileName of parsed.fileNames) this.addSourceFileFromDisk(fileName)
         } else {
             // In-memory projects get resolution-friendly defaults so relative
             // `.ts` specifiers resolve; callers can still override any of them.
-            this.compilerOptions = {...IN_MEMORY_DEFAULTS, ...options.compilerOptions}
+            this.compilerOptions = {...IN_MEMORY_DEFAULTS, ...options.compilerOptions, ...libOptions}
             this.tsLanguageService = this.createLanguageService()
         }
     }

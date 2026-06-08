@@ -207,11 +207,13 @@ export class Node {
         return out
     }
 
-    // RenameableNode: rename every reference through the language service,
-    // honoring the prefix/suffix text it returns for shorthand rewrites.
+    // RenameableNode: rename every reference through the language service.
+    // providePrefixAndSuffixTextForRename is on so a shorthand that would change
+    // meaning is rewritten with an explicit `name:`/`: name` instead of a bare
+    // identifier (the prefix/suffix text applied below).
     rename(newName: string): void {
         const project = this.sourceFile.getProject()
-        const locations = project.getTsLanguageService().findRenameLocations(this.sourceFile.getFilePath(), this.getStart(), false, false, false)
+        const locations = project.getTsLanguageService().findRenameLocations(this.sourceFile.getFilePath(), this.getStart(), false, false, true)
         if (locations == null) return
         const byFile = new Map<string, ts.RenameLocation[]>()
         for (const loc of locations) {

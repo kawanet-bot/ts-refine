@@ -1,5 +1,5 @@
 // Source file selection shared between action and report. The positional
-// file arguments (absolute) are forwarded to ts-morph; an empty list means
+// file arguments (absolute) select project source files; an empty list means
 // the whole project.
 
 import path from "node:path"

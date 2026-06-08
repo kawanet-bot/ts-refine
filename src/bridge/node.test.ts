@@ -65,6 +65,17 @@ test("findReferencesAsNodes spans declaration and usage files", () => {
     assert.ok(files.has("/p/b.ts"))
 })
 
+test("rename rewrites a shorthand destructuring with an explicit alias", () => {
+    const project = new Project({useInMemoryFileSystem: true})
+    const a = project.createSourceFile("/p/a.ts", "export interface Box { width: number }\n")
+    const b = project.createSourceFile("/p/b.ts", "import type {Box} from \"./a.ts\"\nexport function read(box: Box) {\n  const { width } = box\n  return width\n}\n")
+    const member = a.getExportedDeclarations().get("Box")![0].getSymbol()!.getMember("width")!
+    member.getDeclarations()[0].getNameNode()!.rename("height")
+    // The property renames, but the destructuring keeps its local name via an
+    // explicit `height: width` rather than silently renaming the local too.
+    assert.match(b.getFullText(), /const \{ height: width \} = box/)
+})
+
 test("a wrapper captured before an edit revalidates against the reparsed tree", () => {
     const project = new Project({useInMemoryFileSystem: true})
     const a = project.createSourceFile("/p/a.ts", "export const a = 1\n")
