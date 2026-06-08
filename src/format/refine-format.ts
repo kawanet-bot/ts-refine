@@ -8,13 +8,14 @@ import type * as declared from "ts-refine"
 import {resolveProject} from "../common/init-project.ts"
 import {logging} from "../common/logging.ts"
 import {assertNoLoneCr} from "../lib/assert-no-lone-cr.ts"
-import {formatStyleToSettings, normalizeNewLines} from "../lib/format-settings.ts"
+import {formatStyleToSettings} from "../lib/format-settings.ts"
 import {selectSourceFiles} from "../lib/source-files.ts"
 import {applyAsiGuard} from "./apply-asi-guard.ts"
 import {applyMemberDelimiter} from "./apply-member-delimiter.ts"
 import {applySingleLineTypeLiteralTail} from "./apply-single-line-type-literal.ts"
 import {applyTrailingComma} from "./apply-trailing-comma.ts"
 import {applyTypeLiteralBracketSpacing} from "./apply-type-literal-bracket-spacing.ts"
+import {normalizeNewLines} from "./normalize-new-lines.ts"
 
 export const refineFormat: typeof declared.refineFormat = async (opts) => {
     const {dryRun, paths, style, log} = opts
