@@ -4,6 +4,7 @@
 // (exported declarations, referencing files, organize-imports, formatting) are
 // delegated to the project's language service and mapped back onto this tree.
 
+import type {TSR} from "ts-refine"
 import ts from "typescript"
 import type {CallExpression, ClassDeclaration, EnumDeclaration, ExportDeclaration, FunctionDeclaration, ImportDeclaration, InterfaceDeclaration, ModuleDeclaration, Node, TypeAliasDeclaration, VariableStatement} from "./node.ts"
 import {createWrapper, locateByPos, resolvePath} from "./node.ts"
@@ -20,7 +21,7 @@ function scriptKindForPath(filePath: string): ts.ScriptKind {
     return ts.ScriptKind.TS
 }
 
-export class SourceFile {
+export class SourceFile implements TSR.SourceFile {
     private readonly project: Project
     private filePath: string
     private text: string

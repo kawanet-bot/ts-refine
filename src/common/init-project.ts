@@ -26,7 +26,9 @@ export function resolveProject(opts: Pick<TSR.CommonOpts, "project" | "tsConfigF
     if (opts.project && opts.tsConfigFilePath) {
         throw new Error("refine: specify either `project` or `tsConfigFilePath`, not both")
     }
-    if (opts.project) return opts.project
+    // CommonOpts.project is the provisional public surface (TSR.Project); a
+    // brought-in project is a full bridge Project at runtime, so widen it back.
+    if (opts.project) return opts.project as Project
     if (opts.tsConfigFilePath) return initProject({tsConfigFilePath: opts.tsConfigFilePath})
     throw new Error("refine: specify either `project` or `tsConfigFilePath`")
 }

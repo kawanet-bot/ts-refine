@@ -2,18 +2,32 @@
  * https://github.com/kawanet/ts-refine
  */
 
-import type {Project} from "../src/bridge/bridge.ts"
-
 export {} // external module indicator
 
 export declare namespace TSR {
     // output stream
     type Writer = {write: (line: string) => void}
 
-    // Common base for every entry. Supply the ts-morph project one of two ways:
-    // your own `project` (bring-your-own — in-memory, custom options, and reuse
-    // across calls), or a `tsConfigFilePath` to build a fresh one (best for
-    // one-shot use). Exactly one is required — supplying both throws.
+    // Provisional structural surface of a bring-your-own project. Intentionally
+    // not exhaustive: it covers the methods the library's own (non-bridge) tests
+    // exercise, so a caller can hand in a compatible project without the package
+    // exposing its internal compat layer. The in-package Project/SourceFile
+    // classes implement these, which keeps the two in sync.
+    interface SourceFile {
+        getFullText(): string
+    }
+
+    interface Project {
+        createSourceFile(filePath: string, text: string, options?: {overwrite?: boolean}): SourceFile
+        addSourceFileAtPath(filePath: string): SourceFile
+        getSourceFile(filePath: string): SourceFile | undefined
+        getSourceFiles(): SourceFile[]
+    }
+
+    // Common base for every entry. Supply the project one of two ways: your own
+    // `project` (bring-your-own — in-memory, custom options, and reuse across
+    // calls), or a `tsConfigFilePath` to build a fresh one (best for one-shot
+    // use). Exactly one is required — supplying both throws.
     // log receives progress/notes (route it to stderr); no-op Writer to discard.
     interface CommonOpts {
         project?: Project

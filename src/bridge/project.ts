@@ -9,6 +9,7 @@
 // file name + position, and results are mapped back onto the wrapped tree by
 // position. The two stay aligned because both parse identical text.
 
+import type {TSR} from "ts-refine"
 import ts from "typescript"
 import {type FileSystemHost, InMemoryFileSystemHost, RealFileSystemHost} from "./file-system.ts"
 import {createLanguageServiceHost} from "./language-service-host.ts"
@@ -38,7 +39,7 @@ export interface LanguageServiceWrapper {
     getCombinedCodeFix(sourceFile: SourceFile, fixId: string, formatSettings: ts.FormatCodeSettings): {applyChanges(): void}
 }
 
-export class Project {
+export class Project implements TSR.Project {
     private readonly fileSystem: FileSystemHost
     private readonly compilerOptions: ts.CompilerOptions
     private readonly currentDirectory: string
