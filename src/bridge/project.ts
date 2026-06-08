@@ -97,6 +97,7 @@ export class Project implements TSR.Project {
 
     addSourceFileAtPath(filePath: string): SourceFile {
         const p = normalizePath(filePath)
+        if (!this.fileExists(p)) throw new Error(`Source file not found: ${filePath}`)
         return this.sourceFiles.get(p) ?? this.createSourceFile(p, this.readFileText(p), {overwrite: true})
     }
 

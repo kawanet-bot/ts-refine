@@ -41,6 +41,12 @@ describe("Project", () => {
         assert.equal(project.readFileText("package.json"), "")
     })
 
+    it("rejects missing files in addSourceFileAtPath", () => {
+        const project = new Project({useInMemoryFileSystem: true})
+
+        assert.throws(() => project.addSourceFileAtPath("/missing.ts"), /Source file not found/)
+    })
+
     it("uses the tsconfig directory as the language-service current directory", async () => {
         const dir = await fs.mkdtemp(path.join(os.tmpdir(), "ts-refine-project-"))
         tempDirs.push(dir)
