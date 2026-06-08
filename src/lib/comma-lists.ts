@@ -132,6 +132,7 @@ function findListCloseParen(text: string, from: number): number {
             }
             return -1
         }
+
         // 9 tab, 10 LF, 13 CR, 32 space, 44 comma
         if (c !== 9 && c !== 10 && c !== 13 && c !== 32 && c !== 44) return -1
         i++

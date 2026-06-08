@@ -44,6 +44,7 @@ export class Project implements TSR.Project {
     private readonly compilerOptions: ts.CompilerOptions
     private readonly currentDirectory: string
     private readonly sourceFiles = new Map<string, SourceFile>()
+
     // Read-only wrappers for program files outside the tracked set (e.g. a
     // re-exported declaration that lives in node_modules), kept apart so they
     // never appear in getSourceFiles().
@@ -83,6 +84,7 @@ export class Project implements TSR.Project {
             // tsconfig drives both the compiler options and the initial file set.
             const configPath = normalizePath(options.tsConfigFilePath)
             const configFile = ts.readConfigFile(configPath, ts.sys.readFile)
+
             // A missing path or malformed JSON surfaces here; fail loudly rather
             // than silently building an empty project against the wrong files.
             if (configFile.error != null) {

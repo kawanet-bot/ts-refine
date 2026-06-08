@@ -37,6 +37,7 @@ export function applyAsiGuard(sf: SourceFile, semi: TSR.FormatStyle["semi"]): vo
     const scan = (stmts: ReadonlyArray<Statement>): void => {
         for (let i = 0; i < stmts.length - 1; i++) {
             const prev = stmts[i]
+
             // The protecting `;` is the previous statement's last token (a bare
             // EmptyStatement is just `;`, so this covers it too).
             if (full.charCodeAt(prev.end - 1) !== 59) continue // ';'

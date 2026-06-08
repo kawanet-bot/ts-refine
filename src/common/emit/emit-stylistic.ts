@@ -31,6 +31,7 @@ function functionSpacingConfig(report: TSR.ReportResult): Linter.RuleEntry<RuleO
     const functionKeyword = report.functionSpacing?.functionKeywordSpacing
     const functionParen = report.functionSpacing?.functionParenSpacing
     if (!functionKeyword && !functionParen) return undefined
+
     // Stylistic's `anonymous` bucket covers both keyword-spacing and generic paren-spacing
     // samples. Use a concrete value when the two inferred axes agree (or when only
     // one axis is known); otherwise emit `anonymous: "ignore"` to avoid enforcing a mixed bucket.
@@ -48,6 +49,7 @@ function functionSpacingConfig(report: TSR.ReportResult): Linter.RuleEntry<RuleO
 function semiConfig(report: TSR.ReportResult): Linter.RuleEntry<RuleOptions["@stylistic/semi"]> | undefined {
     const semi = report.semi?.semi
     const delimiter = report.memberDelimiter?.delimiter
+
     // @stylistic/semi also fixes class fields, while member-delimiter-style
     // only covers interface/type members. Skip semi when the member-delimiter
     // recommendation would make class fields disagree with the semi rule.
@@ -96,6 +98,7 @@ function buildStylisticRules(report: TSR.ReportResult): StylisticRules {
     if (functionSpacing) {
         rules["@stylistic/space-before-function-paren"] = functionSpacing
     }
+
     // Do not emit @stylistic/keyword-spacing for controlKeywordSpacing:
     // overrides still enable the rule defaults for unrelated keywords.
     return rules

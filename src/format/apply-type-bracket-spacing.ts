@@ -44,6 +44,7 @@ function collectTypeLiteralEdits(edits: Edit[], fullText: string, tsSf: TsSource
 
     const innerStart = open + 1
     const innerEnd = close
+
     // Same fast single-line gate used by the type-literal tail pass: CRLF
     // contains LF, and CR-only files are rejected before format passes run.
     const lf = fullText.indexOf("\n", innerStart)

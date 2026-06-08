@@ -96,6 +96,7 @@ function applyToNode(node: TsNode, full: string, mode: "on" | "off", edits: {sta
 
     const end = last.end
     const multiline = hasLineBreakBetween(full, end, list.closeStart)
+
     // A dynamic import never wants a trailing comma (Prettier parity), so it
     // takes the remove branch below and `on` strips an existing one.
     const wantComma = mode === "on" && multiline && !isDynamicImport(node)
