@@ -6,7 +6,7 @@
 // bracket sits on a later line than the last element), not a reflow decision.
 //
 // What counts as a list, where it closes, and the spread/rest and dynamic
-// import exclusions live in lib/comma-lists (shared with the report classifier).
+// import predicates live in lib/comma-lists (shared with the report classifier).
 // A spread / rest last element is left as written in both modes: adding a comma
 // there is a syntax error, so honoring `off` but not `on` would be lopsided. A
 // dynamic import is kept comma-free to match Prettier (see isDynamicImport).

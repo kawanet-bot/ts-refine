@@ -2,7 +2,9 @@
 // they carry a trailing comma. Scope is shared with the apply pass via
 // lib/comma-lists (listOf): array / object / call / param / enum / tuple /
 // named-import lists, excluding angle-bracket and interface/type/class member
-// lists, and dynamic `import()` (which the apply pass always keeps comma-free).
+// lists. A dynamic `import()` resolves like any call, so listOf still returns
+// its argument list; the vote below skips it via isDynamicImport, matching the
+// apply pass which keeps it comma-free.
 // Single-line lists never vote — a trailing comma there is not a layout choice
 // the convention speaks to — so only the author's multi-line lists are counted.
 
