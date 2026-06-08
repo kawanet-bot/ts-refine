@@ -46,14 +46,18 @@ function defineCase<TStyle>(name: string, styles: readonly TStyle[], run: (sf: S
     return {name, styleCount: styles.length, prepare, runStyle: (sf, i) => run(sf, styles[i])}
 }
 
-const FORMAT_CASES: ReadonlyArray<FormatCase> = [
-    defineCase("applyAsiGuard", ["off", "on"] as const, applyAsiGuard),
-    defineCase("applySingleLineTypeLiteralTail", ["on", "off"] as const, applySingleLineTypeLiteralTail, formatPrep),
-    defineCase("applyForHeaderSemicolons", [null] as const, (sf) => applyForHeaderSemicolons(sf)),
-    defineCase("applyMemberDelimiter", ["semi", "none"] as const, applyMemberDelimiter),
-    defineCase("applyTrailingComma", ["on", "off"] as const, applyTrailingComma),
-    defineCase("applyTypeBracketSpacing", ["on", "off"] as const, applyTypeBracketSpacing),
-]
+// Built on demand rather than at module load: defineCase runs once per call,
+// only when a benchmark actually runs, not for every importer of this module.
+function getFormatCases(): ReadonlyArray<FormatCase> {
+    return [
+        defineCase("applyAsiGuard", ["off", "on"] as const, applyAsiGuard),
+        defineCase("applySingleLineTypeLiteralTail", ["on", "off"] as const, applySingleLineTypeLiteralTail, formatPrep),
+        defineCase("applyForHeaderSemicolons", [null] as const, (sf) => applyForHeaderSemicolons(sf)),
+        defineCase("applyMemberDelimiter", ["semi", "none"] as const, applyMemberDelimiter),
+        defineCase("applyTrailingComma", ["on", "off"] as const, applyTrailingComma),
+        defineCase("applyTypeBracketSpacing", ["on", "off"] as const, applyTypeBracketSpacing),
+    ]
+}
 
 function createScratchFiles(fixtures: ReadonlyArray<Fixture>): SourceFile[] {
     const project = initInMemoryProject()
@@ -77,7 +81,7 @@ function runOnce(benchCase: FormatCase, fixtures: ReadonlyArray<Fixture>, styleI
 export function runFormatBench(args: BenchmarkArgs, fixtures: ReadonlyArray<Fixture>, output: TSR.Writer, log: TSR.Writer): void {
     const rows: ({name: string; calls: number} & Summary)[] = []
 
-    for (const benchCase of FORMAT_CASES) {
+    for (const benchCase of getFormatCases()) {
         log.write(`format: ${benchCase.name}\n`)
 
         const samples: number[] = []
