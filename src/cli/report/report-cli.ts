@@ -4,10 +4,10 @@
 
 import type {TSR} from "ts-refine"
 import {createRefineProject, refineReport} from "../../index.ts"
-import {writeFormatMarkdown, writePrettierMarkdown, writeStylisticMarkdown} from "../../report/recommend-markdown.ts"
 import type {CLI} from "../cli-io.ts"
 import {resolvePaths} from "../resolve-paths.ts"
 import {parseReportArgs} from "./parse-report-args.ts"
+import {writeFormatMarkdown, writePrettierMarkdown, writeStylisticMarkdown} from "./recommend-markdown.ts"
 import {selectEmitter} from "./select-emitter.ts"
 import {writeReportSections} from "./write-report-sections.ts"
 
