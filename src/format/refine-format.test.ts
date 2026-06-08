@@ -77,6 +77,30 @@ describe("refineFormat", () => {
         }
     })
 
+    it("keeps bracketSpacing on symmetric for single-line type literals", async () => {
+        const style = {
+            semi: "on",
+            indent: 4,
+            memberDelimiter: "semi",
+            newLine: "lf",
+            bracketSpacing: "on",
+            trailingComma: "on",
+            functionKeywordSpacing: "on",
+            functionParenSpacing: "off",
+            controlKeywordSpacing: "on",
+        } as const
+        const cases = [
+            ["type IndexMap = {[id: string]: boolean};\n", "type IndexMap = { [id: string]: boolean };\n"],
+        ]
+
+        for (const [input, expected] of cases) {
+            const project = initInMemoryProject()
+            const sf = project.createSourceFile("a.ts", input)
+            await refineFormat({project, log, dryRun: true, paths: [], style})
+            assert.equal(sf.getFullText(), expected)
+        }
+    })
+
     it("leaves multiline type literal member semicolons when semicolons are on", async () => {
         const project = initInMemoryProject()
         const sf = project.createSourceFile("a.ts", "type X = {\n    [key: string]: boolean\n}\nconst x = (): {\n    [key: string]: boolean\n} => ({})\n")
