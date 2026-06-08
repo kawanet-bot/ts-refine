@@ -1,10 +1,14 @@
-// Project acquisition for the refine* entries. initProject is the thin
-// tsconfig→Project builder (internal now); resolveProject picks the project a
-// call should use from CommonOpts: a caller-supplied `project`, or one built
-// from `tsConfigFilePath`.
+// Project acquisition for the refine* entries. createRefineProject is the
+// public factory; initProject is the CLI/internal tsconfig-only builder;
+// resolveProject picks either a caller-supplied `project` or one built from
+// `tsConfigFilePath`.
 
 import type {TSR} from "ts-refine"
 import {Project, type ProjectOptions} from "../bridge/bridge.ts"
+
+export function createRefineProject(options: TSR.ProjectOptions = {}): Project {
+    return new Project(options)
+}
 
 export function initProject(opts: {tsConfigFilePath: string}): Project {
     return new Project(opts)

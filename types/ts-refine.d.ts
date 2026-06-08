@@ -9,7 +9,6 @@ export {} // external module indicator
 export declare namespace TSR {
     interface ProjectOptions {
         compilerOptions?: CompilerOptions
-        skipLoadingLibFiles?: boolean
         tsConfigFilePath?: string
         useInMemoryFileSystem?: boolean
     }
@@ -269,6 +268,8 @@ export declare namespace TSR {
 }
 
 export declare function refineReport(opts: TSR.ReportOpts): Promise<TSR.ReportResult>
+
+export declare function createRefineProject(options?: TSR.ProjectOptions): TSR.Project
 
 export declare function refineFormat(opts: TSR.FormatOpts): Promise<TSR.FormatResult>
 
