@@ -1,0 +1,297 @@
+// SourceFile: a tracked file in a Project. It owns the live text plus a freshly
+// parsed standalone AST used for all syntactic navigation and the format passes;
+// the tree is reparsed only when the text changes. Semantic operations
+// (exported declarations, referencing files, organize-imports, formatting) are
+// delegated to the project's language service and mapped back onto this tree.
+
+import ts from "typescript"
+import {createWrapper, locateByPos} from "./node.ts"
+import type {ClassDeclaration, EnumDeclaration, ExportDeclaration, FunctionDeclaration, ImportDeclaration, InterfaceDeclaration, ModuleDeclaration, Node, TypeAliasDeclaration, VariableStatement} from "./node.ts"
+import {dirOf, normalizePath} from "./paths.ts"
+import type {Project} from "./project.ts"
+
+// ScriptKind decides the grammar (notably TSX vs TS), so it is derived from the
+// extension up front and kept stable across edits.
+function scriptKindForPath(filePath: string): ts.ScriptKind {
+    if (filePath.endsWith(".tsx")) return ts.ScriptKind.TSX
+    if (filePath.endsWith(".jsx")) return ts.ScriptKind.JSX
+    if (filePath.endsWith(".json")) return ts.ScriptKind.JSON
+    if (filePath.endsWith(".js") || filePath.endsWith(".mjs") || filePath.endsWith(".cjs")) return ts.ScriptKind.JS
+    return ts.ScriptKind.TS
+}
+
+export class SourceFile {
+    private readonly project: Project
+    private filePath: string
+    private text: string
+    private readonly scriptKind: ts.ScriptKind
+    private tsSourceFile: ts.SourceFile
+    // Bumped on each edit; wrappers compare against it to revalidate lazily.
+    scriptVersion = 0
+
+    constructor(project: Project, filePath: string, text: string) {
+        this.project = project
+        this.filePath = filePath
+        this.text = text
+        this.scriptKind = scriptKindForPath(filePath)
+        this.tsSourceFile = this.parse()
+    }
+
+    private parse(): ts.SourceFile {
+        return ts.createSourceFile(this.filePath, this.text, ts.ScriptTarget.Latest, /*setParentNodes*/ true, this.scriptKind)
+    }
+
+    get compilerNode(): ts.SourceFile {
+        return this.tsSourceFile
+    }
+
+    getProject(): Project {
+        return this.project
+    }
+
+    getFilePath(): string {
+        return this.filePath
+    }
+
+    // Project-internal: used by a move to repath the wrapper in place.
+    setFilePath(filePath: string): void {
+        this.filePath = filePath
+        this.tsSourceFile = this.parse()
+    }
+
+    getDirectoryPath(): string {
+        return dirOf(this.filePath)
+    }
+
+    getFullText(): string {
+        return this.text
+    }
+
+    getText(): string {
+        return this.text
+    }
+
+    getScriptKind(): ts.ScriptKind {
+        return this.scriptKind
+    }
+
+    isFromExternalLibrary(): boolean {
+        const program = this.project.getTsProgram()
+        const node = program.getSourceFile(this.filePath)
+        return node != null && program.isSourceFileFromExternalLibrary(node)
+    }
+
+    // --- mutation --------------------------------------------------------------
+
+    replaceWithText(text: string): void {
+        if (text === this.text) return
+        this.text = text
+        this.tsSourceFile = this.parse()
+        this.scriptVersion++
+        this.project.bumpVersion()
+    }
+
+    applyTextChanges(changes: readonly ts.TextChange[]): void {
+        if (changes.length === 0) return
+        // Apply last-to-first so earlier spans keep their offsets.
+        const ordered = [...changes].sort((a, b) => b.span.start - a.span.start)
+        let result = this.text
+        for (const c of ordered) {
+            result = result.slice(0, c.span.start) + c.newText + result.slice(c.span.start + c.span.length)
+        }
+        this.replaceWithText(result)
+    }
+
+    async save(): Promise<void> {
+        await this.project.getFileSystem().writeFile(this.filePath, this.text)
+    }
+
+    // No persistent wrapper cache is held (wrappers revalidate lazily), so the
+    // structural-reparse hint the format pass calls is a no-op here.
+    forgetDescendants(): void {}
+
+    // --- language-service backed edits ----------------------------------------
+
+    formatText(settings: ts.FormatCodeSettings): void {
+        const edits = this.project.getTsLanguageService().getFormattingEditsForDocument(this.filePath, settings)
+        this.applyTextChanges(edits)
+    }
+
+    organizeImports(settings: ts.FormatCodeSettings): void {
+        const changes = this.project.getTsLanguageService().organizeImports({type: "file", fileName: this.filePath}, settings, {})
+        this.project.applyFileTextChanges(changes)
+    }
+
+    // Relocate this file and update every module specifier that targets it (and
+    // its own outgoing relative specifiers). The language service computes the
+    // path arithmetic for all import forms; we then re-key the file. The wrapper
+    // identity is preserved so references captured before the move stay valid.
+    move(newPath: string): void {
+        const norm = normalizePath(newPath)
+        const edits = this.project.getTsLanguageService().getEditsForFileRename(this.filePath, norm, {}, {})
+        this.project.applyFileTextChanges(edits)
+        this.project.repathSourceFile(this, norm)
+    }
+
+    // --- navigation ------------------------------------------------------------
+
+    wrap(tsNode: ts.Node): Node {
+        return createWrapper(this, locateByPos(this.tsSourceFile, tsNode), tsNode)
+    }
+
+    private statementsOfKind(kind: ts.SyntaxKind): Node[] {
+        const out: Node[] = []
+        for (const stmt of this.tsSourceFile.statements) {
+            if (stmt.kind === kind) out.push(this.wrap(stmt))
+        }
+        return out
+    }
+
+    getStatements(): Node[] {
+        return this.tsSourceFile.statements.map((s) => this.wrap(s))
+    }
+
+    getImportDeclarations(): ImportDeclaration[] {
+        return this.statementsOfKind(ts.SyntaxKind.ImportDeclaration) as ImportDeclaration[]
+    }
+
+    getExportDeclarations(): ExportDeclaration[] {
+        return this.statementsOfKind(ts.SyntaxKind.ExportDeclaration) as ExportDeclaration[]
+    }
+
+    getInterfaces(): InterfaceDeclaration[] {
+        return this.statementsOfKind(ts.SyntaxKind.InterfaceDeclaration) as InterfaceDeclaration[]
+    }
+
+    getClasses(): ClassDeclaration[] {
+        return this.statementsOfKind(ts.SyntaxKind.ClassDeclaration) as ClassDeclaration[]
+    }
+
+    getFunctions(): FunctionDeclaration[] {
+        return this.statementsOfKind(ts.SyntaxKind.FunctionDeclaration) as FunctionDeclaration[]
+    }
+
+    getEnums(): EnumDeclaration[] {
+        return this.statementsOfKind(ts.SyntaxKind.EnumDeclaration) as EnumDeclaration[]
+    }
+
+    getTypeAliases(): TypeAliasDeclaration[] {
+        return this.statementsOfKind(ts.SyntaxKind.TypeAliasDeclaration) as TypeAliasDeclaration[]
+    }
+
+    getModules(): ModuleDeclaration[] {
+        return this.statementsOfKind(ts.SyntaxKind.ModuleDeclaration) as ModuleDeclaration[]
+    }
+
+    getVariableStatements(): VariableStatement[] {
+        return this.statementsOfKind(ts.SyntaxKind.VariableStatement) as VariableStatement[]
+    }
+
+    getDescendantsOfKind(kind: ts.SyntaxKind): Node[] {
+        const out: Node[] = []
+        const walk = (node: ts.Node, path: number[]): void => {
+            let i = 0
+            ts.forEachChild(node, (child) => {
+                const childPath = [...path, i]
+                i++
+                if (child.kind === kind) out.push(createWrapper(this, childPath, child))
+                walk(child, childPath)
+            })
+        }
+        walk(this.tsSourceFile, [])
+        return out
+    }
+
+    // The deepest node that begins exactly at `start` and spans `width`. The
+    // member-delimiter pass re-wraps a compiler-AST container this way, and
+    // reference mapping resolves an identifier at a span; the deepest match is
+    // the most specific node at that range.
+    getDescendantAtStartWithWidth(start: number, width: number): Node | undefined {
+        let found: ts.Node | undefined
+        const walk = (node: ts.Node): void => {
+            ts.forEachChild(node, (child) => {
+                if (child.getStart(this.tsSourceFile) === start && child.getWidth(this.tsSourceFile) === width) {
+                    found = child // deeper matches overwrite shallower ones
+                }
+                walk(child)
+                return undefined
+            })
+        }
+        walk(this.tsSourceFile)
+        return found != null ? this.wrap(found) : undefined
+    }
+
+    // --- semantic queries ------------------------------------------------------
+
+    // Map of exported name → declaration nodes, following re-export aliases to
+    // their original declarations (which may live in other files). Mirrors the
+    // grouping callers iterate to count and locate exports.
+    getExportedDeclarations(): Map<string, Node[]> {
+        const checker = this.project.getTypeChecker()
+        const programSf = this.project.getTsProgram().getSourceFile(this.filePath)
+        const result = new Map<string, Node[]>()
+        const moduleSymbol = programSf != null ? checker.getSymbolAtLocation(programSf) : undefined
+        if (moduleSymbol == null) return result
+
+        for (const exp of checker.getExportsOfModule(moduleSymbol)) {
+            const target = (exp.flags & ts.SymbolFlags.Alias) !== 0 ? checker.getAliasedSymbol(exp) : exp
+            const decls = target.getDeclarations() ?? []
+            const nodes: Node[] = []
+            for (const decl of decls) nodes.push(this.project.wrapProgramNode(decl))
+            if (nodes.length > 0) result.set(exp.name, nodes)
+        }
+        return result
+    }
+
+    // In-project files that import / re-export / dynamically import this one.
+    getReferencingSourceFiles(): SourceFile[] {
+        const out: SourceFile[] = []
+        for (const sf of this.project.getSourceFiles()) {
+            if (sf === this) continue
+            if (sf.referencesFile(this.filePath)) out.push(sf)
+        }
+        return out
+    }
+
+    // Whether any module specifier in this file resolves to `targetPath`.
+    referencesFile(targetPath: string): boolean {
+        let hit = false
+        const visit = (node: ts.Node): void => {
+            if (hit) return
+            const specifier = staticModuleSpecifier(node) ?? dynamicModuleSpecifier(node)
+            if (specifier != null) {
+                const resolved = this.project.resolveModuleSpecifier(this.filePath, specifier)
+                if (resolved?.getFilePath() === targetPath) {
+                    hit = true
+                    return
+                }
+            }
+            ts.forEachChild(node, visit)
+        }
+        visit(this.tsSourceFile)
+        return hit
+    }
+
+    getLineAndColumnAtPos(pos: number): {line: number; column: number} {
+        const lc = this.tsSourceFile.getLineAndCharacterOfPosition(pos)
+        return {line: lc.line + 1, column: lc.character + 1}
+    }
+}
+
+// The literal text of an import/export declaration's module specifier, or
+// undefined for declarations without one (a local `export {}`).
+function staticModuleSpecifier(node: ts.Node): string | undefined {
+    if ((ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) && node.moduleSpecifier != null && ts.isStringLiteral(node.moduleSpecifier)) {
+        return node.moduleSpecifier.text
+    }
+    return undefined
+}
+
+// The literal argument of a dynamic `import("...")` call, or undefined.
+function dynamicModuleSpecifier(node: ts.Node): string | undefined {
+    if (ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword) {
+        const arg = node.arguments[0]
+        if (arg != null && ts.isStringLiteral(arg)) return arg.text
+    }
+    return undefined
+}
