@@ -12,17 +12,11 @@ published library and CLI.
 
 ## Directories
 
-- `src/cli/` contains command-line adapters. These modules parse tokens, handle
-  CLI IO, and call the library functions.
+- `src/cli/` contains command-line adapters for the public CLI.
 - `src/common/` contains code shared by the CLI layer and public API
-  implementations. This shared code may be bundled into both outputs.
+  implementations.
 - `src/lib/` contains internal helpers shared by the public API implementations.
-- `src/test-utils/` contains helpers used by tests only.
+- `src/test-utils/` contains shared test helpers.
 - `src/{subcommand}/` directories, such as `src/report/` and `src/format/`,
-  contain the public API implementation for each command-sized feature. Tests
-  live beside the implementation files they cover.
-
-In short, `src/cli/{subcommand}/` is the command-line adapter for a
-subcommand, while `src/{subcommand}/` is the reusable implementation exported
-through the library API. For example, compare `src/cli/report/` with
-`src/report/`, or `src/cli/format/` with `src/format/`.
+  contain reusable implementation for command-sized features; matching
+  `src/cli/{subcommand}/` directories adapt them to the CLI.
