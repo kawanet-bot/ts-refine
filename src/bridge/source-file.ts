@@ -91,9 +91,13 @@ export class SourceFile implements TSR.SourceFile {
 
     isFromExternalLibrary(): boolean {
         // A node_modules path is external even when added explicitly as a root
-        // (the program only flags files it pulled in via resolution). The
-        // program check then catches anything resolved as an external library.
+        // (the program only flags files it pulled in via resolution).
         if (/[/\\]node_modules[/\\]/.test(this.filePath)) return true
+        // Don't build the program just to answer this: a purely syntactic report
+        // (function-spacing, member-delimiter, …) filters the project's own files
+        // and never needs it. When a semantic operation has already built the
+        // program, use its accurate external-library flag.
+        if (!this.project.hasProgram()) return false
         const program = this.project.getTsProgram()
         const node = program.getSourceFile(this.filePath)
         return node != null && program.isSourceFileFromExternalLibrary(node)

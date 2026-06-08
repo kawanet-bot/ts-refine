@@ -117,10 +117,20 @@ export class Project implements TSR.Project {
         return this.tsLanguageService
     }
 
+    // Building the program (the second, semantic parse of every file) is the
+    // costly half of the bridge. `programBuilt` lets callers avoid forcing it
+    // when a cheaper answer suffices — see isFromExternalLibrary.
+    private programBuilt = false
+
     getTsProgram(): ts.Program {
         const program = this.tsLanguageService.getProgram()
         if (program == null) throw new Error("refine: language service produced no program")
+        this.programBuilt = true
         return program
+    }
+
+    hasProgram(): boolean {
+        return this.programBuilt
     }
 
     getTypeChecker(): ts.TypeChecker {
