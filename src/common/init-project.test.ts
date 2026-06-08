@@ -32,6 +32,10 @@ describe("createRefineProject", () => {
         assert.ok(project.getSourceFiles().length > 0)
     })
 
+    it("throws on a missing tsconfig instead of building an empty project", () => {
+        assert.throws(() => createRefineProject({tsConfigFilePath: "/no/such/dir/tsconfig.json"}), /cannot read tsconfig/)
+    })
+
     it("builds an in-memory project files can be added to", () => {
         const project = createRefineProject({useInMemoryFileSystem: true})
         const sf = project.createSourceFile("/p/a.ts", "export const a = 1\n")

@@ -83,7 +83,12 @@ export class Project implements TSR.Project {
             // tsconfig drives both the compiler options and the initial file set.
             const configPath = normalizePath(options.tsConfigFilePath)
             const configFile = ts.readConfigFile(configPath, ts.sys.readFile)
-            const parsed = ts.parseJsonConfigFileContent(configFile.config ?? {}, ts.sys, dirOf(configPath), undefined, configPath)
+            // A missing path or malformed JSON surfaces here; fail loudly rather
+            // than silently building an empty project against the wrong files.
+            if (configFile.error != null) {
+                throw new Error(`refine: cannot read tsconfig: ${options.tsConfigFilePath}\n${ts.flattenDiagnosticMessageText(configFile.error.messageText, "\n")}`)
+            }
+            const parsed = ts.parseJsonConfigFileContent(configFile.config, ts.sys, dirOf(configPath), undefined, configPath)
             this.compilerOptions = {...parsed.options, ...options.compilerOptions, ...libOptions}
             this.tsLanguageService = this.createLanguageService()
             for (const fileName of parsed.fileNames) this.addSourceFileFromDisk(fileName)
