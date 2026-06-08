@@ -14,7 +14,7 @@ import {applyAsiGuard} from "./apply-asi-guard.ts"
 import {applyMemberDelimiter} from "./apply-member-delimiter.ts"
 import {applySingleLineTypeLiteralTail} from "./apply-single-line-type-literal.ts"
 import {applyTrailingComma} from "./apply-trailing-comma.ts"
-import {applyTypeLiteralBracketSpacing} from "./apply-type-literal-bracket-spacing.ts"
+import {applyTypeBracketSpacing} from "./apply-type-bracket-spacing.ts"
 import {normalizeNewLines} from "./normalize-new-lines.ts"
 
 export const refineFormat: typeof declared.refineFormat = async (opts) => {
@@ -60,7 +60,7 @@ export const refineFormat: typeof declared.refineFormat = async (opts) => {
         // index-signature literals asymmetric when bracketSpacing is off.
         applyMemberDelimiter(sf, style.memberDelimiter)
         applyTrailingComma(sf, style.trailingComma)
-        applyTypeLiteralBracketSpacing(sf, style.bracketSpacing)
+        applyTypeBracketSpacing(sf, style.bracketSpacing)
 
         // LS `newLineCharacter` only governs inserted text; existing
         // terminators are normalized here to the same target. Push the result

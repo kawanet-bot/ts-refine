@@ -8,7 +8,7 @@ type Edit = {start: number; end: number; text: string}
 // The TS formatter can leave type-literal braces asymmetric, notably
 // `{[id: string]: boolean }` when bracketSpacing is off. Reassert this narrow
 // axis after formatText while leaving multi-line type literals alone.
-export function applyTypeLiteralBracketSpacing(sf: SourceFile, style: TSR.FormatStyle["bracketSpacing"]): void {
+export function applyTypeBracketSpacing(sf: SourceFile, style: TSR.FormatStyle["bracketSpacing"]): void {
     if (!style) return
 
     const fullText = sf.getFullText()
