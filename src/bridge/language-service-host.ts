@@ -15,14 +15,18 @@ import {normalizePath} from "./paths.ts"
 export interface LanguageServiceContext {
     getCompilerOptions(): ts.CompilerOptions
     getCurrentDirectory(): string
+
     // A monotonically increasing token; bumped whenever a tracked file's text,
     // or the set of tracked files, changes, so the service invalidates caches.
     getProjectVersion(): string
     getTrackedFileNames(): string[]
+
     // Live text of a tracked file, or undefined when the path is untracked.
     getTrackedText(fileName: string): string | undefined
+
     // Per-file version of a tracked file, or undefined when untracked.
     getTrackedVersion(fileName: string): string | undefined
+
     // Directory existence aware of in-memory files (see Project).
     directoryExists(dir: string): boolean
 }

@@ -59,6 +59,7 @@ describe("refineImports", () => {
 
     it("reasserts a dropped trailing comma on a multi-line local export, leaving the body alone", async () => {
         const project = initInMemoryProject()
+
         // A sole, multi-line, local `export {}` (no `from`) with a trailing
         // comma: organizeImports rebuilds the specifier list and drops it, but
         // the per-file survey sees the comma so the self-pass reasserts it. The

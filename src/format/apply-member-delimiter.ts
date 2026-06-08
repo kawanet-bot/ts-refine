@@ -42,13 +42,14 @@ const TRAILING_SEPARATOR = /([;,]?)$/
 function survey(scratch: Project, probePath: string, containerText: string): {kinds: string; errors: number} {
     const sf = scratch.createSourceFile(probePath, containerText, {overwrite: true})
     const container = sf.getInterfaces()[0] ?? sf.getClasses()[0]
+
     // prettier-ignore
     const kinds = container ? container.getMembers().map((m) => m.getKindName()).join(",") : ""
     const errors = (sf.compilerNode as {parseDiagnostics?: unknown[]}).parseDiagnostics?.length ?? 0
     return {kinds, errors}
 }
 
-export function applyMemberDelimiter(sf: SourceFile, style: TSR.MemberDelimiterReport["delimiter"]): void {
+export function applyMemberDelimiter(sf: SourceFile, style: TSR.FormatStyle["memberDelimiter"]): void {
     if (!style) return
     const want = SEPARATOR[style]
 
@@ -82,6 +83,7 @@ export function applyMemberDelimiter(sf: SourceFile, style: TSR.MemberDelimiterR
 
     for (const node of containers) {
         const isClass = Node.isClassDeclaration(node)
+
         // Fast path: a class member can't legally end with a comma, so in comma
         // mode every candidate would fail the re-parse — skip the class outright
         // rather than building and verifying edits the parser would reject.
@@ -94,6 +96,7 @@ export function applyMemberDelimiter(sf: SourceFile, style: TSR.MemberDelimiterR
         members.forEach((member, i) => {
             if (!isSeparableMember(member)) return
             const memberText = member.getText()
+
             // Read the current trailing separator with a regex rather than
             // rebuilding the member: a conforming member is skipped before the
             // rewritten string is allocated. Only on a change is the replacement

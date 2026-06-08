@@ -40,11 +40,13 @@ describe("applyTrailingComma", () => {
         assert.equal(run(arr, "on"), arr)
         const rest = "function f(\n    ...args\n) {}\n"
         assert.equal(run(rest, "on"), rest)
+
         // Rest also as the last element of an object binding and a tuple type.
         const objRest = "const {\n    a,\n    ...rest\n} = o\n"
         assert.equal(run(objRest, "on"), objRest)
         const tupleRest = "type T = [\n    A,\n    ...B[]\n]\n"
         assert.equal(run(tupleRest, "on"), tupleRest)
+
         // `off` must not strip an existing spread trailing comma: honoring
         // remove but not add (a syntax error after rest) would be lopsided, so
         // the position is excluded in both directions, not handled one-way.
@@ -63,6 +65,7 @@ describe("applyTrailingComma", () => {
         ]) {
             assert.equal(run(src, "on"), src)
         }
+
         // TSX `<T,>`: the comma disambiguates the type-parameter list from a JSX
         // tag, so stripping it would break parsing. Preserved (angle untouched).
         assert.equal(run("const f = <T,>() => null\n", "on", "/a.tsx"), "const f = <T,>() => null\n")
@@ -86,6 +89,7 @@ describe("applyTrailingComma", () => {
     it("treats a comma inside a trailing comment as trivia, not the delimiter", () => {
         // `on` must still add the real comma (the comment comma is not one)...
         assert.equal(run("const a = [\n    1 // a, b\n]\n", "on"), "const a = [\n    1, // a, b\n]\n")
+
         // ...and `off` must drop only the real comma, leaving the comment intact.
         assert.equal(run("const a = [\n    1, // a, b\n]\n", "off"), "const a = [\n    1 // a, b\n]\n")
     })
@@ -101,10 +105,12 @@ describe("applyTrailingComma", () => {
 
     it("importsOnly: touches only import/export specifier lists, not the body", () => {
         const project = initInMemoryProject()
+
         // An import and a body array, both multi-line without a trailing comma.
         const src = "import {\n    a,\n    b\n} from './m.ts'\nconst xs = [\n    a,\n    b\n]\n"
         const sf = project.createSourceFile("/a.ts", src, {overwrite: true})
         applyTrailingComma(sf, "on", {importsOnly: true})
+
         // Only the import gains the comma; the body array is left as written.
         assert.equal(sf.getFullText(), "import {\n    a,\n    b,\n} from './m.ts'\nconst xs = [\n    a,\n    b\n]\n")
     })

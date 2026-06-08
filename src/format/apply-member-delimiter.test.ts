@@ -49,6 +49,7 @@ describe("applyMemberSeparators", () => {
 
     it("comma: leaves class fields untouched (`class C { x = 1, }` is a syntax error)", () => {
         const cls = "class C {\n    x = 1;\n    y = 2;\n}\n"
+
         // No commas introduced; the existing separators are kept as-is.
         assert.equal(run(cls, "comma"), cls)
     })
@@ -93,6 +94,7 @@ describe("applyMemberSeparators", () => {
         const src = "class C {\n    x = foo;\n    [y] = 1;\n}\n"
         const out = run(src, "none")
         assert.match(out, /x = foo;\n/, "separator before the computed field is kept")
+
         // Re-parsing keeps two distinct members.
         const project = initInMemoryProject()
         assert.equal(project.createSourceFile("/c.ts", out, {overwrite: true}).getClasses()[0].getMembers().length, 2)

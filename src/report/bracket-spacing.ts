@@ -37,6 +37,7 @@ export async function runReportBracketSpacing({sourceFiles, output, log, imports
             if (style != null) counts.set(style, (counts.get(style) ?? 0) + 1)
             node.forEachChild(visit)
         }
+
         // importsOnly: only the import/export statements are rewritten by
         // organizeImports, so count the braces inside them (named bindings +
         // import attributes), not the whole file.

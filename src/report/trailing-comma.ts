@@ -35,6 +35,7 @@ type Bucket = {lines: number; files: number; topPath: string; topLines: number}
 function classify(text: string, node: TsNode): Style | null {
     const list = listOf(node, text)
     if (list == null) return null
+
     // The apply pass forces a dynamic import to "no comma" regardless of the
     // chosen style, so it speaks to neither side — exclude it from the vote.
     if (isDynamicImport(node)) return null
@@ -52,6 +53,7 @@ export async function runReportTrailingComma({sourceFiles, output, log, importsO
     for (const sf of sourceFiles) {
         const text = sf.getFullText()
         const counts = new Map<Style, number>()
+
         // Walk the compiler AST directly: the classifier already works on raw
         // compiler nodes, so the per-visit wrapper is pure overhead.
         const visit = (node: TsNode): void => {
@@ -59,6 +61,7 @@ export async function runReportTrailingComma({sourceFiles, output, log, importsO
             if (style != null) counts.set(style, (counts.get(style) ?? 0) + 1)
             node.forEachChild(visit)
         }
+
         // importsOnly: organizeImports only rewrites the import/export
         // statements, so the named-binding lists inside them are the only
         // trailing commas it can touch.

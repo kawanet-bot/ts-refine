@@ -17,6 +17,7 @@ test("getExportedDeclarations groups by name and follows re-exports to their fil
 
     const map = a.getExportedDeclarations()
     assert.deepEqual([...map.keys()].sort(), ["bar", "foo"])
+
     // A local declaration stays in this file; a re-export resolves to its origin
     // (callers skip those via `decl.getSourceFile() !== sf`).
     assert.equal(map.get("foo")![0].getSourceFile().getFilePath(), "/p/a.ts")
@@ -54,6 +55,7 @@ test("move relocates the file and rewrites importer specifiers", () => {
 
 test("a wrapper on the moved file revalidates against the reparsed tree", () => {
     const project = emptyProject()
+
     // No importers and no outgoing specifiers, so the move produces no text
     // edits for this file — only the repath replaces its tree.
     const a = project.createSourceFile("/p/a.ts", "export const value = 1\n")

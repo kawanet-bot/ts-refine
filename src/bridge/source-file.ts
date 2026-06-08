@@ -25,9 +25,11 @@ export class SourceFile implements TSR.SourceFile {
     private readonly project: Project
     private filePath: string
     private text: string
+
     // Not readonly: a move can change the extension, which changes the grammar.
     private scriptKind: ts.ScriptKind
     private tsSourceFile: ts.SourceFile
+
     // Bumped on each edit; wrappers compare against it to revalidate lazily.
     scriptVersion = 0
 
@@ -101,6 +103,7 @@ export class SourceFile implements TSR.SourceFile {
         // A node_modules path is external even when added explicitly as a root
         // (the program only flags files it pulled in via resolution).
         if (/[/\\]node_modules[/\\]/.test(this.filePath)) return true
+
         // Don't build the program just to answer this: a purely syntactic report
         // (function-spacing, member-delimiter, …) filters the project's own files
         // and never needs it. When a semantic operation has already built the
@@ -123,6 +126,7 @@ export class SourceFile implements TSR.SourceFile {
 
     applyTextChanges(changes: readonly ts.TextChange[]): void {
         if (changes.length === 0) return
+
         // Apply last-to-first so earlier spans keep their offsets.
         const ordered = [...changes].sort((a, b) => b.span.start - a.span.start)
         let result = this.text

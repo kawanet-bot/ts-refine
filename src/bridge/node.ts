@@ -70,6 +70,7 @@ export function locateByPos(root: ts.SourceFile, target: ts.Node): number[] {
 
 export class Node {
     readonly sourceFile: SourceFile
+
     // null path marks a pinned wrapper (a token); it never revalidates.
     private readonly path: number[] | null
     private cachedNode: ts.Node
@@ -202,6 +203,7 @@ export class Node {
         const project = this.sourceFile.getProject()
         const programNode = project.toProgramNode(this.sourceFile, this.compilerNode)
         if (programNode == null) return undefined
+
         // Declarations carry the binder's symbol directly; references resolve
         // through the checker. getSymbolAtLocation alone misses the former.
         const symbol = (programNode as {symbol?: ts.Symbol}).symbol ?? project.getTypeChecker().getSymbolAtLocation(programNode)
@@ -379,14 +381,17 @@ export class ImportSpecifier extends Node {
     isTypeOnly(): boolean {
         return this.node.isTypeOnly
     }
+
     // The imported (module-side) name: the property name when aliased.
     getName(): string {
         return (this.node.propertyName ?? this.node.name).text
     }
+
     // The module-side name node (property name when aliased, else the binding).
     getNameNode(): Identifier {
         return this.wrapChild(this.node.propertyName ?? this.node.name) as Identifier
     }
+
     // The local binding node when the specifier is aliased (`a as b` → b).
     getAliasNode(): Identifier | undefined {
         return this.node.propertyName != null ? (this.wrapChild(this.node.name) as Identifier) : undefined
@@ -480,6 +485,7 @@ export class VariableStatement extends Node {
     getDeclarations(): VariableDeclaration[] {
         return (this.compilerNode as ts.VariableStatement).declarationList.declarations.map((d) => this.wrapChild(d) as VariableDeclaration)
     }
+
     // "const" / "let" / "var" — matches the string form callers expect.
     getDeclarationKind(): string {
         const flags = (this.compilerNode as ts.VariableStatement).declarationList.flags

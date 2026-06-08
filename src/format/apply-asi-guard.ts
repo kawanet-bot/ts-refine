@@ -7,6 +7,7 @@
 // Scope is just the inserted space: indentation differences (the formatter also
 // shifts the guarded line) are out of scope and left untouched.
 
+import type {TSR} from "ts-refine"
 import type {Statement, Node as TsNode} from "typescript"
 import {SyntaxKind} from "typescript"
 import type {SourceFile} from "../bridge/bridge.ts"
@@ -21,7 +22,9 @@ const SPACED_GUARD = /;[ \t]+\(/
 // or, when a statement precedes it, as that statement's terminator — so the
 // trigger is any statement ending in `;` immediately followed on the same line
 // by a `(`-leading ExpressionStatement. Call after formatText, `semi: "off"` only.
-export function applyAsiGuard(sf: SourceFile): void {
+export function applyAsiGuard(sf: SourceFile, semi: TSR.FormatStyle["semi"]): void {
+    if (semi !== "off") return
+
     const full = sf.getFullText()
     if (!SPACED_GUARD.test(full)) return
 
@@ -34,6 +37,7 @@ export function applyAsiGuard(sf: SourceFile): void {
     const scan = (stmts: ReadonlyArray<Statement>): void => {
         for (let i = 0; i < stmts.length - 1; i++) {
             const prev = stmts[i]
+
             // The protecting `;` is the previous statement's last token (a bare
             // EmptyStatement is just `;`, so this covers it too).
             if (full.charCodeAt(prev.end - 1) !== 59) continue // ';'
