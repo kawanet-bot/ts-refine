@@ -16,7 +16,7 @@ describe("Node", () => {
         assert.equal(importDecl.getModuleSpecifierSourceFile()?.getFilePath(), "/dep.ts")
         assert.equal(importDecl.getDefaultImport()?.getText(), "def")
         assert.equal(named?.getName(), "local")
-        assert.equal(named?.getAliasNode()?.getText(), "value")
+        assert.equal(named?.getAliasNode()?.getText(), "local")
 
         importDecl.setModuleSpecifier("./other.ts")
 

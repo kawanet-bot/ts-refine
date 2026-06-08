@@ -268,9 +268,25 @@ function scriptKindFromPath(filePath: string): ts.ScriptKind {
 }
 
 function referencesSourceFile(from: SourceFile, target: SourceFile): boolean {
-    for (const decl of from.getImportDeclarations()) if (decl.getModuleSpecifierSourceFile() === target) return true
-    for (const decl of from.getExportDeclarations()) if (decl.getModuleSpecifierSourceFile() === target) return true
-    return false
+    let found = false
+    const visit = (node: ts.Node): void => {
+        if (found) return
+        const lit = moduleSpecifierLiteral(node)
+        if (lit && from.getProject().resolveModuleSpecifier(from, lit.text) === target) {
+            found = true
+            return
+        }
+        if (ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword) {
+            const arg = node.arguments[0]
+            if (arg && ts.isStringLiteral(arg) && from.getProject().resolveModuleSpecifier(from, arg.text) === target) {
+                found = true
+                return
+            }
+        }
+        node.forEachChild(visit)
+    }
+    visit(from.compilerNode)
+    return found
 }
 
 function moduleSpecifierLiteral(node: ts.Node): ts.StringLiteral | undefined {

@@ -64,4 +64,22 @@ describe("SourceFile", () => {
         assert.equal(moved.getFullText(), 'import dep = require("../dep.ts")\nexport const result = dep.value\n')
         assert.equal(main.getFullText(), 'import moved = require("./sub/moved.ts")\nconst used = moved.result\n')
     })
+
+    it("counts non-static module references as referencing source files", () => {
+        const project = initBridgeTestProject()
+        const target = project.createSourceFile("/src/target.ts", "export const value = 1\nexport interface Type { value: string }\n")
+        const staticImport = project.createSourceFile("/src/static.ts", 'import {value} from "./target.ts"\nexport const used = value\n')
+        const importEquals = project.createSourceFile("/src/import-equals.ts", 'import target = require("./target.ts")\nexport const used = target.value\n')
+        const importType = project.createSourceFile("/src/import-type.ts", 'export type Local = import("./target.ts").Type\n')
+        const dynamicImport = project.createSourceFile("/src/dynamic.ts", 'export const load = () => import("./target.ts")\n')
+        project.createSourceFile("/src/unrelated.ts", "export const other = 1\n")
+
+        assert.deepEqual(
+            target
+                .getReferencingSourceFiles()
+                .map((sf) => sf.getFilePath())
+                .sort(),
+            [dynamicImport, importEquals, importType, staticImport].map((sf) => sf.getFilePath()).sort(),
+        )
+    })
 })

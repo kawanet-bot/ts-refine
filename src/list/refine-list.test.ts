@@ -71,6 +71,23 @@ describe("refineList (sample/basic)", () => {
             ["main.ts"],
         )
     })
+
+    it("counts import-equals, import-type, and dynamic imports as importers", async () => {
+        const project = initInMemoryProject({
+            module: ModuleKind.ESNext,
+            moduleResolution: ModuleResolutionKind.Bundler,
+            allowImportingTsExtensions: true,
+        })
+        project.createSourceFile("/target.ts", "export const value = 1\nexport interface Type { value: string }\n")
+        project.createSourceFile("/import-equals.ts", 'import target = require("./target.ts")\nexport const used = target.value\n')
+        project.createSourceFile("/import-type.ts", 'export type Local = import("./target.ts").Type\n')
+        project.createSourceFile("/dynamic.ts", 'export const load = () => import("./target.ts")\n')
+
+        const entries = await refineList({project, log, paths: []})
+        const target = entries.find((e) => e.file === "target.ts")!
+
+        assert.equal(target.importers, 3)
+    })
 })
 
 // sample/basic: index.ts {0,0,0}, partial.ts {2,1,1}, unused.ts {2,2,0},
@@ -184,6 +201,16 @@ describe("refineList --ref", () => {
             {noImporters: true},
         )
         assert.deepEqual(got, ["imp.ts"])
+    })
+
+    it("resolves aliased named imports by their local binding", async () => {
+        const got = await refNames("localValue", {
+            "/shims.d.ts": 'declare module "dep" {\n    export const exportedValue: number\n}\n',
+            "/use.ts": 'import {exportedValue as localValue} from "dep"\nexport const used = localValue\n',
+            "/other.ts": "export const x = 1\n",
+        })
+
+        assert.deepEqual(got, ["use.ts"])
     })
 
     it("throws when the target is neither exported nor imported", async () => {

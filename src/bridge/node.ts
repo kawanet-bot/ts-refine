@@ -257,6 +257,8 @@ export class Node<T extends ts.Node = ts.Node> {
     }
 
     getAliasNode(): Node | undefined {
+        const node = this.compilerNode
+        if ((ts.isImportSpecifier(node) || ts.isExportSpecifier(node)) && node.propertyName) return this.sourceFile.wrap(node.name)
         const prop = (this.compilerNode as {propertyName?: ts.Node}).propertyName
         return prop ? this.sourceFile.wrap(prop) : undefined
     }
