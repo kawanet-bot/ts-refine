@@ -2,7 +2,7 @@ import {strict as assert} from "node:assert"
 import path from "node:path"
 import {describe, it} from "node:test"
 import type {TSR} from "ts-refine"
-import {ts} from "../bridge/bridge.ts"
+import {ModuleKind, ModuleResolutionKind} from "typescript"
 import {initInMemoryProject} from "../common/init-project.ts"
 import {initTestProject} from "../test-utils/init-test-project.ts"
 import {refineList} from "./refine-list.ts"
@@ -56,8 +56,8 @@ describe("refineList (sample/basic)", () => {
 
     it("excludes JSON modules (resolveJsonModule) from the listing", async () => {
         const project = initInMemoryProject({
-            module: ts.ModuleKind.ESNext,
-            moduleResolution: ts.ModuleResolutionKind.Bundler,
+            module: ModuleKind.ESNext,
+            moduleResolution: ModuleResolutionKind.Bundler,
             resolveJsonModule: true,
             allowImportingTsExtensions: true,
         })
@@ -123,8 +123,8 @@ describe("refineList progress log (sample/basic)", () => {
 })
 
 const BUNDLER = {
-    module: ts.ModuleKind.ESNext,
-    moduleResolution: ts.ModuleResolutionKind.Bundler,
+    module: ModuleKind.ESNext,
+    moduleResolution: ModuleResolutionKind.Bundler,
     allowImportingTsExtensions: true,
 } as const
 

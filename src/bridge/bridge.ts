@@ -1,11 +1,7 @@
-// Public entry point for ts-refine's private TypeScript bridge. It exposes the
-// small refactor-friendly surface the current codebase uses while keeping the
-// implementation backed by the TypeScript compiler and language service.
+// Public entry point for ts-refine's private bridge. It exposes only wrapper
+// objects owned by this package; TypeScript's enums, namespaces, and types are
+// imported directly from "typescript" at each call site.
 
-import * as ts from "typescript"
-
-export {ScriptKind, SyntaxKind} from "typescript"
-export type {FormatCodeSettings, Node as TsNode} from "typescript"
 export {Node} from "./node.ts"
 export {Project} from "./project.ts"
 export type {ProjectOptions} from "./project.ts"
@@ -22,4 +18,3 @@ export type {
     StringLiteral,
     TypeElementTypes,
 } from "./types.ts"
-export {ts}

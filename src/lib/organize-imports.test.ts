@@ -5,22 +5,23 @@
 
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
-import {ts} from "../bridge/bridge.ts"
+import type {FormatCodeSettings} from "typescript"
+import {SemicolonPreference} from "typescript"
 import {initInMemoryProject} from "../common/init-project.ts"
 import {applyOrganizeImports} from "./organize-imports.ts"
 
 // bracketSpacing off so `{}`/`{a}` print without inner spaces, keeping the
 // assertions about the trailing `;` unambiguous.
-const REMOVE: ts.FormatCodeSettings = {
-    semicolons: ts.SemicolonPreference.Remove,
+const REMOVE: FormatCodeSettings = {
+    semicolons: SemicolonPreference.Remove,
     insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces: false,
 }
-const INSERT: ts.FormatCodeSettings = {
-    semicolons: ts.SemicolonPreference.Insert,
+const INSERT: FormatCodeSettings = {
+    semicolons: SemicolonPreference.Insert,
     insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces: false,
 }
 
-function run(text: string, settings: ts.FormatCodeSettings) {
+function run(text: string, settings: FormatCodeSettings) {
     const project = initInMemoryProject()
     const sf = project.createSourceFile("a.ts", text)
     applyOrganizeImports(sf, {settings})
@@ -83,7 +84,7 @@ describe("applyOrganizeImports trailing-comma reassertion", () => {
 })
 
 describe("applyOrganizeImports trailing-comma + semicolons together", () => {
-    function organize(text: string, settings: ts.FormatCodeSettings, trailingComma: "on" | "off") {
+    function organize(text: string, settings: FormatCodeSettings, trailingComma: "on" | "off") {
         const project = initInMemoryProject()
         const sf = project.createSourceFile("a.ts", text)
         applyOrganizeImports(sf, {settings, trailingComma})

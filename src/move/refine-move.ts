@@ -17,7 +17,9 @@
 import fs from "node:fs"
 import path from "node:path"
 import type * as declared from "ts-refine"
-import {type ExportDeclaration, type ImportDeclaration, Node, type Project, type SourceFile, type StringLiteral, ts} from "../bridge/bridge.ts"
+import type {Node as TsNode, StringLiteral as TsStringLiteral} from "typescript"
+import {isImportTypeNode, isLiteralTypeNode, isStringLiteral, SyntaxKind} from "typescript"
+import {type ExportDeclaration, type ImportDeclaration, Node, type Project, type SourceFile, type StringLiteral} from "../bridge/bridge.ts"
 import {resolveProject} from "../common/init-project.ts"
 import {logging} from "../common/logging.ts"
 import {surveyImportStyles} from "../lib/organize-changed.ts"
@@ -237,7 +239,7 @@ function snapshotSpecifiers(project: Project, movingPaths: Set<string>): SpecRec
             if (!isMoving && !movingPaths.has(target.getFilePath())) continue
             records.push({kind: "export", node: decl, originalExt: extensionOf(specifier)})
         }
-        for (const call of sf.getDescendantsOfKind(ts.SyntaxKind.CallExpression)) {
+        for (const call of sf.getDescendantsOfKind(SyntaxKind.CallExpression)) {
             if (call.getExpression().getKindName() !== "ImportKeyword") continue
             const arg = call.getArguments()[0]
             if (!arg || !Node.isStringLiteral(arg)) continue
@@ -246,7 +248,7 @@ function snapshotSpecifiers(project: Project, movingPaths: Set<string>): SpecRec
             if (!isMoving && !movingPaths.has(target.getFilePath())) continue
             records.push({kind: "literal", node: arg, originalExt: extensionOf(arg.getLiteralValue())})
         }
-        for (const node of sf.getDescendantsOfKind(ts.SyntaxKind.ImportType)) {
+        for (const node of sf.getDescendantsOfKind(SyntaxKind.ImportType)) {
             const lit = importTypeLiteral(node.compilerNode)
             if (!lit) continue
             const specifier = lit.text
@@ -260,8 +262,8 @@ function snapshotSpecifiers(project: Project, movingPaths: Set<string>): SpecRec
     return records
 }
 
-function importTypeLiteral(node: ts.Node): ts.StringLiteral | undefined {
-    return ts.isImportTypeNode(node) && ts.isLiteralTypeNode(node.argument) && ts.isStringLiteral(node.argument.literal) ? node.argument.literal : undefined
+function importTypeLiteral(node: TsNode): TsStringLiteral | undefined {
+    return isImportTypeNode(node) && isLiteralTypeNode(node.argument) && isStringLiteral(node.argument.literal) ? node.argument.literal : undefined
 }
 
 function restoreOriginalExtension(r: SpecRecord): void {

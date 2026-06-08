@@ -10,7 +10,7 @@
     "url": "https://github.com/kawanet/ts-refine/issues"
   },
   "dependencies": {
-    "typescript": "^6.0.3"
+    "typescript": "~6.0.3"
   },
   "devDependencies": {
     "@rollup/plugin-alias": "^6.0.0",

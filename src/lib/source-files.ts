@@ -3,7 +3,8 @@
 // the whole project.
 
 import path from "node:path"
-import {type Project, ScriptKind, type SourceFile} from "../bridge/bridge.ts"
+import {ScriptKind} from "typescript"
+import type {Project, SourceFile} from "../bridge/bridge.ts"
 
 // In-project command/refactor targets only. External declarations (TS lib,
 // @types/*, node_modules) are load-only; JSON modules aren't TypeScript and the

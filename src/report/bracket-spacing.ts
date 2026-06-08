@@ -7,7 +7,7 @@
 
 import type {TSR} from "ts-refine"
 import type {Node as TsNode} from "typescript"
-import {SyntaxKind} from "../bridge/bridge.ts"
+import {SyntaxKind} from "typescript"
 import {getTsRefineFormat} from "../common/emit/emit-ts-refine.ts"
 import {logging} from "../common/logging.ts"
 import {displayPath} from "../lib/source-files.ts"

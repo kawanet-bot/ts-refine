@@ -1,6 +1,6 @@
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
-import {ts} from "../bridge/bridge.ts"
+import {SemicolonPreference} from "typescript"
 import {formatStyleToSettings, normalizeNewLines} from "./format-settings.ts"
 
 describe("formatStyleToSettings", () => {
@@ -25,8 +25,8 @@ describe("formatStyleToSettings", () => {
     })
 
     it("maps semicolons on/off to the SemicolonPreference", () => {
-        assert.equal(formatStyleToSettings({semi: "on"}).semicolons, ts.SemicolonPreference.Insert)
-        assert.equal(formatStyleToSettings({semi: "off"}).semicolons, ts.SemicolonPreference.Remove)
+        assert.equal(formatStyleToSettings({semi: "on"}).semicolons, SemicolonPreference.Insert)
+        assert.equal(formatStyleToSettings({semi: "off"}).semicolons, SemicolonPreference.Remove)
     })
 
     it("maps bracketSpacing on/off to the brace-padding flag", () => {

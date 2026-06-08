@@ -13,7 +13,7 @@
 // `node.compilerNode` and read positions / `hasTrailingComma` directly.
 
 import type {NodeArray, Node as TsNode} from "typescript"
-import {SyntaxKind} from "../bridge/bridge.ts"
+import {SyntaxKind} from "typescript"
 
 // Function-like nodes whose parameter list carries a trailing comma. Their
 // element array always lives on `parameters`, so elementsOf maps them together

@@ -1,6 +1,6 @@
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
-import {ts} from "../bridge/bridge.ts"
+import {ModuleKind, ModuleResolutionKind} from "typescript"
 import {initInMemoryProject} from "../common/init-project.ts"
 import {refineReport} from "../report/refine-report.ts"
 import {refineFormat} from "./refine-format.ts"
@@ -75,8 +75,8 @@ describe("refineFormat", () => {
         // A semicolon injected into the JSON object literal is a syntax error and
         // used to crash the whole command; JSON must not be a format target.
         const project = initInMemoryProject({
-            module: ts.ModuleKind.ESNext,
-            moduleResolution: ts.ModuleResolutionKind.Bundler,
+            module: ModuleKind.ESNext,
+            moduleResolution: ModuleResolutionKind.Bundler,
             resolveJsonModule: true,
             allowImportingTsExtensions: true,
         })

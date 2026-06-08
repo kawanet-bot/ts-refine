@@ -1,13 +1,14 @@
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
-import {Project, ts} from "../bridge/bridge.ts"
+import {ModuleKind, ModuleResolutionKind} from "typescript"
+import {Project} from "../bridge/bridge.ts"
 import {initInMemoryProject} from "../common/init-project.ts"
 import {refineRename} from "./refine-rename.ts"
 
 function newProject(): Project {
     return initInMemoryProject({
-        module: ts.ModuleKind.ESNext,
-        moduleResolution: ts.ModuleResolutionKind.Bundler,
+        module: ModuleKind.ESNext,
+        moduleResolution: ModuleResolutionKind.Bundler,
         allowImportingTsExtensions: true,
     })
 }

@@ -3,15 +3,16 @@ import fs from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
 import {after, before, describe, it} from "node:test"
-import {Project, ts} from "../bridge/bridge.ts"
+import {ModuleKind, ModuleResolutionKind} from "typescript"
+import {Project} from "../bridge/bridge.ts"
 import {initInMemoryProject} from "../common/init-project.ts"
 import {initTestProject} from "../test-utils/init-test-project.ts"
 import {refineMove} from "./refine-move.ts"
 
 function newProject(): Project {
     return initInMemoryProject({
-        module: ts.ModuleKind.ESNext,
-        moduleResolution: ts.ModuleResolutionKind.Bundler,
+        module: ModuleKind.ESNext,
+        moduleResolution: ModuleResolutionKind.Bundler,
         allowImportingTsExtensions: true,
     })
 }
@@ -53,8 +54,8 @@ describe("refineMove (in-memory, dry-run)", () => {
 
     it("preserves the mandatory `.json` extension when moving a file that imports JSON", async () => {
         const project = initInMemoryProject({
-            module: ts.ModuleKind.ESNext,
-            moduleResolution: ts.ModuleResolutionKind.Bundler,
+            module: ModuleKind.ESNext,
+            moduleResolution: ModuleResolutionKind.Bundler,
             resolveJsonModule: true,
             allowImportingTsExtensions: true,
         })
@@ -78,8 +79,8 @@ describe("refineMove (in-memory, dry-run)", () => {
         // import("./a.mjs") resolves to /src/a.mts under NodeNext. The
         // restoration must put `.mjs` back, not strip to bare `./a`.
         const project = initInMemoryProject({
-            module: ts.ModuleKind.NodeNext,
-            moduleResolution: ts.ModuleResolutionKind.NodeNext,
+            module: ModuleKind.NodeNext,
+            moduleResolution: ModuleResolutionKind.NodeNext,
             allowImportingTsExtensions: true,
         })
         project.createSourceFile("/src/a.mts", "export const x = 1\n")
@@ -91,8 +92,8 @@ describe("refineMove (in-memory, dry-run)", () => {
     it("preserves whatever extension each importer wrote (.ts / .js / none in one file)", async () => {
         // NodeNext-style resolver — `./a.js` is a valid way to refer to a.ts.
         const project = initInMemoryProject({
-            module: ts.ModuleKind.NodeNext,
-            moduleResolution: ts.ModuleResolutionKind.NodeNext,
+            module: ModuleKind.NodeNext,
+            moduleResolution: ModuleResolutionKind.NodeNext,
             allowImportingTsExtensions: true,
         })
         project.createSourceFile("/src/a.ts", "export const x = 1\n")

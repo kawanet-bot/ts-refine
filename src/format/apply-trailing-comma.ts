@@ -12,7 +12,8 @@
 // dynamic import is kept comma-free to match Prettier (see isDynamicImport).
 
 import type {Node as TsNode} from "typescript"
-import {SyntaxKind, type SourceFile} from "../bridge/bridge.ts"
+import {SyntaxKind} from "typescript"
+import type {SourceFile} from "../bridge/bridge.ts"
 import {isDynamicImport, isSpreadOrRest, listOf} from "../lib/comma-lists.ts"
 import {hasLineBreakBetween} from "../lib/text-ranges.ts"
 

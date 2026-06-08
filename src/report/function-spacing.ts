@@ -1,6 +1,7 @@
 import type {TSR} from "ts-refine"
 import type {Node as TsNode, SourceFile as TsSourceFile} from "typescript"
-import {SyntaxKind, type SourceFile} from "../bridge/bridge.ts"
+import {SyntaxKind} from "typescript"
+import type {SourceFile} from "../bridge/bridge.ts"
 import {displayPath} from "../lib/source-files.ts"
 import {writeFunctionSpacingMarkdown} from "./function-spacing-markdown.ts"
 import {pickRecommendByFiles} from "./pick-recommend.ts"
