@@ -1,4 +1,5 @@
 import alias from "@rollup/plugin-alias"
+import json from "@rollup/plugin-json"
 import nodeResolve from "@rollup/plugin-node-resolve"
 import sucrase from "@rollup/plugin-sucrase"
 import type {RollupOptions} from "rollup"
@@ -24,6 +25,10 @@ const rollupConfig: RollupOptions = {
                 },
             ],
         }),
+
+        // The version banner imports package.json; inline it here so only the
+        // referenced `version` field survives tree-shaking into the bundle.
+        json(),
 
         nodeResolve({
             extensions: [".ts", ".js"],
