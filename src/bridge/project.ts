@@ -163,9 +163,29 @@ export class Project {
     }
 
     private getSourceFilesByGlob(glob: string): SourceFile[] {
-        const re = new RegExp("^" + normalizePath(glob).split("*").map(escapeRegExp).join("[^/]*") + "$")
+        const re = globToRegExp(normalizePath(glob))
         return [...this.sourceFiles.values()].filter((sf) => re.test(sf.getFilePath()))
     }
+}
+
+function globToRegExp(glob: string): RegExp {
+    let pattern = "^"
+    for (let i = 0; i < glob.length;) {
+        if (glob.startsWith("**/", i)) {
+            pattern += "(?:.*/)?"
+            i += 3
+        } else if (glob.startsWith("**", i)) {
+            pattern += ".*"
+            i += 2
+        } else if (glob[i] === "*") {
+            pattern += "[^/]*"
+            i++
+        } else {
+            pattern += escapeRegExp(glob[i])
+            i++
+        }
+    }
+    return new RegExp(pattern + "$")
 }
 
 function escapeRegExp(text: string): string {

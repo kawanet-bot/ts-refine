@@ -30,7 +30,7 @@ import {displayPath, inProjectSourceFiles} from "../lib/source-files.ts"
 // (".ts", ".js", ".mjs", ...) or "" for no extension — whatever the user
 // wrote stays. TypeScript drops the extension during move and we put back
 // exactly what was there originally.
-type SpecRecord = {kind: "import"; node: ImportDeclaration; originalExt: string} | {kind: "export"; node: ExportDeclaration; originalExt: string} | {kind: "dynamic"; node: StringLiteral; originalExt: string}
+type SpecRecord = {kind: "import"; node: ImportDeclaration; originalExt: string} | {kind: "export"; node: ExportDeclaration; originalExt: string} | {kind: "literal"; node: StringLiteral; originalExt: string}
 
 // Extensions a module specifier may carry that the move must preserve. The
 // TS-resolvable family (`.js` etc. count under NodeNext / bundler) plus `.json`
@@ -244,11 +244,24 @@ function snapshotSpecifiers(project: Project, movingPaths: Set<string>): SpecRec
             const target = resolveDynamicTarget(sf, arg.getLiteralValue(), project)
             if (!target) continue
             if (!isMoving && !movingPaths.has(target.getFilePath())) continue
-            records.push({kind: "dynamic", node: arg, originalExt: extensionOf(arg.getLiteralValue())})
+            records.push({kind: "literal", node: arg, originalExt: extensionOf(arg.getLiteralValue())})
+        }
+        for (const node of sf.getDescendantsOfKind(ts.SyntaxKind.ImportType)) {
+            const lit = importTypeLiteral(node.compilerNode)
+            if (!lit) continue
+            const specifier = lit.text
+            const target = resolveDynamicTarget(sf, specifier, project)
+            if (!target) continue
+            if (!isMoving && !movingPaths.has(target.getFilePath())) continue
+            records.push({kind: "literal", node: node.getSourceFile().wrap(lit), originalExt: extensionOf(specifier)})
         }
     }
 
     return records
+}
+
+function importTypeLiteral(node: ts.Node): ts.StringLiteral | undefined {
+    return ts.isImportTypeNode(node) && ts.isLiteralTypeNode(node.argument) && ts.isStringLiteral(node.argument.literal) ? node.argument.literal : undefined
 }
 
 function restoreOriginalExtension(r: SpecRecord): void {

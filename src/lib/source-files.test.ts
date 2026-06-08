@@ -27,6 +27,17 @@ describe("selectSourceFiles", () => {
         assert.equal(selectSourceFiles(p, {paths: ["/a.ts", "/a.ts"]}).length, 1)
     })
 
+    it("matches recursive globstar paths across directory depths", () => {
+        const p = initInMemoryProject()
+        p.createSourceFile("/repo/src/a.ts", "export const a = 1\n")
+        p.createSourceFile("/repo/src/deep/b.ts", "export const b = 1\n")
+        p.createSourceFile("/repo/src/deep/nested/c.ts", "export const c = 1\n")
+        assert.deepEqual(
+            p.getSourceFiles(["/repo/src/**/*.ts"]).map((sf) => sf.getFilePath()).sort(),
+            ["/repo/src/a.ts", "/repo/src/deep/b.ts", "/repo/src/deep/nested/c.ts"],
+        )
+    })
+
     it("throws when the project itself has no source files", () => {
         const p = initInMemoryProject()
         assert.throws(() => selectSourceFiles(p, {paths: []}), /no source files found in the project/)

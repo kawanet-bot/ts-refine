@@ -2,9 +2,24 @@
  * https://github.com/kawanet/ts-refine
  */
 
-import type {Project} from "../src/bridge/bridge.ts"
+import type {CompilerOptions} from "typescript"
 
 export {} // external module indicator
+
+export interface ProjectOptions {
+    compilerOptions?: CompilerOptions
+    skipLoadingLibFiles?: boolean
+    tsConfigFilePath?: string
+    useInMemoryFileSystem?: boolean
+}
+
+export declare class Project {
+    constructor(opts?: ProjectOptions)
+
+    createSourceFile(filePath: string, text: string, opts?: {overwrite?: boolean}): unknown
+    addSourceFileAtPath(filePath: string): unknown
+    getSourceFiles(paths?: string[]): unknown[]
+}
 
 export declare namespace TSR {
     // output stream
