@@ -18,24 +18,12 @@
 // ts-morph descendant walk and just hand off `node.compilerNode` per visit.
 
 import {SyntaxKind, type SourceFile} from "ts-morph"
-import type {
-    ArrayBindingPattern,
-    ArrayLiteralExpression,
-    CallExpression,
-    EnumDeclaration,
-    NamedExports,
-    NamedImports,
-    NewExpression,
-    NodeArray,
-    ObjectBindingPattern,
-    ObjectLiteralExpression,
-    SignatureDeclaration,
-    Node as TsNode,
-    TupleTypeNode,
-} from "typescript"
+import type {NodeArray, Node as TsNode} from "typescript"
 import {hasLineBreakBetween} from "../lib/text-ranges.ts"
 
-// Function-like nodes whose parameter list carries a trailing comma.
+// Function-like nodes whose parameter list carries a trailing comma. Their
+// element array always lives on `parameters`, so elementsOf maps them together
+// rather than listing each in LIST_ELEMENTS_PROP.
 const PARAMETER_KINDS = new Set<SyntaxKind>([
     SyntaxKind.FunctionDeclaration,
     SyntaxKind.FunctionExpression,
@@ -49,6 +37,21 @@ const PARAMETER_KINDS = new Set<SyntaxKind>([
     SyntaxKind.ConstructSignature,
     SyntaxKind.FunctionType,
     SyntaxKind.ConstructorType,
+])
+
+// Each remaining list-bearing kind mapped to the property holding its element
+// array (parameter kinds are covered by PARAMETER_KINDS above).
+const LIST_ELEMENTS_PROP = new Map<SyntaxKind, string>([
+    [SyntaxKind.ArrayLiteralExpression, "elements"],
+    [SyntaxKind.ArrayBindingPattern, "elements"],
+    [SyntaxKind.TupleType, "elements"],
+    [SyntaxKind.ObjectLiteralExpression, "properties"],
+    [SyntaxKind.ObjectBindingPattern, "elements"],
+    [SyntaxKind.NamedImports, "elements"],
+    [SyntaxKind.NamedExports, "elements"],
+    [SyntaxKind.EnumDeclaration, "members"],
+    [SyntaxKind.CallExpression, "arguments"],
+    [SyntaxKind.NewExpression, "arguments"],
 ])
 
 // A comma-separated list this pass acts on. `hasTrailingComma` is the parser's
@@ -92,35 +95,15 @@ export function isSpreadOrRest(node: TsNode): boolean {
     return (node as {dotDotDotToken?: unknown}).dotDotDotToken != null
 }
 
-// Per-kind element array extraction. Returned as `NodeArray<Node>` so the
-// caller can also read the parser's `hasTrailingComma` flag on it.
+// The element array a list-bearing node owns, or undefined for other kinds.
+// The property differs by kind (elements / properties / members / arguments /
+// parameters); a `NewExpression` with no parens has no `arguments` and yields
+// undefined. Returned as `NodeArray` so the caller can read the parser's
+// `hasTrailingComma` flag off it.
 function elementsOf(node: TsNode): NodeArray<TsNode> | undefined {
-    switch (node.kind) {
-        case SyntaxKind.ArrayLiteralExpression:
-            return (node as ArrayLiteralExpression).elements as unknown as NodeArray<TsNode>
-        case SyntaxKind.ArrayBindingPattern:
-            return (node as ArrayBindingPattern).elements as unknown as NodeArray<TsNode>
-        case SyntaxKind.TupleType:
-            return (node as TupleTypeNode).elements as unknown as NodeArray<TsNode>
-        case SyntaxKind.ObjectLiteralExpression:
-            return (node as ObjectLiteralExpression).properties as unknown as NodeArray<TsNode>
-        case SyntaxKind.ObjectBindingPattern:
-            return (node as ObjectBindingPattern).elements as unknown as NodeArray<TsNode>
-        case SyntaxKind.NamedImports:
-            return (node as NamedImports).elements as unknown as NodeArray<TsNode>
-        case SyntaxKind.NamedExports:
-            return (node as NamedExports).elements as unknown as NodeArray<TsNode>
-        case SyntaxKind.EnumDeclaration:
-            return (node as EnumDeclaration).members as unknown as NodeArray<TsNode>
-        case SyntaxKind.CallExpression:
-            return (node as CallExpression).arguments as unknown as NodeArray<TsNode>
-        case SyntaxKind.NewExpression:
-            return (node as NewExpression).arguments as unknown as NodeArray<TsNode> | undefined
-    }
-    if (PARAMETER_KINDS.has(node.kind)) {
-        return (node as SignatureDeclaration).parameters as unknown as NodeArray<TsNode>
-    }
-    return undefined
+    const prop = LIST_ELEMENTS_PROP.get(node.kind) ?? (PARAMETER_KINDS.has(node.kind) ? "parameters" : undefined)
+    if (prop == null) return undefined
+    return (node as unknown as Record<string, NodeArray<TsNode> | undefined>)[prop]
 }
 
 // Locate the close paren for a parameter list given the end position of its
