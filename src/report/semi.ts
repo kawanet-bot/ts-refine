@@ -3,13 +3,13 @@
 // interface/type-literal members (comma-separated members excluded).
 // Helps decide which direction minimizes churn when standardizing.
 
-import {Node} from "ts-morph"
 import type {TSR} from "ts-refine"
+import type {Node as TsNode} from "typescript"
 import {getTsRefineFormat} from "../common/emit/emit-ts-refine.ts"
 import {logging} from "../common/logging.ts"
 import {displayPath} from "../lib/source-files.ts"
 import type {ReportRunOpts} from "./report-run-opts.ts"
-import {isSemiEligibleStatement, isTypeMember} from "./statement-kinds.ts"
+import {SEMI_ELIGIBLE_STATEMENT_KINDS, TYPE_MEMBER_KINDS} from "./statement-kinds.ts"
 
 // Fixed 7-row layout: 0% / 100% / exact-50% match by equality, "1-10%" and
 // "90-99%" are the near-boundary tails, and the two middle buckets fill the
@@ -22,31 +22,30 @@ export async function runReportSemi({sourceFiles, output, log, importsOnly}: Rep
     const perFile: PerFile[] = []
 
     for (const sf of sourceFiles) {
-        let total = 0
-        let withSemi = 0
-        const consider = (node: Node) => {
-            const member = isTypeMember(node)
-            if (!member && !isSemiEligibleStatement(node)) return
-            const text = node.getText()
+        const fullText = sf.getFullText()
+        const counts = {total: 0, withSemi: 0}
 
-            // Comma-separated members are outside the LS rewrite domain.
-            if (member && text.endsWith(",")) return
-            total++
-            if (text.endsWith(";")) withSemi++
-        }
+        // Walk the compiler AST directly: the kind test and the trailing-char
+        // check below need only a raw node, so the per-visit ts-morph wrapper
+        // (and a dozen `Node.isX` guards per node) that forEachDescendant would
+        // allocate are the dominant cost avoided here.
         // importsOnly: only the import/export statements are rewritten, so weigh
         // just their trailing `;` (the statements themselves, not descendants).
         if (importsOnly) {
-            sf.getImportDeclarations().forEach(consider)
-            sf.getExportDeclarations().forEach(consider)
+            for (const d of sf.getImportDeclarations()) consider(d.compilerNode, fullText, counts)
+            for (const d of sf.getExportDeclarations()) consider(d.compilerNode, fullText, counts)
         } else {
-            sf.forEachDescendant(consider)
+            const visit = (node: TsNode): void => {
+                consider(node, fullText, counts)
+                node.forEachChild(visit)
+            }
+            visit(sf.compilerNode)
         }
-        if (total === 0) continue
+        if (counts.total === 0) continue
         perFile.push({
             path: displayPath(sf.getFilePath()),
-            total,
-            withSemi,
+            total: counts.total,
+            withSemi: counts.withSemi,
         })
     }
 
@@ -99,6 +98,19 @@ export async function runReportSemi({sourceFiles, output, log, importsOnly}: Rep
     logging(log, `report semi: ${perFile.length} files counted / ${sourceFiles.length} files total`)
 
     return report
+}
+
+// Count one node toward the file's trailing-`;` tally when it is a node the LS
+// SemicolonPreference rewrites. Only the node's last character is inspected, so
+// no node text is allocated: `;` means it has a trailing semicolon, while a
+// `,` on a comma-separated member marks it outside the LS rewrite domain.
+function consider(node: TsNode, fullText: string, counts: {total: number; withSemi: number}): void {
+    const member = TYPE_MEMBER_KINDS.has(node.kind)
+    if (!member && !SEMI_ELIGIBLE_STATEMENT_KINDS.has(node.kind)) return
+    const last = fullText.charCodeAt(node.end - 1)
+    if (member && last === 0x2c) return // ',' separator: LS leaves it untouched
+    counts.total++
+    if (last === 0x3b) counts.withSemi++ // ';'
 }
 
 function bucketIndex({total, withSemi}: {total: number; withSemi: number}): number {
