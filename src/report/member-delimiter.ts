@@ -4,9 +4,10 @@
 // accessors, constructors) are skipped because the separator choice isn't
 // theirs to make.
 
-import type {ClassMemberTypes, TypeElementTypes} from "ts-morph"
-import {Node} from "ts-morph"
+import type {ClassDeclaration, ClassMemberTypes, InterfaceDeclaration, TypeElementTypes} from "ts-morph"
+import {Node, SyntaxKind} from "ts-morph"
 import type {TSR} from "ts-refine"
+import type {Node as TsNode} from "typescript"
 import {getTsRefineFormat} from "../common/emit/emit-ts-refine.ts"
 import {logging} from "../common/logging.ts"
 import {displayPath} from "../lib/source-files.ts"
@@ -45,14 +46,25 @@ export async function runReportMemberDelimiter({sourceFiles, output, log, import
 
     for (const sf of sourceFiles) {
         const counts = new Map<Separator, number>()
-        sf.forEachDescendant((node) => {
-            if (!Node.isInterfaceDeclaration(node) && !Node.isClassDeclaration(node)) return
-            for (const member of node.getMembers()) {
-                const kind = classify(member)
-                if (kind == null) continue
-                counts.set(kind, (counts.get(kind) ?? 0) + 1)
+        // Find interface / class declarations on the compiler AST, then wrap
+        // only those few back into ts-morph for the member-level classify. The
+        // previous sf.forEachDescendant allocated a wrapper for every node in
+        // the file just to reach the handful of containers.
+        const tsSf = sf.compilerNode
+        const collect = (node: TsNode): void => {
+            if (node.kind === SyntaxKind.InterfaceDeclaration || node.kind === SyntaxKind.ClassDeclaration) {
+                const wrapped = sf.getDescendantAtStartWithWidth(node.getStart(tsSf), node.getWidth(tsSf)) as InterfaceDeclaration | ClassDeclaration | undefined
+                if (wrapped) {
+                    for (const member of wrapped.getMembers()) {
+                        const kind = classify(member)
+                        if (kind == null) continue
+                        counts.set(kind, (counts.get(kind) ?? 0) + 1)
+                    }
+                }
             }
-        })
+            node.forEachChild(collect)
+        }
+        collect(tsSf)
         if (counts.size === 0) continue
         perFile.push({path: displayPath(sf.getFilePath()), counts, primary: pickPrimary(counts)})
     }
