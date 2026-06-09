@@ -168,8 +168,8 @@ describe("applyTrailingComma", () => {
     it("on leaves a two-argument dynamic import's list bare but commas nested lists", () => {
         // The import's own arg list gets no trailing comma; the inner object
         // literal is a separate list and follows the normal multi-line rule.
-        const src = "const x = await import(\n    `./mod.json`,\n    {\n        with: {\n            type: \"json\"\n        }\n    }\n)\n"
-        const expected = "const x = await import(\n    `./mod.json`,\n    {\n        with: {\n            type: \"json\",\n        },\n    }\n)\n"
+        const src = 'const x = await import(\n    `./mod.json`,\n    {\n        with: {\n            type: "json"\n        }\n    }\n)\n'
+        const expected = 'const x = await import(\n    `./mod.json`,\n    {\n        with: {\n            type: "json",\n        },\n    }\n)\n'
         assert.equal(run(src, "on"), expected)
     })
 

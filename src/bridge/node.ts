@@ -509,7 +509,11 @@ function replaceStringLiteral(owner: Node, literal: ts.StringLiteral, newInner: 
 // from `literal.text` (already decoded), so a path containing the quote (a dir
 // named `bob's`) or a backslash would otherwise produce invalid source.
 function escapeForQuote(text: string, quote: string): string {
-    let out = text.replace(/\\/g, "\\\\").replaceAll(quote, "\\" + quote).replace(/\r/g, "\\r").replace(/\n/g, "\\n")
+    let out = text
+        .replace(/\\/g, "\\\\")
+        .replaceAll(quote, "\\" + quote)
+        .replace(/\r/g, "\\r")
+        .replace(/\n/g, "\\n")
     if (quote === "`") out = out.replace(/\$\{/g, "\\${")
     return out
 }

@@ -27,8 +27,12 @@ function findCommaSkippingComments(text: string, from: number, to: number): numb
     let i = from
     while (i < to) {
         const c = text.charCodeAt(i)
-        if (c === 44) return i // ','
-        if (c === 47) { // '/'
+
+        // ','
+        if (c === 44) return i
+
+        // '/'
+        if (c === 47) {
             const next = text.charCodeAt(i + 1)
             if (next === 47) {
                 const nl = text.indexOf("\n", i + 2)
@@ -36,6 +40,8 @@ function findCommaSkippingComments(text: string, from: number, to: number): numb
                 i = nl + 1
                 continue
             }
+
+            // '*'
             if (next === 42) {
                 const end = text.indexOf("*/", i + 2)
                 if (end < 0 || end >= to) return -1
