@@ -52,9 +52,16 @@ export function printStatsTable(output: TSR.Writer, nameHeader: string, rows: St
 function printTable(output: TSR.Writer, headers: string[], rows: string[][]): void {
     const widths = headers.map((header, i) => Math.max(header.length, ...rows.map((row) => row[i].length)))
 
-    output.write(headers.map((header, i) => header.padEnd(widths[i])).join("  ") + "\n")
-    output.write(widths.map((width) => "-".repeat(width)).join("  ") + "\n")
+    printRow(headers)
+
+    printRow(widths.map((w) => "-".repeat(w + 2)))
+
     for (const row of rows) {
-        output.write(row.map((cell, i) => cell.padEnd(widths[i])).join("  ") + "\n")
+        printRow(row.map((s, i) => (i === 0 ? s : s.padStart(widths[i]))))
+    }
+
+    function printRow(cols: string[]): void {
+        const joined = cols.map((s, i) => s.padEnd(widths[i] + 1).padStart(widths[i] + 2)).join("|")
+        output.write(`|${joined}|\n`)
     }
 }

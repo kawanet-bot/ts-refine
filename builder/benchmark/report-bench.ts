@@ -20,13 +20,13 @@ import {printStatsTable, type StatRow, summarize} from "./stats.ts"
 type ReportRun = (opts: ReportRunOpts) => Promise<unknown>
 
 const REPORTS: ReadonlyArray<readonly [string, ReportRun]> = [
-    ["semi", runReportSemi],
-    ["indent", runReportIndent],
-    ["member-delimiter", runReportMemberDelimiter],
-    ["new-line", runReportNewLine],
-    ["bracket-spacing", runReportBracketSpacing],
-    ["trailing-comma", runReportTrailingComma],
-    ["function-spacing", runReportFunctionSpacing],
+    ["runReportSemi", runReportSemi],
+    ["runReportIndent", runReportIndent],
+    ["runReportMemberDelimiter", runReportMemberDelimiter],
+    ["runReportNewLine", runReportNewLine],
+    ["runReportBracketSpacing", runReportBracketSpacing],
+    ["runReportTrailingComma", runReportTrailingComma],
+    ["runReportFunctionSpacing", runReportFunctionSpacing],
 ]
 
 const quiet: TSR.Writer = {write: (): void => undefined}
@@ -44,9 +44,10 @@ async function runOnce(run: ReportRun, fixtures: ReadonlyArray<Fixture>, imports
 
 export async function runReportBench(args: BenchmarkArgs, fixtures: ReadonlyArray<Fixture>, output: TSR.Writer, log: TSR.Writer): Promise<void> {
     const rows: StatRow[] = []
+    output.write("## report ")
 
     for (const [name, run] of REPORTS) {
-        log.write(`report: ${name}\n`)
+        log.write(".")
 
         // One fixed warmup run (the 0th), discarded; then the measured runs.
         await runOnce(run, fixtures, args.importsOnly)
@@ -58,5 +59,7 @@ export async function runReportBench(args: BenchmarkArgs, fixtures: ReadonlyArra
         rows.push({name, runs: samples.length, ...summarize(samples)})
     }
 
-    printStatsTable(output, "report", rows)
+    output.write(` (${rows.length})\n\n`)
+    printStatsTable(output, "method", rows)
+    output.write("\n")
 }

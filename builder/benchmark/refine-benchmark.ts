@@ -43,12 +43,9 @@ export const refineBenchmark: CLI = async (ctx) => {
     output.write(`runs: ${args.runs} (after 1 warmup) importsOnly=${args.importsOnly}\n`)
     output.write("\n")
 
-    output.write("## report\n")
     await runReportBench(args, fixtures, output, log)
-    output.write("\n")
 
-    output.write("## format\n")
-    runFormatBench(args, fixtures, output, log)
+    await runFormatBench(args, fixtures, output, log)
 
     return 0
 }
