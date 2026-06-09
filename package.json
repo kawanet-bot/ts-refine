@@ -1,7 +1,7 @@
 {
   "name": "ts-refine",
   "description": "LS-based semantic refactoring for TypeScript: move files, rename exports, rewrite imports, and format to local conventions.",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "author": "Kawanet",
   "bin": {
     "ts-refine": "./dist/ts-refine.cli.mjs"
@@ -19,10 +19,10 @@
     "@rollup/plugin-sucrase": "^5.1.0",
     "@stylistic/eslint-plugin": "^5.10.0",
     "@types/node": "^24.10.0",
-    "@typescript-eslint/parser": "^8.60.1",
+    "@typescript-eslint/parser": "^8.61.0",
     "eslint": "^10.4.1",
     "prettier": "^3.8.3",
-    "rollup": "^4.61.0"
+    "rollup": "^4.61.1"
   },
   "engines": {
     "node": ">=22.18"
