@@ -76,11 +76,12 @@ function runOnce(benchCase: FormatCase, fixtures: ReadonlyArray<Fixture>): numbe
     return performance.now() - start
 }
 
-export function runFormatBench(args: BenchmarkArgs, fixtures: ReadonlyArray<Fixture>, output: TSR.Writer, log: TSR.Writer): void {
+export async function runFormatBench(args: BenchmarkArgs, fixtures: ReadonlyArray<Fixture>, output: TSR.Writer, log: TSR.Writer): Promise<void> {
     const rows: StatRow[] = []
+    output.write("## format ")
 
     for (const benchCase of getFormatCases()) {
-        log.write(`format: ${benchCase.name}\n`)
+        log.write(".")
 
         // One fixed warmup run (the 0th), discarded; then the measured runs.
         runOnce(benchCase, fixtures)
@@ -90,5 +91,7 @@ export function runFormatBench(args: BenchmarkArgs, fixtures: ReadonlyArray<Fixt
         rows.push({name: benchCase.name, runs: samples.length, ...summarize(samples)})
     }
 
-    printStatsTable(output, "pass", rows)
+    output.write(` (${rows.length})\n\n`)
+    printStatsTable(output, "method", rows)
+    output.write("\n")
 }
