@@ -24,6 +24,7 @@ const rollupConfig: RollupOptions = {
         showFiles({test: (path) => !path.includes("src/") || path.includes("src/cli") || path.includes(".test.") || path.includes("node_modules/")}),
 
         sucrase({
+            disableESTransforms: true,
             exclude: ["node_modules/**"],
             transforms: ["typescript"],
         }),
