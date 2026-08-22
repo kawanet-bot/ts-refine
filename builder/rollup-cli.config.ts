@@ -13,6 +13,7 @@ const rollupConfig: RollupOptions = {
         format: "esm",
     },
 
+    // Bare specifiers stay external; only relative paths are bundled.
     external: /^[^.\/]/,
 
     plugins: [
