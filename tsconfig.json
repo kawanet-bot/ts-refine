@@ -1,6 +1,5 @@
 {
   "exclude": [
-    "builder/stage",
     "node_modules"
   ],
   "include": [

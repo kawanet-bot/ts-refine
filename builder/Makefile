@@ -20,9 +20,6 @@ TESTS_CONFIG := ./rollup-tests.config.ts
 # accidentally inlined library sources or a dependency.
 TEST_MAX_BYTES := 120000
 
-# Staging area for the CI test matrix: the packed tarball plus everything
-# a runtime lane needs to test it without a checkout.
-STAGE_DIR := ./stage
 
 # Public runtime named exports the smoke target must find in the bundle.
 # Derived from `export declare function <name>(...)` lines in the
@@ -96,7 +93,7 @@ smoke: $(MJS_DST)
 
 # Consumer `npm install` skips the heavy test-full step to keep install fast.
 # `npm pack` re-runs prepare for a fresh build; tests are skipped there too
-# because CI and the stage target run them explicitly, while `npm publish`
+# because CI runs them explicitly around the pack, while `npm publish`
 # reports npm_command=publish and still gets the full run.
 test:
 	@case "$$npm_command" in \
@@ -113,21 +110,8 @@ test-quick: all
 	cd .. && node dist/ts-refine.cli.mjs imports --check
 	cd .. && node dist/ts-refine.cli.mjs format --check
 
-# Assemble the artifact consumed by the CI test matrix: the packed tarball,
-# the bundled suites, their fixtures, and the consumer manifest whose npm
-# scripts drive the matrix-side run. `npm pack` triggers prepare (a clean
-# build) itself, so everything is copied afterwards, freshly rebuilt.
-stage:
-	rm -rf $(STAGE_DIR) ../ts-refine-*.tgz
-	cd .. && npm pack
-	mkdir -p $(STAGE_DIR)/builder/tests
-	mv ../ts-refine-*.tgz $(STAGE_DIR)/
-	cp ./consumer/package.json $(STAGE_DIR)/package.json
-	cp $(TESTS_DST) $(STAGE_DIR)/builder/tests/bundled.js
-	cp -r ../sample $(STAGE_DIR)/sample
-	@ls -l $(STAGE_DIR)
 
 clean:
-	/bin/rm -fr $(ALL) $(STAGE_DIR)
+	/bin/rm -fr $(ALL)
 
-.PHONY: all clean test smoke stage is-buildable is-not-buildable
+.PHONY: all clean test smoke is-buildable is-not-buildable
