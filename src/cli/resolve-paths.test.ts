@@ -1,9 +1,10 @@
 import {strict as assert} from "node:assert"
 import path from "node:path"
 import {describe, it} from "node:test"
+import {samplePath} from "../test-utils/sample-files.ts"
 import {resolvePaths} from "./resolve-paths.ts"
 
-const SAMPLE_TSCONFIG = path.resolve(import.meta.dirname, "../../sample/basic/tsconfig.json")
+const SAMPLE_TSCONFIG = samplePath("basic/tsconfig.json")
 const SAMPLE_DIR = path.dirname(SAMPLE_TSCONFIG)
 
 describe("resolvePaths", () => {

@@ -2,22 +2,53 @@ name: Node.js CI
 
 on: [ push, pull_request ]
 
+permissions:
+  contents: read
+
 jobs:
   build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+
+      # 'npm install' runs 'prepare' (clean build); tests are skipped there
+      # via the npm_command check in the Makefile and run explicitly next.
+      - run: npm install
+      - run: npm test
+      - run: make -C builder/consumer
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: build
+          path: |
+            builder/consumer/
+            builder/tests/
+            sample/
+          if-no-files-found: error
+          retention-days: 1
+
+  test:
+    needs: build
     runs-on: ubuntu-latest
     strategy:
       matrix:
         # https://github.com/nodejs/release
-        node-version: [ "22", "24", "26" ]
+        node-version: [ "18", "20", "22", "24", "26" ]
     steps:
-      - uses: actions/checkout@v7
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node-version }}
-      - run: npm install
 
-      # Note to Copilot: 'npm install' already triggered 'prepare' (clean build).
-      # Tests were skipped during install via npm_command check in Makefile.
-      # We explicitly run 'npm test' here to provide a clear validation entry in CI.
-      - run: npm test
+      - uses: actions/download-artifact@v8
+        with:
+          name: build
+          path: .
+
+      # No checkout: the artifact is self-contained. Installing the packed
+      # tarball is itself the files/exports/bin/engines consumer check.
+      - run: make -C builder/consumer unpack
+      - run: make -C builder/consumer test

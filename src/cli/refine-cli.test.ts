@@ -1,9 +1,9 @@
 import {strict as assert} from "node:assert"
-import path from "node:path"
 import {describe, it} from "node:test"
+import {samplePath} from "../test-utils/sample-files.ts"
 import {refineCLI} from "./refine-cli.ts"
 
-const SAMPLE = path.resolve(import.meta.dirname, "../../sample/basic/tsconfig.json")
+const SAMPLE = samplePath("basic/tsconfig.json")
 
 // Drive refineCLI in-process: collect what it writes to the stdout stream and
 // to the log sink (diagnostics + the runners' summary lines). A rejection is

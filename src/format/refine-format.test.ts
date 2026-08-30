@@ -1,8 +1,8 @@
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
 import ts from "typescript"
-import {initInMemoryProject} from "../common/init-project.ts"
 import {refineReport} from "../report/refine-report.ts"
+import {initInMemoryProject} from "../test-utils/init-test-project.ts"
 import {refineFormat} from "./refine-format.ts"
 
 const log = {write: (): void => undefined}

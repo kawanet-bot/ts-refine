@@ -2,14 +2,14 @@
 // hasAsiHazardAfter tests are retired with the detector function itself.
 
 import {strict as assert} from "node:assert"
-import path from "node:path"
 import {describe, it} from "node:test"
 import {Project} from "../bridge/bridge.ts"
 import {initInMemoryProject} from "../common/init-project.ts"
 import {initTestProject} from "../test-utils/init-test-project.ts"
+import {samplePath} from "../test-utils/sample-files.ts"
 import {refineFormat} from "./refine-format.ts"
 
-const SAMPLE_TSCONFIG = path.resolve(import.meta.dirname, "../../sample/semicolons-mixed/tsconfig.json")
+const SAMPLE_TSCONFIG = samplePath("semicolons-mixed/tsconfig.json")
 
 function findFile(project: Project, suffix: string) {
     return project.getSourceFiles().find((sf) => sf.getFilePath().endsWith(suffix))

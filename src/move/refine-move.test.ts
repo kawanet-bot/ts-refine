@@ -4,9 +4,8 @@ import os from "node:os"
 import path from "node:path"
 import {after, before, describe, it} from "node:test"
 import ts from "typescript"
-import {Project} from "../bridge/bridge.ts"
-import {initInMemoryProject} from "../common/init-project.ts"
-import {initTestProject} from "../test-utils/init-test-project.ts"
+import type {Project} from "../bridge/bridge.ts"
+import {initInMemoryProject, initTestProject} from "../test-utils/init-test-project.ts"
 import {refineMove} from "./refine-move.ts"
 
 function newProject(): Project {

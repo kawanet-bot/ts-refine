@@ -10,9 +10,10 @@ import {describe, it} from "node:test"
 import {Project} from "../bridge/bridge.ts"
 import {refineImports} from "../imports/refine-imports.ts"
 import {initTestProject} from "../test-utils/init-test-project.ts"
+import {samplePath} from "../test-utils/sample-files.ts"
 import {applyTypeOnlyFixes} from "./type-only-fixes.ts"
 
-const SAMPLE = path.resolve(import.meta.dirname, "../../sample")
+const SAMPLE = samplePath()
 const VERBATIM_TSCONFIG = path.join(SAMPLE, "type-only-mixed/tsconfig.json")
 const ISOLATED_TSCONFIG = path.join(SAMPLE, "type-only-isolated/tsconfig.json")
 const BASIC_TSCONFIG = path.join(SAMPLE, "basic/tsconfig.json")

@@ -2,11 +2,11 @@ import {strict as assert} from "node:assert"
 import path from "node:path"
 import {describe, it} from "node:test"
 import type {TSR} from "ts-refine"
-import {initInMemoryProject} from "../common/init-project.ts"
-import {initTestProject} from "../test-utils/init-test-project.ts"
+import {initInMemoryProject, initTestProject} from "../test-utils/init-test-project.ts"
+import {samplePath} from "../test-utils/sample-files.ts"
 import {refineInspect} from "./refine-inspect.ts"
 
-const SAMPLE_TSCONFIG = path.resolve(import.meta.dirname, "../../sample/basic/tsconfig.json")
+const SAMPLE_TSCONFIG = samplePath("basic/tsconfig.json")
 
 const log = {write: (): void => undefined}
 

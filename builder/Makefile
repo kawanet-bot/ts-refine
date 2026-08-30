@@ -12,6 +12,15 @@ MJS_CONFIG := ./rollup-mjs.config.ts
 CLI_DST := ../dist/ts-refine.cli.mjs
 CLI_CONFIG := ./rollup-cli.config.ts
 
+TEST_SRC := $(shell find ../src -name '*.test.ts')
+TESTS_DST := ./tests/bundled.mjs
+TESTS_CONFIG := ./rollup-tests.config.ts
+
+# Same purpose as the caps above: a jump past this means the test bundle
+# accidentally inlined library sources or a dependency.
+TEST_MAX_BYTES := 120000
+
+
 # Public runtime named exports the smoke target must find in the bundle.
 # Derived from `export declare function <name>(...)` lines in the
 # published .d.ts so adding a new entry there is enough — no parallel
@@ -30,7 +39,7 @@ NAMED_EXPORTS := $(shell sed -nE 's/^export declare function ([a-zA-Z_$$]+).*/\1
 MJS_MAX_BYTES := 250000
 CLI_MAX_BYTES := 60000
 
-ALL := $(MJS_DST) $(CLI_DST)
+ALL := $(MJS_DST) $(CLI_DST) $(TESTS_DST)
 
 # Build/test paths require Node's native TypeScript type-strip (default on
 # Node 22.18+). Older runtimes (e.g. Node 20) report BUILDABLE=NO and can
@@ -67,6 +76,13 @@ $(CLI_DST): $(CLI_CONFIG) $(SRC) $(BUILDER_SRC) $(MJS_DST)
 	@test "$$(wc -c < $@)" -le $(CLI_MAX_BYTES) || { echo "ERROR: $@ exceeds $(CLI_MAX_BYTES) byte cap" >&2; exit 1; }
 	@echo ""
 
+$(TESTS_DST): $(TESTS_CONFIG) $(SRC) $(TEST_SRC) $(BUILDER_SRC) $(MJS_DST)
+	@mkdir -p $(dir $@)
+	../node_modules/.bin/rollup -c $<
+	@ls -l $@
+	@test "$$(wc -c < $@)" -le $(TEST_MAX_BYTES) || { echo "ERROR: $@ exceeds $(TEST_MAX_BYTES) byte cap" >&2; exit 1; }
+	@echo ""
+
 # Verify the bundle by importing the package itself through the public
 # entrypoint. This catches misconfigured `exports`/`main` paths. An
 # empty NAMED_EXPORTS would let smoke silently pass even when the .d.ts
@@ -76,14 +92,18 @@ smoke: $(MJS_DST)
 	cd .. && node --input-type=module -e 'const m = await import("ts-refine"); for (const k of process.argv.slice(1)) { if (typeof m[k] !== "function") { console.error("missing MJS export:", k); process.exit(1); } console.log("MJS export OK:", k); }' $(NAMED_EXPORTS)
 
 # Consumer `npm install` skips the heavy test-full step to keep install fast.
+# `npm pack` re-runs prepare for a fresh build; tests are skipped there too
+# because CI runs them explicitly around the pack, while `npm publish`
+# reports npm_command=publish and still gets the full run.
 test:
 	@case "$$npm_command" in \
-		install|ci) echo "npm $$npm_command detected: skipping full tests." ;; \
+		install|ci|pack) echo "npm $$npm_command detected: skipping full tests." ;; \
 		*) $(MAKE) test-full ;; \
 	esac
 
 test-full: smoke test-quick
 	cd .. && node --test 'src/**/*.test.ts'
+	cd .. && node --test builder/tests/bundled.mjs
 
 test-quick: all
 	cd .. && ./node_modules/.bin/tsc --noEmit
