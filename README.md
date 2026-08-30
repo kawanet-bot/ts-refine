@@ -50,8 +50,6 @@ npx ts-refine format --dry-run
 
 ## Install
 
-Requires Node.js >= 22.18.
-
 For one-off use, run it with `npx`:
 
 ```sh
