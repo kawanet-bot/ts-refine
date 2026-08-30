@@ -1,8 +1,8 @@
-# Package-side lifecycle: `all` builds the payloads (pack first -- npm
-# pack's prepare wipes generated files, so the test bundle is built
-# after), then `unpack` installs packed.tgz and `test` exercises it.
-# unpack uses --no-save, so the flow also works inside a checkout.
-all: pack bundled
+# Package-side lifecycle: `pack` builds the tarball (renamed to the fixed
+# packed.tgz), `unpack` installs it (--no-save also works in a checkout),
+# `test` exercises it. Build `bundled` only after `pack`: npm pack runs
+# prepare, whose clean wipes the generated test bundle.
+all: pack
 
 pack:
 	/bin/rm -f *.tgz
