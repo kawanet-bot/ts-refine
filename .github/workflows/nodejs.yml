@@ -19,13 +19,12 @@ jobs:
       # via the npm_command check in the Makefile and run explicitly next.
       - run: npm install
       - run: npm test
-      - run: npm pack
+      - run: make -C builder/consumer
 
       - uses: actions/upload-artifact@v7
         with:
           name: build
           path: |
-            *-*.*.*.tgz
             builder/consumer/
             builder/tests/
             sample/
@@ -49,7 +48,7 @@ jobs:
           name: build
           path: .
 
-      # No checkout: installing the packed tarball into this bare directory
-      # is itself the files/exports/bin/engines check on the consumer path.
-      - run: npm install ./*-*.*.*.tgz --no-audit --no-fund
-      - run: make -f builder/consumer/Makefile test
+      # No checkout: the artifact is self-contained. Installing the packed
+      # tarball is itself the files/exports/bin/engines consumer check.
+      - run: make -C builder/consumer unpack
+      - run: make -C builder/consumer test
