@@ -14,6 +14,7 @@ const rollupConfig: RollupOptions = {
     // through the package entry (see the alias below) or through
     // test-only helpers; anything else would inline library sources.
     input: [
+        "../src/entrypoint.test.ts",
         "../src/format/refine-format.test.ts",
         "../src/imports/refine-imports.test.ts",
         "../src/inspect/refine-inspect.test.ts",
