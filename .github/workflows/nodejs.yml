@@ -19,12 +19,16 @@ jobs:
       # via the npm_command check in the Makefile and run explicitly next.
       - run: npm install
       - run: npm test
-      - run: make -C builder stage
+      - run: npm pack
 
       - uses: actions/upload-artifact@v7
         with:
-          name: package
-          path: builder/stage/
+          name: build
+          path: |
+            ts-refine-*.tgz
+            builder/tests/bundled.mjs
+            sample/
+          if-no-files-found: error
           retention-days: 1
 
   test:
@@ -41,10 +45,10 @@ jobs:
 
       - uses: actions/download-artifact@v8
         with:
-          name: package
+          name: build
           path: .
 
-      # No checkout: the artifact is a self-contained consumer project.
-      # Installing the tarball is also the EBADENGINE regression check.
+      # No checkout: installing the packed tarball into this bare directory
+      # is itself the files/exports/bin/engines check on the consumer path.
       - run: npm install ./ts-refine-*.tgz --no-audit --no-fund
-      - run: npm test
+      - run: node --test builder/tests/bundled.mjs
