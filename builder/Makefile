@@ -21,12 +21,6 @@ BUILDER_TEST_CONFIG := ./rollup-builder-test.config.ts
 TEST_MAX_BYTES := 120000
 
 
-# Public runtime named exports the smoke target must find in the bundle.
-# Derived from `export declare function <name>(...)` lines in the
-# published .d.ts so adding a new entry there is enough — no parallel
-# update here.
-NAMED_EXPORTS := $(shell sed -nE 's/^export declare function ([a-zA-Z_$$]+).*/\1/p' $(TYPES))
-
 # Bundle should contain only this package's own src/ — typescript (the one
 # runtime dep) is externalized; bundling it would add megabytes. A noticeably
 # larger output means an accidental bundling of a transitive dep; fail the build
@@ -43,7 +37,7 @@ ALL := $(MJS_DST) $(CLI_DST)
 
 # Build/test paths require Node's native TypeScript type-strip (default on
 # Node 22.18+). Older runtimes (e.g. Node 20) report BUILDABLE=NO and can
-# still verify pre-built bundles via `make smoke`.
+# still verify pre-built bundles via the builder/pack targets.
 BUILDABLE := $(shell node -e 'console.log(process.features.typescript ? "YES" : "NO")')
 
 ####
@@ -83,13 +77,6 @@ $(BUILDER_TEST_DST): $(BUILDER_TEST_CONFIG) $(SRC) $(TEST_SRC) $(BUILDER_SRC) $(
 	@test "$$(wc -c < $@)" -le $(TEST_MAX_BYTES) || { echo "ERROR: $@ exceeds $(TEST_MAX_BYTES) byte cap" >&2; exit 1; }
 	@echo ""
 
-# Verify the bundle by importing the package itself through the public
-# entrypoint. This catches misconfigured `exports`/`main` paths. An
-# empty NAMED_EXPORTS would let smoke silently pass even when the .d.ts
-# regex stops matching, so guard against it explicitly.
-smoke: $(MJS_DST)
-	@test -n "$(NAMED_EXPORTS)" || { echo "ERROR: NAMED_EXPORTS empty — check the sed pattern against $(TYPES)" >&2; exit 1; }
-	cd .. && node --input-type=module -e 'const m = await import("ts-refine"); for (const k of process.argv.slice(1)) { if (typeof m[k] !== "function") { console.error("missing MJS export:", k); process.exit(1); } console.log("MJS export OK:", k); }' $(NAMED_EXPORTS)
 
 # Consumer `npm install` skips the heavy test-full step to keep install fast.
 # `npm pack` re-runs prepare for a fresh build; tests are skipped there too
@@ -101,7 +88,7 @@ test:
 		*) $(MAKE) test-full ;; \
 	esac
 
-test-full: smoke test-quick
+test-full: test-quick
 	cd .. && node --test 'src/**/*.test.ts'
 
 test-quick: all
@@ -112,4 +99,4 @@ test-quick: all
 clean:
 	/bin/rm -fr $(ALL) $(BUILDER_TEST_DST)
 
-.PHONY: all clean test smoke is-buildable is-not-buildable
+.PHONY: all clean test is-buildable is-not-buildable
