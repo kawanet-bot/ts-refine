@@ -1,7 +1,6 @@
 import {strict as assert} from "node:assert"
 import {describe, it} from "node:test"
-import {initInMemoryProject} from "../common/init-project.ts"
-import {initTestProject} from "../test-utils/init-test-project.ts"
+import {initInMemoryProject, initTestProject} from "../test-utils/init-test-project.ts"
 import {samplePath} from "../test-utils/sample-files.ts"
 import {refineImports} from "./refine-imports.ts"
 
