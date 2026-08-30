@@ -13,12 +13,12 @@ CLI_DST := ../dist/ts-refine.cli.mjs
 CLI_CONFIG := ./rollup-cli.config.ts
 
 TEST_SRC := $(shell find ../src -name '*.test.ts')
-TESTS_DST := ./tests/bundled.mjs
-TESTS_CONFIG := ./rollup-tests.config.ts
+BUILDER_TEST_DST := ./tests/bundled.mjs
+BUILDER_TEST_CONFIG := ./rollup-builder-test.config.ts
 
 # Same purpose as the caps above: a jump past this means the test bundle
 # accidentally inlined library sources or a dependency.
-TEST_MAX_BYTES := 120000
+BUILDER_TEST_MAX_BYTES := 120000
 
 
 # Public runtime named exports the smoke target must find in the bundle.
@@ -39,7 +39,7 @@ NAMED_EXPORTS := $(shell sed -nE 's/^export declare function ([a-zA-Z_$$]+).*/\1
 MJS_MAX_BYTES := 250000
 CLI_MAX_BYTES := 60000
 
-ALL := $(MJS_DST) $(CLI_DST) $(TESTS_DST)
+ALL := $(MJS_DST) $(CLI_DST) $(BUILDER_TEST_DST)
 
 # Build/test paths require Node's native TypeScript type-strip (default on
 # Node 22.18+). Older runtimes (e.g. Node 20) report BUILDABLE=NO and can
@@ -76,11 +76,11 @@ $(CLI_DST): $(CLI_CONFIG) $(SRC) $(BUILDER_SRC) $(MJS_DST)
 	@test "$$(wc -c < $@)" -le $(CLI_MAX_BYTES) || { echo "ERROR: $@ exceeds $(CLI_MAX_BYTES) byte cap" >&2; exit 1; }
 	@echo ""
 
-$(TESTS_DST): $(TESTS_CONFIG) $(SRC) $(TEST_SRC) $(BUILDER_SRC) $(MJS_DST)
+$(BUILDER_TEST_DST): $(BUILDER_TEST_CONFIG) $(SRC) $(TEST_SRC) $(BUILDER_SRC) $(MJS_DST)
 	@mkdir -p $(dir $@)
 	../node_modules/.bin/rollup -c $<
 	@ls -l $@
-	@test "$$(wc -c < $@)" -le $(TEST_MAX_BYTES) || { echo "ERROR: $@ exceeds $(TEST_MAX_BYTES) byte cap" >&2; exit 1; }
+	@test "$$(wc -c < $@)" -le $(BUILDER_TEST_MAX_BYTES) || { echo "ERROR: $@ exceeds $(BUILDER_TEST_MAX_BYTES) byte cap" >&2; exit 1; }
 	@echo ""
 
 # Verify the bundle by importing the package itself through the public
