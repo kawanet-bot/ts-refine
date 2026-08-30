@@ -14,7 +14,6 @@ const rollupConfig: RollupOptions = {
     // through the "ts-refine" entry (see the alias below) or through
     // test-only helpers; anything else would inline library sources.
     input: [
-        "../src/cli/installed-bin.test.ts",
         "../src/format/refine-format.test.ts",
         "../src/imports/refine-imports.test.ts",
         "../src/inspect/refine-inspect.test.ts",

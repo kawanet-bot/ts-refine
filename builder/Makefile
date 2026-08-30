@@ -110,7 +110,6 @@ test-quick: all
 	cd .. && node dist/ts-refine.cli.mjs imports --check
 	cd .. && node dist/ts-refine.cli.mjs format --check
 
-
 clean:
 	/bin/rm -fr $(ALL)
 
