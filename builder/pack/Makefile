@@ -4,8 +4,7 @@
 # prepare, whose clean wipes the generated test bundle.
 all: pack
 
-pack:
-	/bin/rm -f *.tgz
+pack: clean
 	cd ../.. && npm pack --pack-destination builder/pack
 	mv *-*.*.*.tgz packed.tgz
 
