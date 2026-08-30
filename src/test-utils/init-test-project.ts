@@ -1,7 +1,7 @@
 // Test project factories, built on the public createRefineProject entry so
 // projects always come from the same factory the published package ships:
-// resolveProject() rejects a project born from a different ts-refine copy,
-// which matters once bundled suites run against dist/ instead of src/.
+// resolveProject() rejects a project born from a different copy of this
+// package, which matters once bundled suites run against dist/, not src/.
 
 import type {Project, ProjectOptions} from "../bridge/bridge.ts"
 import {createRefineProject} from "../index.ts"

@@ -11,7 +11,7 @@ import {showFiles} from "./show-files.ts"
 // are not exported, so they cannot resolve through the package entry.
 const rollupConfig: RollupOptions = {
     // Whitelist: a suite listed here must reach every runtime import
-    // through the "ts-refine" entry (see the alias below) or through
+    // through the package entry (see the alias below) or through
     // test-only helpers; anything else would inline library sources.
     input: [
         "../src/format/refine-format.test.ts",
