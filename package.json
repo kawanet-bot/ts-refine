@@ -79,7 +79,7 @@
     "prettier:check": "prettier --check .",
     "prettier:write": "prettier --write .",
     "test": "make -C builder test",
-    "test-bundled": "node builder/tests/bundled.js",
+    "test-bundled": "node --test builder/tests/bundled.mjs",
     "ts-refine": "node src/cli.ts imports && node src/cli.ts format",
     "ts-refine:check": "node src/cli.ts imports --check && node src/cli.ts format --check"
   },

@@ -13,8 +13,12 @@ CLI_DST := ../dist/ts-refine.cli.mjs
 CLI_CONFIG := ./rollup-cli.config.ts
 
 TEST_SRC := $(shell find ../src -name '*.test.ts')
-TESTS_DST := ./tests/bundled.js
+TESTS_DST := ./tests/bundled.mjs
 TESTS_CONFIG := ./rollup-tests.config.ts
+
+# Same purpose as the caps above: a jump past this means the test bundle
+# accidentally inlined library sources or a dependency.
+TEST_MAX_BYTES := 120000
 
 # Staging area for the CI test matrix: the packed tarball plus everything
 # a runtime lane needs to test it without a checkout.
@@ -79,6 +83,7 @@ $(TESTS_DST): $(TESTS_CONFIG) $(SRC) $(TEST_SRC) $(BUILDER_SRC) $(MJS_DST)
 	@mkdir -p $(dir $@)
 	../node_modules/.bin/rollup -c $<
 	@ls -l $@
+	@test "$$(wc -c < $@)" -le $(TEST_MAX_BYTES) || { echo "ERROR: $@ exceeds $(TEST_MAX_BYTES) byte cap" >&2; exit 1; }
 	@echo ""
 
 # Verify the bundle by importing the package itself through the public
@@ -101,7 +106,7 @@ test:
 
 test-full: smoke test-quick
 	cd .. && node --test 'src/**/*.test.ts'
-	cd .. && node builder/tests/bundled.js
+	cd .. && node --test builder/tests/bundled.mjs
 
 test-quick: all
 	cd .. && ./node_modules/.bin/tsc --noEmit
