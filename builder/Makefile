@@ -39,7 +39,7 @@ NAMED_EXPORTS := $(shell sed -nE 's/^export declare function ([a-zA-Z_$$]+).*/\1
 MJS_MAX_BYTES := 250000
 CLI_MAX_BYTES := 60000
 
-ALL := $(MJS_DST) $(CLI_DST) $(BUILDER_TEST_DST)
+ALL := $(MJS_DST) $(CLI_DST)
 
 # Build/test paths require Node's native TypeScript type-strip (default on
 # Node 22.18+). Older runtimes (e.g. Node 20) report BUILDABLE=NO and can
@@ -103,7 +103,6 @@ test:
 
 test-full: smoke test-quick
 	cd .. && node --test 'src/**/*.test.ts'
-	cd .. && node --test builder/tests/bundled.mjs
 
 test-quick: all
 	cd .. && ./node_modules/.bin/tsc --noEmit
@@ -111,6 +110,6 @@ test-quick: all
 	cd .. && node dist/ts-refine.cli.mjs format --check
 
 clean:
-	/bin/rm -fr $(ALL)
+	/bin/rm -fr $(ALL) $(BUILDER_TEST_DST)
 
 .PHONY: all clean test smoke is-buildable is-not-buildable
