@@ -19,13 +19,14 @@ jobs:
       # via the npm_command check in the Makefile and run explicitly next.
       - run: npm install
       - run: npm test
-      - run: make -C builder/consumer
+      - run: make -C builder/pack pack
+      - run: make -C builder/pack bundled
 
       - uses: actions/upload-artifact@v7
         with:
           name: build
           path: |
-            builder/consumer/
+            builder/pack/
             builder/tests/
             sample/
           if-no-files-found: error
@@ -50,5 +51,5 @@ jobs:
 
       # No checkout: the artifact is self-contained. Installing the packed
       # tarball is itself the files/exports/bin/engines consumer check.
-      - run: make -C builder/consumer unpack
-      - run: make -C builder/consumer test
+      - run: make -C builder/pack unpack
+      - run: make -C builder/pack test
