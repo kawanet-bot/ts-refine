@@ -18,7 +18,7 @@ BUILDER_TEST_CONFIG := ./rollup-builder-test.config.ts
 
 # Same purpose as the caps above: a jump past this means the test bundle
 # accidentally inlined library sources or a dependency.
-BUILDER_TEST_MAX_BYTES := 120000
+TEST_MAX_BYTES := 120000
 
 
 # Public runtime named exports the smoke target must find in the bundle.
@@ -80,7 +80,7 @@ $(BUILDER_TEST_DST): $(BUILDER_TEST_CONFIG) $(SRC) $(TEST_SRC) $(BUILDER_SRC) $(
 	@mkdir -p $(dir $@)
 	../node_modules/.bin/rollup -c $<
 	@ls -l $@
-	@test "$$(wc -c < $@)" -le $(BUILDER_TEST_MAX_BYTES) || { echo "ERROR: $@ exceeds $(BUILDER_TEST_MAX_BYTES) byte cap" >&2; exit 1; }
+	@test "$$(wc -c < $@)" -le $(TEST_MAX_BYTES) || { echo "ERROR: $@ exceeds $(TEST_MAX_BYTES) byte cap" >&2; exit 1; }
 	@echo ""
 
 # Verify the bundle by importing the package itself through the public
