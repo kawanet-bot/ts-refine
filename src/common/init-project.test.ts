@@ -1,9 +1,9 @@
 import {strict as assert} from "node:assert"
-import path from "node:path"
 import {describe, it} from "node:test"
+import {samplePath} from "../test-utils/sample-files.ts"
 import {createRefineProject, initInMemoryProject, resolveProject} from "./init-project.ts"
 
-const SAMPLE_TSCONFIG = path.resolve(import.meta.dirname, "../../sample/basic/tsconfig.json")
+const SAMPLE_TSCONFIG = samplePath("basic/tsconfig.json")
 
 describe("resolveProject", () => {
     it("returns the caller-supplied project (bring-your-own)", () => {

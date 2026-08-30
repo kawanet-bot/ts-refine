@@ -10,9 +10,10 @@ import os from "node:os"
 import path from "node:path"
 import {describe, it} from "node:test"
 import {initTestProject} from "../test-utils/init-test-project.ts"
+import {samplePath} from "../test-utils/sample-files.ts"
 import {refineMove} from "./refine-move.ts"
 
-const SAMPLE_ROOT = path.resolve(import.meta.dirname, "../../sample")
+const SAMPLE_ROOT = samplePath()
 
 async function copySampleTo(name: string, dest: string): Promise<void> {
     await fs.cp(path.join(SAMPLE_ROOT, name), dest, {recursive: true})

@@ -1,12 +1,12 @@
 import {strict as assert} from "node:assert"
-import path from "node:path"
 import {describe, it} from "node:test"
 import {initInMemoryProject} from "../common/init-project.ts"
 import {initTestProject} from "../test-utils/init-test-project.ts"
+import {samplePath} from "../test-utils/sample-files.ts"
 import {refineImports} from "./refine-imports.ts"
 
-const SAMPLE_TSCONFIG = path.resolve(import.meta.dirname, "../../sample/basic/tsconfig.json")
-const INDEX = path.resolve(import.meta.dirname, "../../sample/basic/src/index.ts")
+const SAMPLE_TSCONFIG = samplePath("basic/tsconfig.json")
+const INDEX = samplePath("basic/src/index.ts")
 
 const log = {write: (): void => undefined}
 

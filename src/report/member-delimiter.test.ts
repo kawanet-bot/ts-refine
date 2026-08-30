@@ -1,14 +1,14 @@
 import {strict as assert} from "node:assert"
-import path from "node:path"
 import {describe, it} from "node:test"
 import {initInMemoryProject} from "../common/init-project.ts"
 import {renderSections} from "../common/write-report-sections.ts"
 import {selectSourceFiles} from "../lib/source-files.ts"
 import {initTestProject} from "../test-utils/init-test-project.ts"
 import {omitSections} from "../test-utils/omit-sections.ts"
+import {samplePath} from "../test-utils/sample-files.ts"
 import {runReportMemberDelimiter} from "./member-delimiter.ts"
 
-const SAMPLE_TSCONFIG = path.resolve(import.meta.dirname, "../../sample/members-mixed/tsconfig.json")
+const SAMPLE_TSCONFIG = samplePath("members-mixed/tsconfig.json")
 
 const log = {write: (): void => undefined}
 

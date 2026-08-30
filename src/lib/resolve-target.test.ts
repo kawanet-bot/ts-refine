@@ -15,7 +15,7 @@ import {inProjectSourceFileOrThrow, inProjectSourceFiles} from "./source-files.t
 // pull in typescript's bundled .d.ts (typescript is the one runtime
 // dependency, so it is always installed). It is a guaranteed external file that
 // exports a stable symbol — `createProgram` — that no in-project file declares.
-const REPO_TSCONFIG = path.resolve(import.meta.dirname, "../../tsconfig.json")
+const REPO_TSCONFIG = path.resolve("tsconfig.json")
 
 function typescriptDtsPath(): string {
     const require = createRequire(import.meta.url)
