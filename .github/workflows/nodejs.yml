@@ -25,7 +25,10 @@ jobs:
       - uses: actions/upload-artifact@v7
         with:
           name: build
+          # README.md anchors the artifact root: upload-artifact keeps paths
+          # relative to the common ancestor of everything listed.
           path: |
+            README.md
             builder/pack/
             builder/tests/
             sample/

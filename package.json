@@ -29,12 +29,12 @@
   "devEngines": {
     "runtime": {
       "name": "node",
-      "version": ">=22.18",
+      "version": ">=22.18.0",
       "onFail": "warn"
     }
   },
   "engines": {
-    "node": ">=18.3.0"
+    "node": ">=18.8.0"
   },
   "exports": {
     ".": {
