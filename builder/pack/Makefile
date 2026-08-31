@@ -7,6 +7,10 @@ SHELL := bash
 # staged artifacts in place without installing anything.
 PKG_ROOT ?= node_modules/ts-refine
 
+# The workflows drive these steps in order:
+#   nodejs.yml   pack bundled unpack test
+#   publish.yml  bundled test-dist
+
 # Package-side lifecycle: `pack` builds the tarball (renamed to the fixed
 # packed.tgz), `unpack` installs it (--no-save also works in a checkout),
 # `test` exercises it. Build `bundled` only after `pack`: npm pack runs
