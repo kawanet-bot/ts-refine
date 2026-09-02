@@ -13,13 +13,12 @@ CLI_DST := ../dist/ts-refine.cli.mjs
 CLI_CONFIG := ./rollup-cli.config.ts
 
 TEST_SRC := $(shell find ../src -name '*.test.ts')
-BUILDER_TEST_DST := ./tests/bundled.mjs
-BUILDER_TEST_CONFIG := ./rollup-builder-test.config.ts
+TEST_DST := ./tests/bundled.mjs
+TEST_CONFIG := ./rollup-test.config.ts
 
 # Same purpose as the caps above: a jump past this means the test bundle
 # accidentally inlined library sources or a dependency.
 TEST_MAX_BYTES := 120000
-
 
 # Bundle should contain only this package's own src/ — typescript (the one
 # runtime dep) is externalized; bundling it would add megabytes. A noticeably
@@ -70,13 +69,12 @@ $(CLI_DST): $(CLI_CONFIG) $(SRC) $(BUILDER_SRC) $(MJS_DST)
 	@test "$$(wc -c < $@)" -le $(CLI_MAX_BYTES) || { echo "ERROR: $@ exceeds $(CLI_MAX_BYTES) byte cap" >&2; exit 1; }
 	@echo ""
 
-$(BUILDER_TEST_DST): $(BUILDER_TEST_CONFIG) $(SRC) $(TEST_SRC) $(BUILDER_SRC) $(MJS_DST)
+$(TEST_DST): $(TEST_CONFIG) $(SRC) $(TEST_SRC) $(BUILDER_SRC) $(MJS_DST)
 	@mkdir -p $(dir $@)
 	../node_modules/.bin/rollup -c $<
 	@ls -l $@
 	@test "$$(wc -c < $@)" -le $(TEST_MAX_BYTES) || { echo "ERROR: $@ exceeds $(TEST_MAX_BYTES) byte cap" >&2; exit 1; }
 	@echo ""
-
 
 # Consumer `npm install` skips the heavy test-full step to keep install fast.
 # `npm pack` re-runs prepare for a fresh build; tests are skipped there too
@@ -97,6 +95,6 @@ test-quick: all
 	cd .. && node dist/ts-refine.cli.mjs format --check
 
 clean:
-	/bin/rm -fr $(ALL) $(BUILDER_TEST_DST)
+	/bin/rm -fr $(ALL) $(TEST_DST)
 
 .PHONY: all clean test is-buildable is-not-buildable
