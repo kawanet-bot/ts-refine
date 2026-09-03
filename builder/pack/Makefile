@@ -8,7 +8,7 @@ SHELL := bash
 PKG_ROOT ?= node_modules/ts-refine
 
 # A target name in builder/, not a path from here.
-TEST_DST := ./tests/bundled.mjs
+TESTS_DST := ./tests/bundled.mjs
 
 # The workflows drive these steps in order:
 #   nodejs.yml   pack bundled unpack test
@@ -25,7 +25,7 @@ pack: clean
 	mv *-*.*.*.tgz packed.tgz
 
 bundled:
-	$(MAKE) -C .. $(TEST_DST)
+	$(MAKE) -C .. $(TESTS_DST)
 
 # The lane has no manifest, so the test-only peers the suites need come
 # from builder/pack/package.json. It names no package and declares no

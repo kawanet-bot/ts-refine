@@ -13,12 +13,12 @@ CLI_DST := ../dist/ts-refine.cli.mjs
 CLI_CONFIG := ./rollup-cli.config.ts
 
 TEST_SRC := $(shell find ../src -name '*.test.ts')
-TEST_DST := ./tests/bundled.mjs
-TEST_CONFIG := ./rollup-test.config.ts
+TESTS_DST := ./tests/bundled.mjs
+TESTS_CONFIG := ./rollup-test.config.ts
 
 # Same purpose as the caps above: a jump past this means the test bundle
 # accidentally inlined library sources or a dependency.
-TEST_MAX_BYTES := 120000
+TEST_MAX_BYTES := 100000
 
 # Bundle should contain only this package's own src/ — typescript (the one
 # runtime dep) is externalized; bundling it would add megabytes. A noticeably
@@ -29,7 +29,7 @@ TEST_MAX_BYTES := 120000
 # The mjs bundle carries the src/bridge compat layer. The CLI bundle imports
 # the library through ../index.ts, which the CLI rollup config aliases to the
 # external "ts-refine", so it stays small and never re-bundles the bridge.
-MJS_MAX_BYTES := 250000
+MJS_MAX_BYTES := 200000
 CLI_MAX_BYTES := 60000
 
 ALL := $(MJS_DST) $(CLI_DST)
@@ -69,7 +69,7 @@ $(CLI_DST): $(CLI_CONFIG) $(SRC) $(BUILDER_SRC) $(MJS_DST)
 	@test "$$(wc -c < $@)" -le $(CLI_MAX_BYTES) || { echo "ERROR: $@ exceeds $(CLI_MAX_BYTES) byte cap" >&2; exit 1; }
 	@echo ""
 
-$(TEST_DST): $(TEST_CONFIG) $(SRC) $(TEST_SRC) $(BUILDER_SRC) $(MJS_DST)
+$(TESTS_DST): $(TESTS_CONFIG) $(SRC) $(TEST_SRC) $(BUILDER_SRC) $(MJS_DST)
 	@mkdir -p $(dir $@)
 	../node_modules/.bin/rollup -c $<
 	@ls -l $@
@@ -95,6 +95,6 @@ test-quick: all
 	cd .. && node dist/ts-refine.cli.mjs format --check
 
 clean:
-	/bin/rm -fr $(ALL) $(TEST_DST)
+	/bin/rm -fr $(ALL) $(TESTS_DST)
 
 .PHONY: all clean test is-buildable is-not-buildable
